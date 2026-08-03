@@ -75,6 +75,12 @@ export type ResumeTemplate = {
   accentColor: string;
 };
 
+export type AgentStep = {
+  role: string;
+  model: string;
+  status: string;
+};
+
 export type AppState = {
   resumeData: ResumeData;
   setResumeData: (data: ResumeData) => void;
@@ -97,6 +103,8 @@ export type AppState = {
   setSelectedTemplate: (template: ResumeTemplate) => void;
   templateColor: string;
   setTemplateColor: (color: string) => void;
+  agentWorkflow: AgentStep[];
+  setAgentWorkflow: (workflow: AgentStep[]) => void;
 };
 
 const initialData: ResumeData = {
@@ -135,6 +143,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     accentColor: '#06b6d4',
   });
   const [templateColor, setTemplateColor] = useState('#06b6d4');
+  const [agentWorkflow, setAgentWorkflow] = useState<AgentStep[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,6 +168,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .catch(() => undefined);
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const savedJob = window.localStorage.getItem('resumegpt-last-job-analysis');
+    if (!savedJob) return;
+    try {
+      const parsed = JSON.parse(savedJob) as JobAnalysis;
+      if (parsed?.role && parsed?.source) {
+        setJobAnalysis(parsed);
+        setTargetMatchScore(parsed.matchScore);
+      }
+    } catch {
+      window.localStorage.removeItem('resumegpt-last-job-analysis');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (jobAnalysis) window.localStorage.setItem('resumegpt-last-job-analysis', JSON.stringify(jobAnalysis));
+  }, [jobAnalysis]);
 
   const updateProfile = (profile: Partial<Pick<ResumeData, 'name' | 'title' | 'summary'>>) => {
     setResumeData(prev => ({ ...prev, ...profile }));
@@ -206,6 +235,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setSelectedTemplate,
       templateColor,
       setTemplateColor,
+      agentWorkflow,
+      setAgentWorkflow,
     }}>
       {children}
     </AppContext.Provider>

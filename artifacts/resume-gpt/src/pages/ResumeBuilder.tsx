@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Save, Download, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles } from 'lucide-react';
+import { improveBulletLocally } from '@/lib/local-tools';
 
 function ResumePreview() {
   const { resumeData, selectedTemplate, templateColor } = useAppStore();
@@ -194,6 +195,7 @@ export default function ResumeBuilder() {
     updateContact,
     updateSkills,
     atsScore,
+    jobAnalysis,
     selectedTemplate,
     templateColor,
     setTemplateColor,
@@ -333,7 +335,16 @@ export default function ResumeBuilder() {
                   <div className="space-y-3">
                     <label className="text-xs font-medium text-muted-foreground flex justify-between">
                       Impact Bullets
-                      <span className="text-primary flex items-center gap-1 cursor-pointer hover:underline"><Sparkles className="w-3 h-3" /> Optimize metrics</span>
+                      <button
+                        type="button"
+                        className="text-primary flex items-center gap-1 hover:underline"
+                        onClick={() => {
+                          const targetSkill = jobAnalysis?.matchedSkills[0] || jobAnalysis?.missingSkills[0] || '';
+                          updateExperience(exp.id, { bullets: exp.bullets.map(bullet => improveBulletLocally(bullet, targetSkill)) });
+                        }}
+                      >
+                        <Sparkles className="w-3 h-3" /> Improve bullets locally
+                      </button>
                     </label>
                     {exp.bullets.map((bullet, idx) => (
                       <div key={idx} className="flex gap-2 items-start">
@@ -367,7 +378,12 @@ export default function ResumeBuilder() {
                 <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2"><Sparkles className="w-4 h-4" /> AI Suggestions</h4>
                 <div className="flex flex-wrap gap-2">
                   {['React Native', 'Figma Variables', 'A/B Testing'].map(s => (
-                    <Badge key={s} variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors border-primary/30">
+                    <Badge
+                      key={s}
+                      variant="outline"
+                      onClick={() => updateSkills(Array.from(new Set([...resumeData.skills, s])))}
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors border-primary/30"
+                    >
                       + {s}
                     </Badge>
                   ))}

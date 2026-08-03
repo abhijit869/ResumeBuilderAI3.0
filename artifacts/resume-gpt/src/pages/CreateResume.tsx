@@ -342,6 +342,8 @@ export default function CreateResume() {
     templateColor,
     setTemplateColor,
     setResumeData,
+    setAgentWorkflow,
+    agentWorkflow,
   } = useAppStore();
   const [stage, setStage] = useState<Stage>('profile');
   const [jobUrl, setJobUrl] = useState('');
@@ -452,6 +454,9 @@ export default function CreateResume() {
         templateId: selectedTemplate.id,
       });
       const generated = version.resume as Partial<typeof resumeData>;
+      if (Array.isArray((version.resume as Record<string, unknown>).agentWorkflow)) {
+        setAgentWorkflow((version.resume as Record<string, unknown>).agentWorkflow as { role: string; model: string; status: string }[]);
+      }
       setResumeData({
         ...resumeData,
         ...generated,
@@ -465,7 +470,7 @@ export default function CreateResume() {
       });
       setProgress(100);
       setStage('complete');
-      setNotice(`${selectedTemplate.name} selected. The AI-reviewed resume is saved and ready for final edits.`);
+       setNotice(`${selectedTemplate.name} selected. The AI planner, writer, and ATS reviewer completed and the resume is saved for final edits.`);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'AI resume generation failed.');
     } finally {
@@ -589,7 +594,10 @@ export default function CreateResume() {
         {stage === 'complete' && jobAnalysis && (
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <Card className="border-primary/30 bg-gradient-to-br from-primary/15 via-card to-card"><CardContent className="p-6"><div className="flex items-center gap-2 text-sm font-semibold text-success"><CheckCircle2 className="h-4 w-4" /> Resume assembled</div><h2 className="mt-4 text-3xl font-bold">{resumeData.name}</h2><p className="mt-1 text-primary">{jobAnalysis.role} · {jobAnalysis.company}</p><div className="mt-6 grid grid-cols-2 gap-3"><div className="rounded-lg border border-border/50 bg-background/30 p-3"><div className="font-mono text-2xl font-bold text-success">{jobAnalysis.matchScore}%</div><div className="text-xs text-muted-foreground">Role match</div></div><div className="rounded-lg border border-border/50 bg-background/30 p-3"><div className="font-mono text-2xl font-bold text-primary">{selectedTemplate.name}</div><div className="text-xs text-muted-foreground">Template</div></div></div><div className="mt-6 flex flex-wrap gap-3"><Button asChild><Link href="/resume">Open in resume builder <ArrowRight className="ml-2 h-4 w-4" /></Link></Button><Button variant="outline" onClick={() => setStage('design')}>Change template</Button></div></CardContent></Card>
-            <Card className="border-border/60 bg-card/60"><CardHeader><CardTitle>What was tailored</CardTitle><CardDescription>The generated document carries the workflow context forward so you can polish before exporting.</CardDescription></CardHeader><CardContent className="space-y-3">{['Professional summary aligned to the target role', `${jobAnalysis.matchedSkills.length} matched skills kept visible`, `${jobAnalysis.missingSkills.length} skill gaps flagged for review`, 'ATS-friendly sections and keyword placement', 'Ready for final edit, export, and cover letter generation'].map(item => <div key={item} className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/30 p-3 text-sm"><Check className="h-4 w-4 text-success" />{item}</div>)}</CardContent></Card>
+             <div className="space-y-6">
+               <Card className="border-border/60 bg-card/60"><CardHeader><CardTitle>What was tailored</CardTitle><CardDescription>The generated document carries the workflow context forward so you can polish before exporting.</CardDescription></CardHeader><CardContent className="space-y-3">{['Professional summary aligned to the target role', `${jobAnalysis.matchedSkills.length} matched skills kept visible`, `${jobAnalysis.missingSkills.length} skill gaps flagged for review`, 'ATS-friendly sections and keyword placement', 'Ready for final edit, export, and cover letter generation'].map(item => <div key={item} className="flex items-center gap-3 rounded-lg border border-border/40 bg-background/30 p-3 text-sm"><Check className="h-4 w-4 text-success" />{item}</div>)}</CardContent></Card>
+               <Card className="border-primary/20 bg-primary/5"><CardHeader><CardTitle>Agent workflow validation</CardTitle><CardDescription>Models used for this saved resume run.</CardDescription></CardHeader><CardContent className="space-y-2">{agentWorkflow.length ? agentWorkflow.map(step => <div key={step.role} className="flex items-center justify-between rounded-lg border border-border/40 bg-background/30 p-3 text-sm"><span className="capitalize">{step.role.replace('-', ' ')}</span><span className="font-mono text-xs text-primary">{step.model}</span></div>) : <p className="text-sm text-muted-foreground">Agent run details appear after generation.</p>}</CardContent></Card>
+             </div>
           </div>
         )}
       </div>
