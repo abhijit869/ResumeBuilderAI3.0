@@ -3,3 +3,4 @@
 - [ResumeGPT private tools](resume-gpt-private-tools.md) — local ATS, cover-letter, interview, keyword, and bullet tools should operate on saved evidence without exposing data or needing another key.
 - [ResumeGPT theme and exports](resume-gpt-theme-export.md) — native browser theme/export utilities avoid provider-context issues and keep files grounded in the saved resume model.
 - [ResumeGPT authentication](resume-gpt-authentication.md) — managed Clerk owns browser sessions; server workspace data is scoped by authenticated Clerk user ID.
+- [ResumeGPT deployment drift](resume-gpt-deployment.md) — production can remain on an older successful artifact build until the current workspace is explicitly published.
