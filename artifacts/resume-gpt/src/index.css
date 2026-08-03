@@ -7,6 +7,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Clerk's canonical appearance uses a fixed desktop card width. Constrain it
+   to the auth column so the form remains usable on narrow phones. */
+.cl-rootBox,
+.cl-cardBox,
+.cl-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

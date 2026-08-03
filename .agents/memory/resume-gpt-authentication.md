@@ -9,6 +9,8 @@ The public landing page remains accessible to signed-out visitors. Sign-in and s
 
 Persisted workspace records are keyed by a namespaced authenticated Clerk user identifier rather than a client-generated workspace key.
 
+Clerk's fixed-width auth card needs a global responsive width override so the sign-in form does not clip on narrow phones.
+
 **Why:** Clerk provides the managed email/password, verification, reset, and configured social-provider flows without creating a custom password or JWT system. Server-side ownership checks prevent a client from selecting another user's workspace key.
 
-**How to apply:** Keep auth enforcement in both the UI route guard and API middleware. Add roles/admin controls as a separate layer; never hardcode a default administrator in frontend code.
+**How to apply:** Keep auth enforcement in both the UI route guard and API middleware. Keep Clerk user provisioning in the Replit Auth pane; do not hardcode credentials or a default administrator in frontend code. Add roles/admin controls as a separate layer.
