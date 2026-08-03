@@ -112,6 +112,12 @@ export interface ResumeVersionRecord {
   createdAt: string;
 }
 
+export interface WorkspaceState {
+  profile: ProfileRecord | null;
+  job: JobAnalysisRecord | null;
+  resume: ResumeVersionRecord | null;
+}
+
 /**
  * Error response
  */

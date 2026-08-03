@@ -69,6 +69,39 @@ export const ImportWorkspaceProfileResponse = zod.object({
 
 
 /**
+ * @summary Load the saved workspace state for the signed-in user
+ */
+export const GetWorkspaceStateResponse = zod.object({
+  "profile": zod.union([zod.object({
+  "id": zod.number(),
+  "workspaceKey": zod.string(),
+  "profileUrl": zod.string(),
+  "source": zod.string(),
+  "profile": zod.record(zod.string(), zod.unknown()),
+  "fetchedAt": zod.coerce.date()
+}),zod.null()]),
+  "job": zod.union([zod.object({
+  "id": zod.number(),
+  "workspaceKey": zod.string(),
+  "jobUrl": zod.string().nullish(),
+  "source": zod.enum(['url', 'description']),
+  "job": zod.record(zod.string(), zod.unknown()),
+  "comparison": zod.record(zod.string(), zod.unknown()),
+  "analyzedAt": zod.coerce.date()
+}),zod.null()]),
+  "resume": zod.union([zod.object({
+  "id": zod.number(),
+  "workspaceKey": zod.string(),
+  "jobAnalysisId": zod.number(),
+  "mode": zod.enum(['manual', 'auto']),
+  "templateId": zod.string(),
+  "resume": zod.record(zod.string(), zod.unknown()),
+  "createdAt": zod.coerce.date()
+}),zod.null()])
+})
+
+
+/**
  * @summary Save manually edited profile data
  */
 export const saveWorkspaceProfileHeaderXWorkspaceKeyMin = 8;

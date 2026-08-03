@@ -62,6 +62,20 @@ paths:
                 $ref: "#/components/schemas/ProfileRecord"
         "400":
           $ref: "#/components/responses/Error"
+  /workspace/state:
+    get:
+      operationId: getWorkspaceState
+      tags: [workspace]
+      summary: Load the saved workspace state for the signed-in user
+      responses:
+        "200":
+          description: Latest saved profile, job analysis, and resume version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceState"
+        "401":
+          $ref: "#/components/responses/Error"
         "422":
           $ref: "#/components/responses/Error"
     put:
@@ -250,3 +264,19 @@ components:
           additionalProperties: true
         createdAt: { type: string, format: date-time }
       required: [id, workspaceKey, jobAnalysisId, mode, templateId, resume, createdAt]
+    WorkspaceState:
+      type: object
+      properties:
+        profile:
+          anyOf:
+            - $ref: "#/components/schemas/ProfileRecord"
+            - type: "null"
+        job:
+          anyOf:
+            - $ref: "#/components/schemas/JobAnalysisRecord"
+            - type: "null"
+        resume:
+          anyOf:
+            - $ref: "#/components/schemas/ResumeVersionRecord"
+            - type: "null"
+      required: [profile, job, resume]

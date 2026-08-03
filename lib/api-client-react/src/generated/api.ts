@@ -28,7 +28,8 @@ import type {
   ProfileRecord,
   ProfileSaveInput,
   ResumeGenerateInput,
-  ResumeVersionRecord
+  ResumeVersionRecord,
+  WorkspaceState
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -283,12 +284,89 @@ export const useImportWorkspaceProfile = <TError = ErrorType<ErrorResponse>,
       return useMutation(getImportWorkspaceProfileMutationOptions(options));
     }
 
+export const getGetWorkspaceStateUrl = () => {
+
+
+
+
+  return `/api/workspace/state`
+}
+
+/**
+ * @summary Load the saved workspace state for the signed-in user
+ */
+export const getWorkspaceState = async ( options?: Parameters<typeof customFetch>[1]): Promise<WorkspaceState> => {
+
+  return customFetch<WorkspaceState>(getGetWorkspaceStateUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWorkspaceStateQueryKey = () => {
+    return [
+    `/api/workspace/state`
+    ] as const;
+    }
+
+
+export const getGetWorkspaceStateQueryOptions = <TData = Awaited<ReturnType<typeof getWorkspaceState>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWorkspaceStateQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspaceState>>> = ({ signal }) => getWorkspaceState({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceState>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWorkspaceStateQueryResult = NonNullable<Awaited<ReturnType<typeof getWorkspaceState>>>
+export type GetWorkspaceStateQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Load the saved workspace state for the signed-in user
+ */
+
+export function useGetWorkspaceState<TData = Awaited<ReturnType<typeof getWorkspaceState>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWorkspaceState>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWorkspaceStateQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getSaveWorkspaceProfileUrl = () => {
 
 
 
 
-  return `/api/workspace/profile`
+  return `/api/workspace/state`
 }
 
 /**

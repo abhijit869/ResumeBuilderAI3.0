@@ -26,3 +26,4 @@ export * from './resumeVersionRecord';
 export * from './resumeVersionRecordMode';
 export * from './resumeVersionRecordResume';
 export * from './workspaceKeyParameter';
+export * from './workspaceState';

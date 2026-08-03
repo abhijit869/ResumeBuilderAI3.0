@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useUser } from '@clerk/react';
-import { getWorkspaceProfile } from '@workspace/api-client-react';
+import { getWorkspaceState } from '@workspace/api-client-react';
+import { RESUME_TEMPLATES, templateWithLayout } from '@/lib/resume-templates';
 
 export type Experience = {
   id: string;
@@ -129,6 +130,46 @@ function createInitialData(): ResumeData {
   };
 }
 
+function normalizeResumeData(value: unknown, base = createInitialData()): ResumeData {
+  if (!value || typeof value !== 'object') return base;
+  const candidate = value as Partial<ResumeData>;
+  return {
+    ...base,
+    ...candidate,
+    contact: { ...base.contact, ...(candidate.contact ?? {}) },
+    experience: Array.isArray(candidate.experience) ? candidate.experience : base.experience,
+    education: Array.isArray(candidate.education) ? candidate.education : base.education,
+    projects: Array.isArray(candidate.projects) ? candidate.projects : base.projects,
+    certifications: Array.isArray(candidate.certifications) ? candidate.certifications : base.certifications,
+    languages: Array.isArray(candidate.languages) ? candidate.languages : base.languages,
+    skills: Array.isArray(candidate.skills) ? candidate.skills : base.skills,
+  };
+}
+
+function normalizeJobAnalysis(value: {
+  id: number;
+  source: 'url' | 'description';
+  job: Record<string, unknown>;
+  comparison: Record<string, unknown>;
+}): JobAnalysis {
+  const job = value.job;
+  const comparison = value.comparison;
+  const stringValue = (candidate: unknown, fallback: string) => typeof candidate === 'string' && candidate.trim() ? candidate : fallback;
+  const stringArray = (candidate: unknown) => Array.isArray(candidate) ? candidate.filter((item): item is string => typeof item === 'string') : [];
+  return {
+    id: value.id,
+    source: value.source,
+    role: stringValue(job.title, 'Target role'),
+    company: stringValue(job.company, 'Target company'),
+    location: stringValue(job.location, 'See job listing'),
+    seniority: stringValue(job.seniority, 'Not specified'),
+    summary: stringValue(job.summary, 'Saved target role analysis'),
+    matchedSkills: stringArray(comparison.matchedSkills),
+    missingSkills: stringArray(comparison.missingSkills),
+    matchScore: typeof comparison.matchScore === 'number' ? comparison.matchScore : 0,
+  };
+}
+
 const AppContext = createContext<AppState | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -176,12 +217,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
   const [agentWorkflow, setAgentWorkflow] = useState<AgentStep[]>([]);
   const previousUserId = useRef<string | null | undefined>(undefined);
+  const [readyStorageNamespace, setReadyStorageNamespace] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoaded) return;
     const nextUserId = user?.id ?? null;
     if (previousUserId.current === nextUserId) return;
     previousUserId.current = nextUserId;
+    setReadyStorageNamespace(null);
 
     setResumeData(createInitialData());
     setAtsScore(0);
@@ -200,59 +243,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {
       setTemplateColor('#06b6d4');
     }
+    setReadyStorageNamespace(storageNamespace);
   }, [authLoaded, user?.id]);
 
   useEffect(() => {
     if (!authLoaded || !user?.id) return;
     let cancelled = false;
-    getWorkspaceProfile()
-      .catch(() => null)
-      .then(record => {
-        if (cancelled || !record?.profile) return;
-        const profile = record.profile as Partial<ResumeData>;
-        setResumeData(current => ({
-          ...current,
-          ...profile,
-          contact: { ...current.contact, ...(profile.contact ?? {}) },
-          experience: Array.isArray(profile.experience) ? profile.experience : current.experience,
-          education: Array.isArray(profile.education) ? profile.education : current.education,
-          projects: Array.isArray(profile.projects) ? profile.projects : current.projects,
-          certifications: Array.isArray(profile.certifications) ? profile.certifications : current.certifications,
-          languages: Array.isArray(profile.languages) ? profile.languages : current.languages,
-          skills: Array.isArray(profile.skills) ? profile.skills : current.skills,
-        }));
-        setProfileSource('linkedin');
+    getWorkspaceState()
+      .then(state => {
+        if (cancelled) return;
+        if (state.profile?.profile) {
+          setResumeData(current => normalizeResumeData(state.profile?.profile, current));
+          setProfileSource(state.profile.source === 'public-url' ? 'linkedin' : 'current');
+        }
+        if (state.job) {
+          const job = normalizeJobAnalysis(state.job);
+          setJobAnalysis(job);
+          setTargetMatchScore(job.matchScore);
+        }
+        if (state.resume?.resume) {
+          const savedResume = normalizeResumeData(state.resume.resume);
+          setResumeData(savedResume);
+          setResumeMode(state.resume.mode);
+          const savedWorkflow = state.resume.resume.agentWorkflow;
+          if (Array.isArray(savedWorkflow)) setAgentWorkflow(savedWorkflow as AgentStep[]);
+          const savedTemplate = RESUME_TEMPLATES.find(template => template.id === state.resume?.templateId);
+          if (savedTemplate) {
+            const template = templateWithLayout(savedTemplate);
+            setSelectedTemplate(template);
+            setTemplateColor(template.accentColor);
+          }
+        }
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
   }, [authLoaded, user?.id]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const savedJob = window.localStorage.getItem(storageKey('last-job-analysis'));
-    if (!savedJob) return;
-    try {
-      const parsed = JSON.parse(savedJob) as JobAnalysis;
-      if (parsed?.role && parsed?.source) {
-        setJobAnalysis(parsed);
-        setTargetMatchScore(parsed.matchScore);
-      }
-    } catch {
-      window.localStorage.removeItem(storageKey('last-job-analysis'));
-    }
-  }, [storageNamespace]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (jobAnalysis) window.localStorage.setItem(storageKey('last-job-analysis'), JSON.stringify(jobAnalysis));
-    else window.localStorage.removeItem(storageKey('last-job-analysis'));
-  }, [jobAnalysis, storageNamespace]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || readyStorageNamespace !== storageNamespace) return;
     window.localStorage.setItem(storageKey('selected-template'), JSON.stringify(selectedTemplate));
     window.localStorage.setItem(storageKey('template-color'), templateColor);
-  }, [selectedTemplate, templateColor, storageNamespace]);
+  }, [selectedTemplate, templateColor, storageNamespace, readyStorageNamespace]);
 
   const updateProfile = (profile: Partial<Pick<ResumeData, 'name' | 'title' | 'summary'>>) => {
     setResumeData(prev => ({ ...prev, ...profile }));

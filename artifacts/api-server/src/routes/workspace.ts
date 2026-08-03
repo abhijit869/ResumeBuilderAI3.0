@@ -10,6 +10,7 @@ import {
   SaveWorkspaceProfileResponse,
   AnalyzeWorkspaceJobResponse,
   GenerateWorkspaceResumeResponse,
+  GetWorkspaceStateResponse,
 } from "@workspace/api-zod";
 import {
   compareProfileToJob,
@@ -17,6 +18,8 @@ import {
   generateResumeWithAgents,
   getJob,
   getSavedProfile,
+  getLatestJob,
+  getLatestResume,
   getWorkspaceKey,
   extractProfileWithAgents,
   analyzeJobWithAgents,
@@ -46,6 +49,17 @@ router.get("/workspace/profile", async (req, res): Promise<void> => {
     return;
   }
   res.json(GetWorkspaceProfileResponse.parse(record));
+});
+
+router.get("/workspace/state", async (req, res): Promise<void> => {
+  const workspaceKey = workspaceKeyFromRequest(req, res);
+  if (!workspaceKey) return;
+  const [profile, job, resume] = await Promise.all([
+    getSavedProfile(workspaceKey),
+    getLatestJob(workspaceKey),
+    getLatestResume(workspaceKey),
+  ]);
+  res.json(GetWorkspaceStateResponse.parse({ profile: profile ?? null, job: job ?? null, resume: resume ?? null }));
 });
 
 router.post("/workspace/profile", async (req, res): Promise<void> => {

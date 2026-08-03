@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db, workspaceProfilesTable, jobAnalysesTable, resumeVersionsTable } from "@workspace/db";
 import { logger } from "./logger";
 
@@ -8,6 +8,7 @@ const OPENCODE_ZEN_MODELS = [
   "mimo-v2.5-free",
   "ling-3.0-flash-free",
 ] as const;
+const AI_REQUEST_TIMEOUT_MS = 30_000;
 
 function getOpenCodeZenUrl(): string {
   const configured = process.env.OPENCODEZEN_BASE_URL?.trim() || "https://opencode.ai/zen/v1";
@@ -260,21 +261,33 @@ export function compareProfileToJob(profile: Record<string, unknown>, job: Recor
 async function callOpenCodeZenOnce(prompt: string, model: string): Promise<string> {
   const apiKey = process.env.OPENCODEZEN_API_KEY;
   if (!apiKey) throw new Error("OPENCODEZEN_API_KEY is not configured.");
-  const response = await fetch(getOpenCodeZenUrl(), {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
-      max_tokens: 5000,
-    }),
-  });
-  const body = await response.json().catch(() => null) as { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } } | null;
-  if (!response.ok) throw new Error(body?.error?.message || `OpenCode Zen returned HTTP ${response.status}.`);
-  const content = body?.choices?.[0]?.message?.content;
-  if (!content) throw new Error("OpenCode Zen returned an empty response.");
-  return content;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(getOpenCodeZenUrl(), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        max_tokens: 5000,
+      }),
+      signal: controller.signal,
+    });
+    const body = await response.json().catch(() => null) as { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } } | null;
+    if (!response.ok) throw new Error(body?.error?.message || `OpenCode Zen returned HTTP ${response.status}.`);
+    const content = body?.choices?.[0]?.message?.content;
+    if (!content) throw new Error("OpenCode Zen returned an empty response.");
+    return content;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`OpenCode Zen timed out after ${AI_REQUEST_TIMEOUT_MS / 1000} seconds.`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function parseJsonObject(value: string): Record<string, unknown> {
@@ -368,6 +381,26 @@ export async function generateResumeWithAgents(profile: Record<string, unknown>,
 
 export async function getSavedProfile(workspaceKey: string) {
   const [record] = await db.select().from(workspaceProfilesTable).where(eq(workspaceProfilesTable.workspaceKey, workspaceKey)).limit(1);
+  return record;
+}
+
+export async function getLatestJob(workspaceKey: string) {
+  const [record] = await db
+    .select()
+    .from(jobAnalysesTable)
+    .where(eq(jobAnalysesTable.workspaceKey, workspaceKey))
+    .orderBy(desc(jobAnalysesTable.analyzedAt), desc(jobAnalysesTable.id))
+    .limit(1);
+  return record;
+}
+
+export async function getLatestResume(workspaceKey: string) {
+  const [record] = await db
+    .select()
+    .from(resumeVersionsTable)
+    .where(eq(resumeVersionsTable.workspaceKey, workspaceKey))
+    .orderBy(desc(resumeVersionsTable.createdAt), desc(resumeVersionsTable.id))
+    .limit(1);
   return record;
 }
 
