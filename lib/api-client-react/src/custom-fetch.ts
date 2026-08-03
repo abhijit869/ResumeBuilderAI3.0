@@ -151,6 +151,22 @@ function truncate(text: string, maxLength = 300): string {
 function buildErrorMessage(response: Response, data: unknown): string {
   const prefix = `HTTP ${response.status} ${response.statusText}`;
 
+  if (response.status === 401) {
+    return "Your secure session has expired. Sign in again to continue.";
+  }
+
+  if (response.status === 403) {
+    return "You don't have permission to access this workspace.";
+  }
+
+  if (response.status === 408 || response.status === 429) {
+    return "ResumeGPT is temporarily busy. Wait a moment and try again.";
+  }
+
+  if (response.status >= 500) {
+    return "ResumeGPT is temporarily unavailable. Please try again shortly.";
+  }
+
   if (typeof data === "string") {
     const text = data.trim();
     return text ? `${prefix}: ${truncate(text)}` : prefix;

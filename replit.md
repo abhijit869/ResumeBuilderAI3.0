@@ -1,15 +1,18 @@
-# [Project name]
+# ResumeGPT
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+ResumeGPT is an authenticated AI career workspace for importing career evidence, matching it to target jobs, building grounded resumes, and exporting polished applications.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
+- `pnpm --filter @workspace/api-server run dev` — run the API server
+- `pnpm --filter @workspace/resume-gpt run dev` — run the web app
+- `pnpm --filter @workspace/resume-gpt run typecheck` — check the web app
+- `pnpm --filter @workspace/api-server run typecheck` — check the API server
+- `PORT=21519 BASE_PATH=/ pnpm --filter @workspace/resume-gpt run build` — build the web app
+- `pnpm --filter @workspace/api-server run build` — build the API server
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL`, Clerk-managed auth secrets, and `OPENCODEZEN_API_KEY`
 
 ## Stack
 
@@ -22,23 +25,44 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/resume-gpt/src/App.tsx` — public landing page, auth routes, protected workspace routing
+- `artifacts/resume-gpt/src/pages/` — dashboard, create flow, builder, analyzer, and local tools
+- `artifacts/resume-gpt/src/store/index.tsx` — authenticated client workspace state and local preferences
+- `artifacts/api-server/src/routes/workspace.ts` — protected profile, job analysis, and resume generation API
+- `artifacts/api-server/src/lib/workspace.ts` — public-page extraction, grounded AI fallback chain, and persistence helpers
+- `lib/api-spec/openapi.yaml` — API contract source of truth
+- `lib/db/src/schema/` — persisted workspace schema
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Clerk is Replit-managed; browser sessions use cookies and workspace records are scoped to the Clerk user ID.
+- Public profile and job imports only read accessible HTTP(S) pages and reject authorization walls.
+- Resume generation uses server-side OpenCode Zen models with deterministic extraction fallbacks.
+- Resume exports use browser-native PDF and image rendering to avoid provider-specific export dependencies.
+- Client-only preferences and recent job analysis are namespaced per authenticated user.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Public product landing page with workflow, feature, documentation, and about sections
+- Clerk email/password and supported social sign-in flows
+- Profile import or manual profile editing
+- Job URL or pasted-description analysis with evidence matching
+- Multi-agent grounded resume generation
+- Multiple persisted resume templates and accent colors
+- Resume editing, ATS/local quality analysis, cover-letter drafting, and interview preparation
+- Native PDF, PNG, and JPG exports
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Keep the public home route accessible while protecting all workspace routes.
+- Do not hardcode administrator credentials or bypass Clerk password and rate-limit protections.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Preview uses Clerk development keys and a separate development user store; production accounts are separate after publishing.
+- The frontend build requires `PORT` and `BASE_PATH` from the artifact workflow.
+- Workspace API routes require a Clerk session and return `401` when accessed signed out.
+- Never attach bearer-token handling to the browser client; Clerk web sessions use cookies.
 
 ## Pointers
 

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { useUser } from '@clerk/react';
 import { getWorkspaceProfile } from '@workspace/api-client-react';
 
 export type Experience = {
@@ -108,28 +109,33 @@ export type AppState = {
   setAgentWorkflow: (workflow: AgentStep[]) => void;
 };
 
-const initialData: ResumeData = {
-  name: "",
-  title: "",
-  summary: "",
-  contact: {
-    email: "",
-    phone: "",
-    location: "",
-    linkedin: ""
-  },
-  experience: [],
-  education: [],
-  projects: [],
-  certifications: [],
-  languages: [],
-  skills: []
-};
+function createInitialData(): ResumeData {
+  return {
+    name: "",
+    title: "",
+    summary: "",
+    contact: {
+      email: "",
+      phone: "",
+      location: "",
+      linkedin: ""
+    },
+    experience: [],
+    education: [],
+    projects: [],
+    certifications: [],
+    languages: [],
+    skills: []
+  };
+}
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [resumeData, setResumeData] = useState<ResumeData>(initialData);
+  const { isLoaded: authLoaded, user } = useUser();
+  const storageNamespace = user?.id ? `user-${user.id}` : 'guest';
+  const storageKey = (name: string) => `resumegpt:${storageNamespace}:${name}`;
+  const [resumeData, setResumeData] = useState<ResumeData>(() => createInitialData());
   const [atsScore, setAtsScore] = useState<number>(0);
   const [targetMatchScore, setTargetMatchScore] = useState<number>(0);
   const [resumeMode, setResumeMode] = useState<ResumeMode>('auto');
@@ -146,13 +152,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       layout: 'ats',
     };
     try {
-      const stored = window.localStorage.getItem('resumegpt-selected-template');
+      const stored = window.localStorage.getItem(storageKey('selected-template'));
       if (stored) {
         const parsed = JSON.parse(stored) as ResumeTemplate;
         if (parsed?.id && parsed?.name) return parsed;
       }
     } catch {
-      window.localStorage.removeItem('resumegpt-selected-template');
+      window.localStorage.removeItem(storageKey('selected-template'));
     }
     return {
       id: 'ats-clarity',
@@ -166,11 +172,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
   const [templateColor, setTemplateColor] = useState(() => {
     if (typeof window === 'undefined') return '#06b6d4';
-    return window.localStorage.getItem('resumegpt-template-color') || selectedTemplate.accentColor;
+    return window.localStorage.getItem(storageKey('template-color')) || selectedTemplate.accentColor;
   });
   const [agentWorkflow, setAgentWorkflow] = useState<AgentStep[]>([]);
+  const previousUserId = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
+    if (!authLoaded) return;
+    const nextUserId = user?.id ?? null;
+    if (previousUserId.current === nextUserId) return;
+    previousUserId.current = nextUserId;
+
+    setResumeData(createInitialData());
+    setAtsScore(0);
+    setTargetMatchScore(0);
+    setJobAnalysis(null);
+    setAgentWorkflow([]);
+
+    try {
+      const storedTemplate = window.localStorage.getItem(storageKey('selected-template'));
+      if (storedTemplate) {
+        const parsed = JSON.parse(storedTemplate) as ResumeTemplate;
+        if (parsed?.id && parsed?.name) setSelectedTemplate(parsed);
+      }
+      const storedColor = window.localStorage.getItem(storageKey('template-color'));
+      setTemplateColor(storedColor || '#06b6d4');
+    } catch {
+      setTemplateColor('#06b6d4');
+    }
+  }, [authLoaded, user?.id]);
+
+  useEffect(() => {
+    if (!authLoaded || !user?.id) return;
     let cancelled = false;
     getWorkspaceProfile()
       .catch(() => null)
@@ -192,11 +225,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
-  }, []);
+  }, [authLoaded, user?.id]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const savedJob = window.localStorage.getItem('resumegpt-last-job-analysis');
+    const savedJob = window.localStorage.getItem(storageKey('last-job-analysis'));
     if (!savedJob) return;
     try {
       const parsed = JSON.parse(savedJob) as JobAnalysis;
@@ -205,20 +238,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTargetMatchScore(parsed.matchScore);
       }
     } catch {
-      window.localStorage.removeItem('resumegpt-last-job-analysis');
+      window.localStorage.removeItem(storageKey('last-job-analysis'));
     }
-  }, []);
+  }, [storageNamespace]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (jobAnalysis) window.localStorage.setItem('resumegpt-last-job-analysis', JSON.stringify(jobAnalysis));
-  }, [jobAnalysis]);
+    if (jobAnalysis) window.localStorage.setItem(storageKey('last-job-analysis'), JSON.stringify(jobAnalysis));
+    else window.localStorage.removeItem(storageKey('last-job-analysis'));
+  }, [jobAnalysis, storageNamespace]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem('resumegpt-selected-template', JSON.stringify(selectedTemplate));
-    window.localStorage.setItem('resumegpt-template-color', templateColor);
-  }, [selectedTemplate, templateColor]);
+    window.localStorage.setItem(storageKey('selected-template'), JSON.stringify(selectedTemplate));
+    window.localStorage.setItem(storageKey('template-color'), templateColor);
+  }, [selectedTemplate, templateColor, storageNamespace]);
 
   const updateProfile = (profile: Partial<Pick<ResumeData, 'name' | 'title' | 'summary'>>) => {
     setResumeData(prev => ({ ...prev, ...profile }));

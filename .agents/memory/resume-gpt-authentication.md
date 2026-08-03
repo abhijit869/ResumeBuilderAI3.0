@@ -14,3 +14,9 @@ Clerk's fixed-width auth card needs a global responsive width override so the si
 **Why:** Clerk provides the managed email/password, verification, reset, and configured social-provider flows without creating a custom password or JWT system. Server-side ownership checks prevent a client from selecting another user's workspace key.
 
 **How to apply:** Keep auth enforcement in both the UI route guard and API middleware. Keep Clerk user provisioning in the Replit Auth pane; do not hardcode credentials or a default administrator in frontend code. Add roles/admin controls as a separate layer.
+
+Client workspace state must be cleared when the Clerk identity changes, and browser-only preferences must be namespaced by authenticated user ID.
+
+**Why:** A shared browser can switch accounts without a full page reload; leaving in-memory resume or job state mounted could reveal the previous user's private career data.
+
+**How to apply:** Treat Clerk user identity changes as a workspace boundary. Rehydrate only the current user's server profile and namespaced local preferences.
