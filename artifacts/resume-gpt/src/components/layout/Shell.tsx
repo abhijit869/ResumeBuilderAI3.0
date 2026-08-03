@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AppProvider } from '@/store';
 import { useEffect, useState } from 'react';
 import { getThemeMode, setThemeMode, subscribeToThemeChanges, type ThemeMode } from '@/lib/theme';
+import { useClerk, useUser } from '@clerk/react';
 
 type NavItem = {
   title: string;
@@ -62,6 +63,10 @@ function ThemeToggle() {
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+  const displayName = user?.firstName || user?.primaryEmailAddress?.emailAddress?.split('@')[0] || 'Your workspace';
 
   return (
     <AppProvider>
@@ -96,8 +101,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 RG
               </div>
               <div className="flex-1 overflow-hidden">
-                <div className="text-sm font-medium truncate">Your workspace</div>
-                <div className="text-xs text-muted-foreground truncate">Live profile mode</div>
+                <div className="text-sm font-medium truncate">{displayName}</div>
+                <div className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress || 'Secure workspace'}</div>
               </div>
             </div>
             <div className="flex items-center justify-between">
@@ -106,6 +111,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
                 </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => signOut({ redirectUrl: basePath || '/' })} className="text-muted-foreground hover:text-foreground">
+                Sign out
               </Button>
               <ThemeToggle />
             </div>

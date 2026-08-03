@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { getAuth } from "@clerk/express";
 import {
   AnalyzeWorkspaceJobBody,
   GenerateWorkspaceResumeBody,
@@ -27,14 +28,13 @@ import {
 
 const router: IRouter = Router();
 
-function workspaceKeyFromRequest(req: { headers: Record<string, string | string[] | undefined> }, res: { status: (code: number) => { json: (value: unknown) => void } }): string | null {
-  const value = req.headers["x-workspace-key"];
-  const key = getWorkspaceKey(Array.isArray(value) ? value[0] : value);
-  if (!key) {
-    res.status(400).json({ error: "A valid x-workspace-key header is required." });
+function workspaceKeyFromRequest(req: Parameters<typeof getAuth>[0], res: { status: (code: number) => { json: (value: unknown) => void } }): string | null {
+  const userId = getAuth(req).userId;
+  if (!userId) {
+    res.status(401).json({ error: "Authentication is required." });
     return null;
   }
-  return key;
+  return getWorkspaceKey(`clerk:${userId}`);
 }
 
 router.get("/workspace/profile", async (req, res): Promise<void> => {
