@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, FileText, Sparkles, Target, Briefcase, FileCode2, LineChart, Settings, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, FileText, Sparkles, Target, Briefcase, FileCode2, LineChart, Settings, Sun, Moon, Workflow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AppProvider } from '@/store';
@@ -13,6 +13,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
+  { title: "Create Resume", href: "/create", icon: Workflow },
   { title: "Resume Builder", href: "/resume", icon: FileText },
   { title: "AI Analyzer", href: "/analyzer", icon: Sparkles },
   { title: "Job Match", href: "/match", icon: Target },

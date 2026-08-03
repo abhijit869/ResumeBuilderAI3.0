@@ -5,6 +5,7 @@ import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
 import ResumeBuilder from '@/pages/ResumeBuilder';
 import Analyzer from '@/pages/Analyzer';
+import CreateResume from '@/pages/CreateResume';
 
 const queryClient = new QueryClient();
 
@@ -13,6 +14,7 @@ function Router() {
     <Shell>
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/create" component={CreateResume} />
         <Route path="/resume" component={ResumeBuilder} />
         <Route path="/analyzer" component={Analyzer} />
         <Route component={NotFound} />

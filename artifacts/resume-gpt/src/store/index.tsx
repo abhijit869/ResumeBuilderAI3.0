@@ -22,9 +22,31 @@ export type ResumeData = {
   };
 };
 
+export type ResumeMode = 'manual' | 'auto';
+export type ProfileSource = 'current' | 'linkedin' | 'resume-file' | 'paste';
+export type JobAnalysis = {
+  role: string;
+  company: string;
+  location: string;
+  seniority: string;
+  summary: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  matchScore: number;
+  source: 'url' | 'description';
+};
+export type ResumeTemplate = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  accent: string;
+};
+
 export type AppState = {
   resumeData: ResumeData;
   setResumeData: (data: ResumeData) => void;
+  updateProfile: (profile: Partial<Pick<ResumeData, 'name' | 'title' | 'summary'>>) => void;
   updateExperience: (id: string, exp: Partial<Experience>) => void;
   updateSummary: (summary: string) => void;
   updateContact: (contact: Partial<ResumeData['contact']>) => void;
@@ -33,6 +55,14 @@ export type AppState = {
   setAtsScore: (score: number) => void;
   targetMatchScore: number;
   setTargetMatchScore: (score: number) => void;
+  resumeMode: ResumeMode;
+  setResumeMode: (mode: ResumeMode) => void;
+  profileSource: ProfileSource;
+  setProfileSource: (source: ProfileSource) => void;
+  jobAnalysis: JobAnalysis | null;
+  setJobAnalysis: (analysis: JobAnalysis | null) => void;
+  selectedTemplate: ResumeTemplate;
+  setSelectedTemplate: (template: ResumeTemplate) => void;
 };
 
 const initialData: ResumeData = {
@@ -78,6 +108,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [resumeData, setResumeData] = useState<ResumeData>(initialData);
   const [atsScore, setAtsScore] = useState<number>(86);
   const [targetMatchScore, setTargetMatchScore] = useState<number>(72);
+  const [resumeMode, setResumeMode] = useState<ResumeMode>('auto');
+  const [profileSource, setProfileSource] = useState<ProfileSource>('current');
+  const [jobAnalysis, setJobAnalysis] = useState<JobAnalysis | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>({
+    id: 'ats-clarity',
+    name: 'ATS Clarity',
+    category: 'ATS optimized',
+    description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
+    accent: 'from-cyan-400 to-blue-500',
+  });
+
+  const updateProfile = (profile: Partial<Pick<ResumeData, 'name' | 'title' | 'summary'>>) => {
+    setResumeData(prev => ({ ...prev, ...profile }));
+  };
 
   const updateExperience = (id: string, exp: Partial<Experience>) => {
     setResumeData(prev => ({
@@ -102,6 +146,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider value={{ 
       resumeData, 
       setResumeData, 
+      updateProfile,
       updateExperience,
       updateSummary,
       updateContact,
@@ -109,7 +154,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       atsScore, 
       setAtsScore,
       targetMatchScore,
-      setTargetMatchScore
+      setTargetMatchScore,
+      resumeMode,
+      setResumeMode,
+      profileSource,
+      setProfileSource,
+      jobAnalysis,
+      setJobAnalysis,
+      selectedTemplate,
+      setSelectedTemplate,
     }}>
       {children}
     </AppContext.Provider>

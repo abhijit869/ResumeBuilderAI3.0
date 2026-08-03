@@ -1,0 +1,1 @@
+- [ResumeGPT integrations](resume-gpt-integrations.md) — external profile and job-page imports require authorized connectors; never scrape arbitrary LinkedIn accounts.
