@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, FileText, Sparkles, Target, Briefcase, FileCode2, LineChart, Settings, Sun, Moon, Workflow } from 'lucide-react';
+import { LayoutDashboard, FileText, Sparkles, Target, Briefcase, FileCode2, LineChart, Settings, Sun, Moon, Workflow, Monitor, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AppProvider } from '@/store';
+import { useEffect, useState } from 'react';
+import { getThemeMode, setThemeMode, subscribeToThemeChanges, type ThemeMode } from '@/lib/theme';
 
 type NavItem = {
   title: string;
@@ -23,33 +25,43 @@ const navItems: NavItem[] = [
 ];
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<ThemeMode>('system');
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark');
-    setTheme(isDark ? 'dark' : 'light');
-  }, []);
+  useEffect(() => subscribeToThemeChanges(setTheme), []);
+  useEffect(() => setTheme(getThemeMode()), []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+  const icon = theme === 'system' ? <Monitor className="h-4 w-4" /> : theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />;
+  const chooseTheme = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    setTheme(mode);
+    setOpen(false);
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground">
-      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
+    <div className="relative">
+      <Button variant="ghost" size="icon" aria-label={`Theme: ${theme}`} aria-expanded={open} onClick={() => setOpen(value => !value)} className="text-muted-foreground hover:text-foreground">
+        {icon}
+      </Button>
+      {open && (
+        <div className="absolute bottom-11 right-0 z-50 min-w-36 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+          {([
+            ['system', <Monitor className="h-4 w-4" />, 'System'],
+            ['light', <Sun className="h-4 w-4" />, 'Light'],
+            ['dark', <Moon className="h-4 w-4" />, 'Dark'],
+          ] as [ThemeMode, React.ReactNode, string][]).map(([mode, modeIcon, label]) => (
+            <button key={mode} type="button" onClick={() => chooseTheme(mode)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground">
+              {modeIcon} {label} {theme === mode && <Check className="ml-auto h-4 w-4" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-
-  // Force dark mode initially
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
 
   return (
     <AppProvider>

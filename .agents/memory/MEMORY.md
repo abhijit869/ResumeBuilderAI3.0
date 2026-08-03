@@ -1,3 +1,4 @@
 - [ResumeGPT integrations](resume-gpt-integrations.md) — external profile and job-page imports require authorized connectors; never scrape arbitrary LinkedIn accounts.
 - [OpenCode Zen resume AI](opencode-zen-resume-ai.md) — server-side grounded generation uses DeepSeek V4 Flash Free through OpenCode Zen.
 - [ResumeGPT private tools](resume-gpt-private-tools.md) — local ATS, cover-letter, interview, keyword, and bullet tools should operate on saved evidence without exposing data or needing another key.
+- [ResumeGPT theme and exports](resume-gpt-theme-export.md) — native browser theme/export utilities avoid provider-context issues and keep files grounded in the saved resume model.

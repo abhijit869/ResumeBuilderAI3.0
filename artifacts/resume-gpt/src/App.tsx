@@ -7,6 +7,7 @@ import ResumeBuilder from '@/pages/ResumeBuilder';
 import Analyzer from '@/pages/Analyzer';
 import CreateResume from '@/pages/CreateResume';
 import WorkspaceModule from '@/pages/WorkspaceModule';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const queryClient = new QueryClient();
 
@@ -30,11 +31,13 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-        <Router />
-      </WouterRouter>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+          <Router />
+        </WouterRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

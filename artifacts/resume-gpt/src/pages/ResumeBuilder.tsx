@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Save, Download, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles } from 'lucide-react';
+import { Save, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles } from 'lucide-react';
 import { improveBulletLocally } from '@/lib/local-tools';
+import { ResumeExportActions } from '@/components/ResumeExportActions';
 
 function ResumePreview() {
   const { resumeData, selectedTemplate, templateColor } = useAppStore();
@@ -235,10 +236,10 @@ export default function ResumeBuilder() {
   };
 
   return (
-    <div className="flex h-full animate-in fade-in duration-500">
+    <div className="flex min-h-full flex-col animate-in fade-in duration-500 lg:flex-row">
       {/* Editor Panel */}
-      <div className="w-1/2 flex flex-col border-r border-border bg-background/50 backdrop-blur-sm z-10 shadow-xl">
-        <header className="px-6 py-4 border-b border-border flex items-center justify-between bg-card">
+      <div className="flex w-full flex-col border-b border-border bg-background/50 backdrop-blur-sm z-10 shadow-xl lg:w-1/2 lg:border-b-0 lg:border-r">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-4 sm:px-6">
           <div className="flex items-center gap-2">
             <LayoutTemplate className="w-5 h-5 text-primary" />
             <h2 className="font-semibold">Editor</h2>
@@ -264,7 +265,7 @@ export default function ResumeBuilder() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6 bg-card border border-border">
               <TabsTrigger value="basics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><User className="w-4 h-4 mr-2" /> Basics</TabsTrigger>
@@ -395,18 +396,16 @@ export default function ResumeBuilder() {
       </div>
 
       {/* Preview Panel */}
-      <div className="w-1/2 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-muted/30 relative flex flex-col overflow-hidden">
-        <header className="px-6 py-4 border-b border-border/50 flex items-center justify-between absolute top-0 w-full z-10 bg-background/40 backdrop-blur-md">
+      <div className="relative flex min-h-[720px] w-full flex-col overflow-hidden bg-muted/30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] lg:min-h-screen lg:w-1/2">
+        <header className="absolute top-0 z-10 flex w-full items-center justify-between border-b border-border/50 bg-background/70 px-4 py-4 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Eye className="w-4 h-4" />
             <span className="text-sm font-medium">Live Preview</span>
           </div>
-          <Button variant="default" size="sm" onClick={() => window.print()} className="gap-2 shadow-lg shadow-primary/20">
-            <Download className="w-4 h-4" /> Export PDF
-          </Button>
+          <ResumeExportActions data={resumeData} accent={templateColor} compact />
         </header>
 
-        <div className="flex-1 overflow-y-auto p-12 pt-24 flex justify-center pb-24 items-start">
+        <div className="flex flex-1 items-start justify-center overflow-y-auto p-5 pb-24 pt-24 sm:p-12 sm:pt-24">
           <ResumePreview />
         </div>
       </div>
