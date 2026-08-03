@@ -339,7 +339,9 @@ export default function CreateResume() {
     setProgress(25);
     setNotice('');
     try {
-      const record = await importWorkspaceProfile({ profileUrl: profileUrl.trim() });
+      const normalizedProfileUrl = /^https?:\/\//i.test(profileUrl.trim()) ? profileUrl.trim() : `https://${profileUrl.trim()}`;
+      setProfileUrl(normalizedProfileUrl);
+      const record = await importWorkspaceProfile({ profileUrl: normalizedProfileUrl });
       const profile = record.profile as Partial<typeof resumeData>;
       setResumeData({
         ...resumeData,

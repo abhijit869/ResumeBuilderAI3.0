@@ -30,9 +30,14 @@ export function getWorkspaceKey(value: unknown): string | null {
   return trimmed.length >= 8 && trimmed.length <= 128 ? trimmed : null;
 }
 
+export function normalizePublicUrl(value: string): string {
+  const trimmed = value.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 export function validatePublicUrl(value: string): URL | null {
   try {
-    const url = new URL(value);
+    const url = new URL(normalizePublicUrl(value));
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     if (url.username || url.password) return null;
     return url;
@@ -69,6 +74,14 @@ function firstMatch(html: string, pattern: RegExp): string {
   return decodeEntities(html.match(pattern)?.[1]?.trim() ?? "");
 }
 
+function isLinkedInUrl(url: URL): boolean {
+  return /(^|\.)linkedin\.com$/i.test(url.hostname);
+}
+
+function isLinkedInAuthorizationWall(value: string): boolean {
+  return /authwall|checkpoint|login|sign[ -]?in|join now|member login/i.test(value);
+}
+
 export async function fetchPublicPage(sourceUrl: string): Promise<ExtractedPage> {
   const url = validatePublicUrl(sourceUrl);
   if (!url) throw new Error("Enter a valid public http(s) URL.");
@@ -83,9 +96,14 @@ export async function fetchPublicPage(sourceUrl: string): Promise<ExtractedPage>
         Accept: "text/html,application/xhtml+xml",
       },
     });
-    if (!response.ok) throw new Error(`The page returned HTTP ${response.status}.`);
     const html = await response.text();
     if (html.length < 80) throw new Error("The page returned no readable content.");
+    if (!response.ok) {
+      if (isLinkedInUrl(url) && (response.status === 999 || isLinkedInAuthorizationWall(html))) {
+        throw new Error("LinkedIn requires authorization for this profile. Sign in with LinkedIn or upload an authorized profile export.");
+      }
+      throw new Error(`The page returned HTTP ${response.status}.`);
+    }
 
     const text = cleanText(html);
     const title =

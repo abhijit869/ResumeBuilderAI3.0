@@ -26,6 +26,7 @@ import {
   saveJob,
   saveProfile,
   saveResume,
+  normalizePublicUrl,
   validatePublicUrl,
 } from "../lib/workspace";
 
@@ -66,12 +67,13 @@ router.post("/workspace/profile", async (req, res): Promise<void> => {
   const workspaceKey = workspaceKeyFromRequest(req, res);
   if (!workspaceKey) return;
   const parsed = ImportWorkspaceProfileBody.safeParse(req.body);
-  if (!parsed.success || !validatePublicUrl(parsed.data.profileUrl)) {
+  const profileUrl = parsed.success ? normalizePublicUrl(parsed.data.profileUrl) : "";
+  if (!parsed.success || !validatePublicUrl(profileUrl)) {
     res.status(400).json({ error: "Enter a valid public http(s) profile URL." });
     return;
   }
   try {
-    const page = await fetchPublicPage(parsed.data.profileUrl);
+    const page = await fetchPublicPage(profileUrl);
     if (/linkedin\.com/i.test(page.sourceUrl) && /authwall|sign in|join now|checkpoint/i.test(page.text)) {
       res.status(422).json({ error: "LinkedIn requires authorization for this profile. Use an authorized export or a public profile page that is readable without sign-in." });
       return;
