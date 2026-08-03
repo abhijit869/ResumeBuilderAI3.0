@@ -125,6 +125,7 @@ export async function fetchPublicPage(sourceUrl: string): Promise<ExtractedPage>
     const message = error instanceof Error ? error.message : "Unable to read the page.";
     logger.warn({ sourceUrl, message }, "Public page fetch failed");
     if (message.includes("aborted")) throw new Error("The page took too long to respond.");
+    if (/^LinkedIn requires authorization/i.test(message)) throw error;
     throw new Error(`Unable to read this public page: ${message}`);
   } finally {
     clearTimeout(timeout);

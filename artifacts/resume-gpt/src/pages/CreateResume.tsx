@@ -4,6 +4,7 @@ import { analyzeWorkspaceJob, generateWorkspaceResume, importWorkspaceProfile, s
 import {
   ArrowLeft,
   ArrowRight,
+  AlertTriangle,
   Check,
   CheckCircle2,
   FileText,
@@ -171,6 +172,9 @@ function ProfileStep({
   profileUrl,
   setProfileUrl,
   onImport,
+  importBlocked,
+  onUseCurrentProfile,
+  onEnterManually,
   importing,
 }: {
   mode: ResumeMode;
@@ -183,6 +187,9 @@ function ProfileStep({
   profileUrl: string;
   setProfileUrl: (value: string) => void;
   onImport: () => void;
+  importBlocked: boolean;
+  onUseCurrentProfile: () => void;
+  onEnterManually: () => void;
   importing: boolean;
 }) {
   const { updateProfile } = useAppStore();
@@ -240,6 +247,24 @@ function ProfileStep({
                 <Button type="button" onClick={onImport} disabled={importing || !profileUrl.trim()}>
                   {importing ? 'Fetching…' : 'Fetch and save profile'}
                 </Button>
+              </div>
+            )}
+            {importBlocked && (
+              <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">LinkedIn blocked this profile request</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      This URL requires LinkedIn authorization, so ResumeGPT cannot fetch it from the server. Your URL is preserved.
+                      Continue with saved ResumeGPT data or enter your profile manually instead.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button type="button" size="sm" onClick={onUseCurrentProfile}>Use saved profile</Button>
+                      <Button type="button" size="sm" variant="outline" onClick={onEnterManually}>Enter manually</Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             <div className="grid gap-3 sm:grid-cols-4">
@@ -305,6 +330,7 @@ export default function CreateResume() {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [notice, setNotice] = useState('');
+  const [importBlocked, setImportBlocked] = useState(false);
 
   const [profileUrl, setProfileUrl] = useState('');
 
@@ -327,6 +353,7 @@ export default function CreateResume() {
 
   const handleLinkedIn = () => {
     setProfileSource('linkedin');
+    setImportBlocked(false);
     setNotice('Paste the public profile URL below. LinkedIn pages that require sign-in must be exported or authorized before they can be read.');
   };
 
@@ -337,6 +364,7 @@ export default function CreateResume() {
     }
     setAnalyzing(true);
     setProgress(25);
+    setImportBlocked(false);
     setNotice('');
     try {
       const normalizedProfileUrl = /^https?:\/\//i.test(profileUrl.trim()) ? profileUrl.trim() : `https://${profileUrl.trim()}`;
@@ -357,10 +385,25 @@ export default function CreateResume() {
       setProgress(100);
       setNotice('Profile fetched and saved. Continue to the target job.');
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Profile import failed.');
+      const message = error instanceof Error ? error.message : 'Profile import failed.';
+      setImportBlocked(/linkedin requires authorization/i.test(message));
+      setNotice(message);
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  const continueWithCurrentProfile = () => {
+    setProfileSource('current');
+    setImportBlocked(false);
+    setNotice('Using your saved ResumeGPT profile. Continue to the target job when ready.');
+  };
+
+  const enterProfileManually = () => {
+    setResumeMode('manual');
+    setProfileSource('paste');
+    setImportBlocked(false);
+    setNotice('Manual profile mode is ready. Add your name, title, summary, and evidence below.');
   };
 
   const handleAnalyze = async () => {
@@ -465,6 +508,9 @@ export default function CreateResume() {
             profileUrl={profileUrl}
             setProfileUrl={setProfileUrl}
             onImport={handleImport}
+            importBlocked={importBlocked}
+            onUseCurrentProfile={continueWithCurrentProfile}
+            onEnterManually={enterProfileManually}
             importing={analyzing}
           />
         )}
