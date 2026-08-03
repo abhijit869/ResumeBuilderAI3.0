@@ -444,6 +444,14 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <AuthLayout>
+      <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-700">
+        <p className="font-semibold text-slate-900">Creating a fresh account?</p>
+        <p className="mt-1 leading-relaxed text-slate-600">
+          Use a unique passphrase with several uncommon words, numbers, and symbols. Short passwords such as
+          <span className="font-mono text-xs"> admin123 </span>
+          are not accepted by the secure sign-in provider.
+        </p>
+      </div>
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </AuthLayout>
   );
