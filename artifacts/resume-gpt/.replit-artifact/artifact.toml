@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "ResumeGPT AI Enterprise"
+description = "A premium AI career workspace for building ATS-optimized resumes, analyzing job fit, and turning career data into a clear next move."
+version = "1.0.0"
+id = "artifacts/resume-gpt"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21519
+
+[services.development]
+run = "pnpm --filter @workspace/resume-gpt run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/resume-gpt", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/resume-gpt/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21519"
+BASE_PATH = "/"

@@ -1,0 +1,906 @@
+Project Name
+
+ResumeGPT AI Enterprise
+
+World's Most Advanced AI Resume Builder, Analyzer & Career Assistant
+
+PHASE 1
+PROJECT GOAL
+You are a Senior Software Architect,
+Senior AI Engineer,
+Senior UX Designer,
+Senior ATS Expert,
+Senior HR Recruiter,
+and Product Designer.
+
+Build the world's most advanced AI Resume Builder.
+
+This should NOT look like a normal resume builder.
+
+It should feel like ChatGPT + Notion + Canva + LinkedIn + Figma combined.
+
+The UI should be extremely premium, modern, animated, futuristic and beautiful.
+
+Target companies include
+
+Google
+Microsoft
+Amazon
+Meta
+Apple
+NVIDIA
+OpenAI
+Netflix
+IBM
+Oracle
+Adobe
+Tesla
+Intel
+AMD
+Cisco
+RedHat
+LinkedIn
+Salesforce
+SAP
+TCS
+Infosys
+Wipro
+Capgemini
+Accenture
+Deloitte
+
+The generated resumes must be optimized for ATS systems and recruiter preferences.
+
+The application should work for every profession:
+
+Software Engineer
+AI Engineer
+ML Engineer
+Frontend
+Backend
+DevOps
+Cybersecurity
+Cloud
+Data Scientist
+Product Manager
+Business Analyst
+Marketing
+Finance
+Medical
+Law
+Design
+Architecture
+Research
+Government Jobs
+Freshers
+Experienced
+Internships
+
+Everything.
+PHASE 2
+Modern UI
+Design an award-winning UI.
+
+Use
+
+Next.js
+
+React
+
+TailwindCSS
+
+Framer Motion
+
+GSAP
+
+Shadcn UI
+
+Magic UI
+
+Aceternity UI
+
+21st.dev
+
+ThreeJS
+
+Lottie
+
+Glass Morphism
+
+Neumorphism
+
+Animated Gradient
+
+Particles
+
+Smooth transitions
+
+Dark mode
+
+Light mode
+
+Mobile Responsive
+
+Desktop Responsive
+
+Ultra Premium Dashboard
+PHASE 3
+Dashboard
+Dashboard contains
+
+Home
+
+Resume Builder
+
+AI Analyzer
+
+Job Match
+
+Portfolio
+
+LinkedIn Import
+
+GitHub Import
+
+Cover Letter
+
+Interview Preparation
+
+Career Coach
+
+ATS Score
+
+Analytics
+
+Projects
+
+Certificates
+
+Achievements
+
+Skills
+
+Templates
+
+Settings
+PHASE 4
+Login Options
+Login with
+
+Google
+
+Microsoft
+
+GitHub
+
+LinkedIn
+
+Apple
+
+Email OTP
+
+Magic Link
+
+Passkeys
+
+2FA
+PHASE 5
+Manual Resume Builder
+Allow users to manually create resumes.
+
+Features
+
+Drag Drop
+
+Live Preview
+
+Undo
+
+Redo
+
+Version History
+
+Section Rearrangement
+
+Unlimited Templates
+
+Custom Fonts
+
+Custom Colors
+
+Custom Icons
+
+Custom Layout
+
+Columns
+
+Timeline
+
+Cards
+
+Infographics
+
+ATS Layout
+
+Modern Layout
+
+Creative Layout
+
+Executive Layout
+
+Minimal Layout
+PHASE 6
+Automatic Resume Builder
+User only pastes
+
+Job URL
+
+OR
+
+Job Description
+
+Then AI automatically
+
+Extracts
+
+Job Title
+
+Company
+
+Requirements
+
+Responsibilities
+
+Soft Skills
+
+Hard Skills
+
+Keywords
+
+Education
+
+Experience
+
+Technologies
+
+Salary
+
+Location
+
+Seniority
+
+Remote
+
+Hybrid
+
+Visa
+
+Everything
+
+Then automatically builds the best resume.
+PHASE 7
+Profile Import
+
+Automatically import data from:
+
+LinkedIn (using official APIs where available and user-authorized access)
+
+GitHub
+
+GitLab
+
+Stack Overflow
+
+Google Scholar
+
+ORCID
+
+Kaggle
+
+LeetCode
+
+Codeforces
+
+HackerRank
+
+HackerEarth
+
+Behance
+
+Dribbble
+
+Medium
+
+Dev.to
+
+Hashnode
+
+Personal Website
+
+Portfolio URL
+
+PDF Resume
+
+DOCX Resume
+
+Image OCR
+
+Email Resume
+
+Google Drive
+
+Dropbox
+
+OneDrive
+PHASE 8
+AI Profile Analyzer
+
+AI should extract
+
+Projects
+
+Skills
+
+Experience
+
+Leadership
+
+Achievements
+
+Patents
+
+Awards
+
+Languages
+
+Education
+
+Certifications
+
+Research
+
+Open Source
+
+Hackathons
+
+Volunteer
+
+Internships
+
+Metrics
+
+Publications
+
+Public Speaking
+
+Everything
+PHASE 9
+AI Resume Writer
+
+Generate
+
+Professional Summary
+
+Headline
+
+Achievements
+
+Bullet Points
+
+Projects
+
+Skills
+
+Career Objective
+
+Experience
+
+Education
+
+Certifications
+
+Research
+
+Volunteer
+
+Interests
+PHASE 10
+ATS Optimization
+Calculate
+
+ATS Score
+
+Keyword Match
+
+Readability
+
+Formatting
+
+Section Order
+
+Recruiter Score
+
+Hiring Probability
+
+Grammar
+
+Power Words
+
+Action Verbs
+
+Weak Words
+
+Passive Voice
+
+Resume Length
+
+Missing Skills
+
+Keyword Density
+
+Duplicate Skills
+
+Missing Metrics
+
+Everything
+PHASE 11
+AI Resume Analyzer
+Provide
+
+Overall Score
+
+Industry Score
+
+Google Score
+
+Microsoft Score
+
+Amazon Score
+
+Meta Score
+
+Apple Score
+
+NVIDIA Score
+
+OpenAI Score
+
+Freshers Score
+
+Senior Score
+
+Executive Score
+
+Suggestions
+
+Weakness
+
+Strength
+
+Hiring Probability
+
+Improvement Plan
+PHASE 12
+AI Job Analyzer
+Paste Job URL
+
+AI should
+
+Scrape
+
+Understand
+
+Analyze
+
+Extract
+
+Everything
+
+Then produce
+
+Skill Gap
+
+Learning Roadmap
+
+Salary Estimate
+
+Interview Difficulty
+
+Competition Level
+
+Resume Match
+
+Cover Letter
+
+Cold Email
+
+LinkedIn Message
+
+Referral Request
+
+Application Strategy
+PHASE 13
+AI Cover Letter
+
+Generate
+
+Company Specific
+
+Role Specific
+
+Recruiter Specific
+
+Hiring Manager Specific
+
+Startup
+
+Enterprise
+
+Government
+
+Internship
+
+Research
+
+Academic
+
+Creative
+
+Minimal
+PHASE 14
+AI Portfolio Builder
+
+Automatically build
+
+Portfolio Website
+
+Landing Page
+
+About
+
+Projects
+
+Timeline
+
+Skills
+
+Testimonials
+
+Experience
+
+Contact
+
+Resume Download
+
+Dark Mode
+
+Blog
+
+Animations
+
+SEO
+
+Custom Domain
+PHASE 15
+AI Career Coach
+Career Roadmap
+
+Skill Gap
+
+Learning Plan
+
+Certification Suggestions
+
+Interview Preparation
+
+Mock Interview
+
+Coding Questions
+
+Behavior Questions
+
+HR Questions
+
+Salary Negotiation
+
+Promotion Advice
+PHASE 16
+AI Interview Agent
+Voice Interview
+
+Video Interview
+
+Live Coding
+
+Behavior Analysis
+
+Eye Contact
+
+Confidence
+
+Speech Analysis
+
+Grammar
+
+Communication
+
+Technical Questions
+
+Follow-up Questions
+
+Scoring
+
+Improvement Report
+PHASE 17
+AI Resume Versions
+
+Automatically create
+
+Google Resume
+
+Microsoft Resume
+
+Amazon Resume
+
+Meta Resume
+
+OpenAI Resume
+
+Startup Resume
+
+Bank Resume
+
+Government Resume
+
+Research Resume
+
+Academic CV
+
+Executive Resume
+
+One Page Resume
+
+Two Page Resume
+PHASE 18
+Export
+PDF
+
+DOCX
+
+HTML
+
+JSON
+
+Markdown
+
+LaTeX
+
+PNG
+
+SVG
+PHASE 19
+AI Agent Workflow
+Agent 1
+
+Collect User Data
+
+↓
+
+Agent 2
+
+Analyze Resume
+
+↓
+
+Agent 3
+
+Analyze Job
+
+↓
+
+Agent 4
+
+Compare
+
+↓
+
+Agent 5
+
+Optimize
+
+↓
+
+Agent 6
+
+Generate Resume
+
+↓
+
+Agent 7
+
+Generate Cover Letter
+
+↓
+
+Agent 8
+
+Generate Portfolio
+
+↓
+
+Agent 9
+
+Interview Coach
+
+↓
+
+Agent 10
+
+Career Roadmap
+PHASE 20
+AI Models
+
+Use multiple AI systems:
+
+GPT-5
+
+Claude
+
+Gemini
+
+DeepSeek
+
+Llama
+
+Qwen
+
+Mistral
+
+Embedding Models
+
+OCR
+
+Speech AI
+
+Vision AI
+
+Reasoning Models
+PHASE 21
+Advanced Features
+
+Include:
+
+AI Resume Chat
+Resume Version Control (Git-like history)
+One-click Job Apply (where supported)
+AI Skill Graph
+Resume Heatmap
+Recruiter Eye Tracking Simulation
+ATS Parser Simulation
+Live Keyword Counter
+Company Research Agent
+Salary Predictor
+Resume A/B Testing
+Portfolio Generator
+Personal Branding Score
+LinkedIn Profile Optimizer
+GitHub Profile Optimizer
+AI Project Writer
+STAR Story Generator
+Achievement Quantifier
+Grammar & Tone Analyzer
+Multi-language Resume Generator
+AI Translation
+Resume QR Code
+Digital Resume Card
+NFC Resume Sharing
+AI Career Timeline
+Resume Backup & Cloud Sync
+Team Collaboration
+Recruiter Feedback Portal
+PHASE 22
+Tech Stack
+Frontend
+
+Next.js
+
+React
+
+TailwindCSS
+
+TypeScript
+
+Framer Motion
+
+Shadcn UI
+
+ThreeJS
+
+Backend
+
+FastAPI
+
+Python
+
+Node.js
+
+Redis
+
+PostgreSQL
+
+MongoDB
+
+Elasticsearch
+
+Vector Database
+
+Pinecone
+
+Qdrant
+
+AI
+
+LangGraph
+
+CrewAI
+
+AutoGen
+
+OpenAI SDK
+
+Gemini API
+
+Claude API
+
+OCR
+
+Whisper
+
+Vision Models
+
+Deployment
+
+Docker
+
+Kubernetes
+
+AWS
+
+Azure
+
+Cloudflare
+
+Vercel
+
+CI/CD
+
+GitHub Actions
+FINAL OBJECTIVE
+Build the world's #1 AI Resume Builder.
+
+It should feel like ChatGPT Enterprise meets Canva, LinkedIn, and Notion.
+
+The AI should think like:
+
+• Senior Recruiter
+• HR Manager
+• ATS Scanner
+• Career Coach
+• Resume Writer
+• Technical Interviewer
+• Hiring Manager
+
+Every generated resume should be:
+
+✓ ATS Optimized
+✓ Beautiful
+✓ Recruiter Friendly
+✓ Keyword Optimized
+✓ Company Specific
+✓ Role Specific
+✓ Quantified
+✓ Professional
+✓ Modern
+✓ High Hiring Probability
+
+The application should be modular, scalable, secure, and enterprise-ready, using official APIs wherever available an
