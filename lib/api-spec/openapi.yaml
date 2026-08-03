@@ -3,20 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ResumeGPT AI Enterprise API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: workspace
+    description: Persisted profile, job, and resume workflow operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +25,228 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /workspace/profile:
+    get:
+      operationId: getWorkspaceProfile
+      tags: [workspace]
+      summary: Load the saved profile for a workspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceKey"
+      responses:
+        "200":
+          description: Saved profile or empty state
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/ProfileRecord"
+                  - type: "null"
+    post:
+      operationId: importWorkspaceProfile
+      tags: [workspace]
+      summary: Fetch and save a public profile URL
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileImportInput"
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileRecord"
+        "400":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+    put:
+      operationId: saveWorkspaceProfile
+      tags: [workspace]
+      summary: Save manually edited profile data
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileSaveInput"
+      responses:
+        "200":
+          description: Saved profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileRecord"
+        "400":
+          $ref: "#/components/responses/Error"
+  /workspace/jobs/analyze:
+    post:
+      operationId: analyzeWorkspaceJob
+      tags: [workspace]
+      summary: Fetch a job URL or analyze pasted job text against the saved profile
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobAnalyzeInput"
+      responses:
+        "200":
+          description: Persisted job analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobAnalysisRecord"
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+  /workspace/resumes/generate:
+    post:
+      operationId: generateWorkspaceResume
+      tags: [workspace]
+      summary: Run the multi-agent resume generation workflow
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResumeGenerateInput"
+      responses:
+        "200":
+          description: Saved tailored resume version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeVersionRecord"
+        "400":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
 components:
+  parameters:
+    WorkspaceKey:
+      name: x-workspace-key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  responses:
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+      required: [status]
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    ProfileImportInput:
+      type: object
+      properties:
+        profileUrl:
+          type: string
+          minLength: 8
+      required: [profileUrl]
+    ProfileSaveInput:
+      type: object
+      properties:
+        profileUrl:
+          type: [string, "null"]
+        profile:
+          type: object
+          additionalProperties: true
+      required: [profile]
+    JobAnalyzeInput:
+      type: object
+      properties:
+        jobUrl:
+          type: [string, "null"]
+        jobDescription:
+          type: [string, "null"]
+          maxLength: 50000
+      required: [jobUrl, jobDescription]
+    ResumeGenerateInput:
+      type: object
+      properties:
+        jobAnalysisId:
+          type: number
+        mode:
+          type: string
+          enum: [manual, auto]
+        templateId:
+          type: string
+          minLength: 1
+        manualEdits:
+          type: [object, "null"]
+          additionalProperties: true
+      required: [jobAnalysisId, mode, templateId]
+    ProfileRecord:
+      type: object
+      properties:
+        id: { type: number }
+        workspaceKey: { type: string }
+        profileUrl: { type: string }
+        source: { type: string }
+        profile:
+          type: object
+          additionalProperties: true
+        fetchedAt: { type: string, format: date-time }
+      required: [id, workspaceKey, profileUrl, source, profile, fetchedAt]
+    JobAnalysisRecord:
+      type: object
+      properties:
+        id: { type: number }
+        workspaceKey: { type: string }
+        jobUrl:
+          type: [string, "null"]
+        source:
+          type: string
+          enum: [url, description]
+        job:
+          type: object
+          additionalProperties: true
+        comparison:
+          type: object
+          additionalProperties: true
+        analyzedAt: { type: string, format: date-time }
+      required: [id, workspaceKey, source, job, comparison, analyzedAt]
+    ResumeVersionRecord:
+      type: object
+      properties:
+        id: { type: number }
+        workspaceKey: { type: string }
+        jobAnalysisId: { type: number }
+        mode: { type: string, enum: [manual, auto] }
+        templateId: { type: string }
+        resume:
+          type: object
+          additionalProperties: true
+        createdAt: { type: string, format: date-time }
+      required: [id, workspaceKey, jobAnalysisId, mode, templateId, resume, createdAt]

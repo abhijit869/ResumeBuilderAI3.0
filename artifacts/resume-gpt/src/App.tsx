@@ -6,6 +6,7 @@ import NotFound from '@/pages/NotFound';
 import ResumeBuilder from '@/pages/ResumeBuilder';
 import Analyzer from '@/pages/Analyzer';
 import CreateResume from '@/pages/CreateResume';
+import WorkspaceModule from '@/pages/WorkspaceModule';
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,10 @@ function Router() {
         <Route path="/create" component={CreateResume} />
         <Route path="/resume" component={ResumeBuilder} />
         <Route path="/analyzer" component={Analyzer} />
+        <Route path="/match"><WorkspaceModule kind="match" /></Route>
+        <Route path="/cover-letter"><WorkspaceModule kind="cover-letter" /></Route>
+        <Route path="/interview"><WorkspaceModule kind="interview" /></Route>
+        <Route path="/analytics"><WorkspaceModule kind="analytics" /></Route>
         <Route component={NotFound} />
       </Switch>
     </Shell>

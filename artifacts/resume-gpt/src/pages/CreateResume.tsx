@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'wouter';
+import { analyzeWorkspaceJob, generateWorkspaceResume, importWorkspaceProfile, saveWorkspaceProfile } from '@workspace/api-client-react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,7 +24,6 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  JobAnalysis,
   ProfileSource,
   ResumeMode,
   ResumeTemplate,
@@ -157,14 +157,22 @@ function ProfileStep({
   onContinue,
   onLinkedIn,
   resumeData,
+  profileUrl,
+  setProfileUrl,
+  onImport,
+  importing,
 }: {
   mode: ResumeMode;
   profileSource: ProfileSource;
   setMode: (mode: ResumeMode) => void;
   setSource: (source: ProfileSource) => void;
-  onContinue: () => void;
+  onContinue: () => void | Promise<void>;
   onLinkedIn: () => void;
   resumeData: ReturnType<typeof useAppStore>['resumeData'];
+  profileUrl: string;
+  setProfileUrl: (value: string) => void;
+  onImport: () => void;
+  importing: boolean;
 }) {
   const { updateProfile } = useAppStore();
   return (
@@ -212,6 +220,30 @@ function ProfileStep({
               <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
               <p><span className="font-semibold text-foreground">Privacy note:</span> LinkedIn import will only read an account you explicitly authorize. The app will never fetch arbitrary LinkedIn accounts or scrape private profile data.</p>
             </div>
+            {profileSource === 'linkedin' && (
+              <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-end">
+                <label className="flex-1 space-y-2">
+                  <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Public profile URL</span>
+                  <Input value={profileUrl} onChange={event => setProfileUrl(event.target.value)} placeholder="https://www.linkedin.com/in/your-name" />
+                </label>
+                <Button type="button" onClick={onImport} disabled={importing || !profileUrl.trim()}>
+                  {importing ? 'Fetching…' : 'Fetch and save profile'}
+                </Button>
+              </div>
+            )}
+            <div className="grid gap-3 sm:grid-cols-4">
+              {[
+                ['Experience', resumeData.experience.length],
+                ['Education', resumeData.education.length],
+                ['Projects', resumeData.projects.length],
+                ['Skills', resumeData.skills.length],
+              ].map(([label, count]) => (
+                <div key={String(label)} className="rounded-lg border border-border/50 bg-background/30 p-3">
+                  <div className="text-lg font-semibold text-primary">{count}</div>
+                  <div className="text-xs text-muted-foreground">{label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-3">
@@ -250,7 +282,7 @@ export default function CreateResume() {
     setTargetMatchScore,
     selectedTemplate,
     setSelectedTemplate,
-    updateSummary,
+    setResumeData,
   } = useAppStore();
   const [stage, setStage] = useState<Stage>('profile');
   const [jobUrl, setJobUrl] = useState('');
@@ -259,53 +291,127 @@ export default function CreateResume() {
   const [progress, setProgress] = useState(0);
   const [notice, setNotice] = useState('');
 
-  const profileSkillSet = useMemo(() => new Set(resumeData.skills.map(skill => skill.toLowerCase())), [resumeData.skills]);
+  const [profileUrl, setProfileUrl] = useState('');
+
+  const handleContinue = async () => {
+    setAnalyzing(true);
+    setNotice('');
+    try {
+      await saveWorkspaceProfile({
+        profileUrl: resumeData.contact.linkedin || null,
+        profile: resumeData,
+      });
+      setStage('job');
+      setNotice('Your profile is saved. Add a live job URL or paste a description to continue.');
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Unable to save your profile.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   const handleLinkedIn = () => {
     setProfileSource('linkedin');
-    setNotice('LinkedIn import is ready for an authorized connection. Continue with your current profile for now, or connect LinkedIn from workspace integrations to make this live.');
+    setNotice('Paste the public profile URL below. LinkedIn pages that require sign-in must be exported or authorized before they can be read.');
   };
 
-  const handleAnalyze = () => {
+  const handleImport = async () => {
+    if (!profileUrl.trim()) {
+      setNotice('Add your public profile URL before continuing.');
+      return;
+    }
+    setAnalyzing(true);
+    setProgress(25);
+    setNotice('');
+    try {
+      const record = await importWorkspaceProfile({ profileUrl: profileUrl.trim() });
+      const profile = record.profile as Partial<typeof resumeData>;
+      setResumeData({
+        ...resumeData,
+        ...profile,
+        contact: { ...resumeData.contact, ...(profile.contact ?? {}) },
+        experience: Array.isArray(profile.experience) ? profile.experience : resumeData.experience,
+        education: Array.isArray(profile.education) ? profile.education : resumeData.education,
+        projects: Array.isArray(profile.projects) ? profile.projects : resumeData.projects,
+        certifications: Array.isArray(profile.certifications) ? profile.certifications : resumeData.certifications,
+        languages: Array.isArray(profile.languages) ? profile.languages : resumeData.languages,
+        skills: Array.isArray(profile.skills) ? profile.skills : resumeData.skills,
+      });
+      setProgress(100);
+      setNotice('Profile fetched and saved. Continue to the target job.');
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Profile import failed.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleAnalyze = async () => {
     if (!jobUrl.trim() && !jobDescription.trim()) return;
     setAnalyzing(true);
-    setProgress(8);
+    setProgress(35);
     setNotice('');
-    const timer = window.setInterval(() => {
-      setProgress(value => {
-        if (value >= 100) {
-          window.clearInterval(timer);
-          const required = ['Design Systems', 'Figma', 'Product Strategy', 'A/B Testing', 'User Research', 'Cross-functional Collaboration'];
-          const matchedSkills = required.filter(skill => profileSkillSet.has(skill.toLowerCase()) || ['design systems', 'figma', 'user research'].includes(skill.toLowerCase()));
-          const missingSkills = required.filter(skill => !matchedSkills.includes(skill));
-          const analysis: JobAnalysis = {
-            role: 'Senior Product Designer',
-            company: jobUrl.toLowerCase().includes('stripe') ? 'Stripe' : 'Target company',
-            location: 'Remote / hybrid',
-            seniority: 'Senior',
-            summary: jobDescription.trim() ? 'A product design role focused on systems thinking, measurable customer outcomes, and close partnership with engineering.' : 'Job page details are staged for extraction. Add the job description for a richer comparison while live web fetching is enabled.',
-            matchedSkills,
-            missingSkills,
-            matchScore: 78 + matchedSkills.length,
-            source: jobUrl.trim() ? 'url' : 'description',
-          };
-          setJobAnalysis(analysis);
-          setTargetMatchScore(analysis.matchScore);
-          setAnalyzing(false);
-          setStage('match');
-          return 100;
-        }
-        return value + 8;
+    try {
+      const record = await analyzeWorkspaceJob({
+        jobUrl: jobUrl.trim() || null,
+        jobDescription: jobDescription.trim() || null,
       });
-    }, 100);
+      const job = record.job as Record<string, unknown>;
+      const comparison = record.comparison as Record<string, unknown>;
+      const analysis = {
+        role: String(job.title ?? 'Target role'),
+        company: String(job.company ?? 'Target company'),
+        location: String(job.location ?? 'See job listing'),
+        seniority: String(job.seniority ?? 'Not specified'),
+        summary: String(job.summary ?? ''),
+        matchedSkills: Array.isArray(comparison.matchedSkills) ? comparison.matchedSkills.map(String) : [],
+        missingSkills: Array.isArray(comparison.missingSkills) ? comparison.missingSkills.map(String) : [],
+        matchScore: Number(comparison.matchScore ?? 0),
+        source: record.source,
+        id: record.id,
+      };
+      setJobAnalysis(analysis);
+      setTargetMatchScore(analysis.matchScore);
+      setProgress(100);
+      setStage('match');
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Job analysis failed.');
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
-  const handleGenerate = () => {
-    if (jobAnalysis) {
-      updateSummary(`Product designer specializing in ${jobAnalysis.role.toLowerCase()}, design systems, and measurable product outcomes. Experienced partnering with engineering and product teams to turn complex workflows into clear, high-impact experiences tailored for ${jobAnalysis.company}.`);
+  const handleGenerate = async () => {
+    if (!jobAnalysis?.id) return;
+    setAnalyzing(true);
+    setProgress(20);
+    setNotice('Three AI agents are planning, writing, and reviewing your resume against the fetched job evidence.');
+    try {
+      const version = await generateWorkspaceResume({
+        jobAnalysisId: jobAnalysis.id,
+        mode: resumeMode,
+        templateId: selectedTemplate.id,
+      });
+      const generated = version.resume as Partial<typeof resumeData>;
+      setResumeData({
+        ...resumeData,
+        ...generated,
+        contact: { ...resumeData.contact, ...(generated.contact ?? {}) },
+        experience: Array.isArray(generated.experience) ? generated.experience : resumeData.experience,
+        education: Array.isArray(generated.education) ? generated.education : resumeData.education,
+        projects: Array.isArray(generated.projects) ? generated.projects : resumeData.projects,
+        certifications: Array.isArray(generated.certifications) ? generated.certifications : resumeData.certifications,
+        languages: Array.isArray(generated.languages) ? generated.languages : resumeData.languages,
+        skills: Array.isArray(generated.skills) ? generated.skills : resumeData.skills,
+      });
+      setProgress(100);
+      setStage('complete');
+      setNotice(`${selectedTemplate.name} selected. The AI-reviewed resume is saved and ready for final edits.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'AI resume generation failed.');
+    } finally {
+      setAnalyzing(false);
     }
-    setStage('complete');
-    setNotice(`${selectedTemplate.name} selected. Your tailored resume is ready for final edits.`);
   };
 
   return (
@@ -333,15 +439,19 @@ export default function CreateResume() {
             profileSource={profileSource}
             setMode={setResumeMode}
             setSource={setProfileSource}
-            onContinue={() => setStage('job')}
+            onContinue={handleContinue}
             onLinkedIn={handleLinkedIn}
             resumeData={resumeData}
+            profileUrl={profileUrl}
+            setProfileUrl={setProfileUrl}
+            onImport={handleImport}
+            importing={analyzing}
           />
         )}
 
         {stage !== 'profile' && (
           <Card className="border-border/60 bg-card/40">
-            <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
+               <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">{resumeData.name.split(' ').map(part => part[0]).join('').slice(0, 2)}</div>
                 <div><div className="font-semibold">{resumeData.name}</div><div className="text-xs text-muted-foreground">{resumeData.title} · {resumeData.experience.length} roles · {resumeData.skills.length} skills</div></div>

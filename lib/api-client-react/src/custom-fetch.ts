@@ -337,6 +337,16 @@ export async function customFetch<T = unknown>(
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
 
+  if (typeof window !== "undefined" && !headers.has("x-workspace-key")) {
+    const storageKey = "resumegpt-workspace-key";
+    let workspaceKey = window.localStorage.getItem(storageKey);
+    if (!workspaceKey) {
+      workspaceKey = `resume-${crypto.randomUUID()}`;
+      window.localStorage.setItem(storageKey, workspaceKey);
+    }
+    headers.set("x-workspace-key", workspaceKey);
+  }
+
   if (
     typeof init.body === "string" &&
     !headers.has("content-type") &&

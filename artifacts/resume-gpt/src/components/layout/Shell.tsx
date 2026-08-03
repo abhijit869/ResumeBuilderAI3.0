@@ -81,17 +81,19 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="p-4 border-t border-sidebar-border mt-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-primary-foreground font-semibold text-sm">
-                JL
+                RG
               </div>
               <div className="flex-1 overflow-hidden">
-                <div className="text-sm font-medium truncate">Jordan Lee</div>
-                <div className="text-xs text-muted-foreground truncate">Free Plan</div>
+                <div className="text-sm font-medium truncate">Your workspace</div>
+                <div className="text-xs text-muted-foreground truncate">Live profile mode</div>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground justify-start px-2 w-full">
+              <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground justify-start px-2 w-full">
+                <Link href="/analytics">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
+                </Link>
               </Button>
               <ThemeToggle />
             </div>

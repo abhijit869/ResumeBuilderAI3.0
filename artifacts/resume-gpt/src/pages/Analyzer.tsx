@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useState } from 'react';
+import { Link } from 'wouter';
+import { analyzeWorkspaceJob } from '@workspace/api-client-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -8,179 +10,121 @@ import { Progress } from '@/components/ui/progress';
 import { Sparkles, ScanLine, ArrowRight, Target, AlertTriangle, CheckCircle2, Briefcase } from 'lucide-react';
 import { useAppStore } from '@/store';
 
-type AnalysisState = 'idle' | 'analyzing' | 'complete';
+type AnalysisResult = {
+  id: number;
+  role: string;
+  company: string;
+  location: string;
+  seniority: string;
+  summary: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+  matchScore: number;
+};
 
 export default function Analyzer() {
-  const { resumeData, setTargetMatchScore } = useAppStore();
+  const { setTargetMatchScore, setJobAnalysis } = useAppStore();
   const [jobDescription, setJobDescription] = useState('');
   const [jobUrl, setJobUrl] = useState('');
-  const [status, setStatus] = useState<AnalysisState>('idle');
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState('');
 
-  const handleAnalyze = () => {
-    if (!jobDescription && !jobUrl) return;
-    
-    setStatus('analyzing');
-    setProgress(0);
-    
-    // Simulate AI analysis steps
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setStatus('complete');
-          setTargetMatchScore(84); // Update global state
-          return 100;
-        }
-        return p + 5;
+  const handleAnalyze = async () => {
+    if (!jobDescription.trim() && !jobUrl.trim()) return;
+    setAnalyzing(true);
+    setProgress(35);
+    setError('');
+    try {
+      const response = await analyzeWorkspaceJob({
+        jobUrl: jobUrl.trim() || null,
+        jobDescription: jobDescription.trim() || null,
       });
-    }, 100);
+      const job = response.job as Record<string, unknown>;
+      const comparison = response.comparison as Record<string, unknown>;
+      const next: AnalysisResult = {
+        id: response.id,
+        role: String(job.title ?? 'Target role'),
+        company: String(job.company ?? 'Target company'),
+        location: String(job.location ?? 'See job listing'),
+        seniority: String(job.seniority ?? 'Not specified'),
+        summary: String(job.summary ?? ''),
+        matchedSkills: Array.isArray(comparison.matchedSkills) ? comparison.matchedSkills.map(String) : [],
+        missingSkills: Array.isArray(comparison.missingSkills) ? comparison.missingSkills.map(String) : [],
+        matchScore: Number(comparison.matchScore ?? 0),
+      };
+      setResult(next);
+      setJobAnalysis({
+        ...next,
+        source: response.source,
+      });
+      setTargetMatchScore(next.matchScore);
+      setProgress(100);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'The job could not be analyzed.');
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto h-full flex flex-col animate-in fade-in duration-500">
+    <div className="mx-auto flex min-h-full max-w-5xl flex-col p-8 animate-in fade-in duration-500">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 mb-2">
-          <ScanLine className="w-8 h-8 text-primary" />
-          Role Analyzer
-        </h1>
-        <p className="text-muted-foreground text-lg">Compare your active resume against a target role description.</p>
+        <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight"><ScanLine className="h-8 w-8 text-primary" /> Role Analyzer</h1>
+        <p className="mt-2 text-lg text-muted-foreground">Fetch a live job page or paste its description, then compare it with your saved profile.</p>
       </header>
 
-      {status === 'idle' && (
-        <Card className="flex-1 bg-card/50 backdrop-blur border-border/50 shadow-2xl">
-          <CardContent className="p-8 h-full flex flex-col">
-            <div className="space-y-6 flex-1">
-              <div>
-                <label className="text-sm font-semibold text-foreground mb-2 block">Job URL (Optional)</label>
-                <Input 
-                  placeholder="https://boards.greenhouse.io/stripe/jobs/12345" 
-                  value={jobUrl}
-                  onChange={(e) => setJobUrl(e.target.value)}
-                  className="bg-background"
-                />
-              </div>
-              
-              <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-border"></div>
-                <span className="flex-shrink-0 mx-4 text-muted-foreground text-sm uppercase tracking-widest">or paste</span>
-                <div className="flex-grow border-t border-border"></div>
-              </div>
-
-              <div className="flex-1 flex flex-col">
-                <label className="text-sm font-semibold text-foreground mb-2 block">Job Description</label>
-                <Textarea 
-                  placeholder="Paste the full job description here..." 
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  className="flex-1 min-h-[200px] resize-none bg-background font-mono text-sm"
-                />
-              </div>
+      {!result && !analyzing && (
+        <Card className="flex-1 border-border/50 bg-card/50 backdrop-blur">
+          <CardContent className="flex h-full flex-col p-8">
+            <div className="flex-1 space-y-6">
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold">Job URL</span>
+                <Input placeholder="https://company.com/careers/role" value={jobUrl} onChange={event => setJobUrl(event.target.value)} />
+              </label>
+              <div className="flex items-center gap-4 text-xs uppercase tracking-widest text-muted-foreground"><div className="h-px flex-1 bg-border" />or paste<div className="h-px flex-1 bg-border" /></div>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold">Job description</span>
+                <Textarea placeholder="Paste responsibilities, qualifications, and requirements..." value={jobDescription} onChange={event => setJobDescription(event.target.value)} className="min-h-[260px] font-mono text-sm" />
+              </label>
             </div>
-
-            <div className="mt-8 flex justify-end">
-              <Button size="lg" onClick={handleAnalyze} disabled={!jobDescription && !jobUrl} className="px-8 shadow-primary/20 shadow-lg">
-                <Sparkles className="w-4 h-4 mr-2" /> Run AI Analysis
-              </Button>
-            </div>
+            {error && <p className="mt-5 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+            <div className="mt-8 flex justify-end"><Button size="lg" onClick={handleAnalyze} disabled={!jobDescription.trim() && !jobUrl.trim()}><Sparkles className="mr-2 h-4 w-4" /> Analyze live job</Button></div>
           </CardContent>
         </Card>
       )}
 
-      {status === 'analyzing' && (
-        <Card className="flex-1 flex items-center justify-center bg-card/50 backdrop-blur border-primary/20 border">
-          <div className="max-w-md w-full text-center space-y-6 p-8">
-            <div className="relative w-24 h-24 mx-auto">
-              <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
-              <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2">Analyzing Match...</h3>
-              <p className="text-sm text-muted-foreground h-6">
-                {progress < 30 ? "Extracting required skills..." : 
-                 progress < 60 ? "Cross-referencing your experience..." : 
-                 progress < 90 ? "Identifying skill gaps..." : "Finalizing match score..."}
-              </p>
-            </div>
+      {analyzing && (
+        <Card className="flex flex-1 items-center justify-center border-primary/20 bg-card/50">
+          <div className="w-full max-w-md space-y-6 p-8 text-center">
+            <div className="relative mx-auto h-24 w-24"><div className="absolute inset-0 rounded-full border-4 border-primary/20" /><div className="absolute inset-0 animate-spin rounded-full border-4 border-primary border-t-transparent" /><Sparkles className="absolute inset-0 m-auto h-8 w-8 animate-pulse text-primary" /></div>
+            <div><h3 className="mb-2 text-xl font-bold">Reading and comparing evidence</h3><p className="text-sm text-muted-foreground">The server is fetching the source and matching it against your saved profile.</p></div>
             <Progress value={progress} className="h-2" />
           </div>
         </Card>
       )}
 
-      {status === 'complete' && (
+      {result && !analyzing && (
         <div className="flex-1 space-y-6 animate-in slide-in-from-bottom-8 duration-700">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-1 bg-gradient-to-br from-card to-card/50 border-primary/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-5">
-                <Target className="w-32 h-32" />
-              </div>
-              <CardContent className="p-6 relative z-10 flex flex-col items-center justify-center h-full text-center">
-                <div className="text-6xl font-black text-primary mb-2">84<span className="text-3xl text-primary/60">%</span></div>
-                <h3 className="font-semibold text-lg mb-1">Strong Match</h3>
-                <p className="text-sm text-muted-foreground">Your background aligns well with the core requirements.</p>
-                <Button variant="outline" className="mt-6 w-full border-primary/20 hover:bg-primary/10">
-                  Save to Job Tracker
-                </Button>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="relative overflow-hidden border-primary/30 bg-gradient-to-br from-card to-card/50">
+              <Target className="absolute right-5 top-5 h-24 w-24 opacity-5" />
+              <CardContent className="relative flex h-full flex-col items-center justify-center p-6 text-center">
+                <div className="text-6xl font-black text-primary">{result.matchScore}<span className="text-3xl text-primary/60">%</span></div>
+                <h3 className="mt-2 text-lg font-semibold">{result.role}</h3><p className="text-sm text-muted-foreground">{result.company} · {result.seniority}</p>
+                <Button asChild variant="outline" className="mt-6 w-full border-primary/20"><Link href="/create">Build tailored resume <ArrowRight className="ml-2 h-3.5 w-3.5" /></Link></Button>
               </CardContent>
             </Card>
-
-            <Card className="md:col-span-2 bg-card/50 border-border/50">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-muted-foreground" /> Extracted Requirements
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div>
-                    <div className="text-sm font-semibold mb-3 text-success flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Matched Skills</div>
-                    <div className="flex flex-wrap gap-2">
-                      {['Design Systems', 'Figma', 'Prototyping', 'Cross-functional Collaboration', 'User Research'].map(s => (
-                        <Badge key={s} variant="success" className="bg-success/10 text-success border-success/20">{s}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold mb-3 text-warning flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Missing / Weak Areas</div>
-                    <div className="flex flex-wrap gap-2">
-                      {['Growth Design', 'A/B Testing', 'Framer'].map(s => (
-                        <Badge key={s} variant="outline" className="border-warning/50 text-warning">{s}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+            <Card className="md:col-span-2 border-border/50 bg-card/50">
+              <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Briefcase className="h-5 w-5 text-muted-foreground" /> Extracted requirements</CardTitle><CardDescription>{result.summary || result.location}</CardDescription></CardHeader>
+              <CardContent className="space-y-6">
+                <div><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-success"><CheckCircle2 className="h-4 w-4" /> Matched evidence</div><div className="flex flex-wrap gap-2">{result.matchedSkills.length ? result.matchedSkills.map(skill => <Badge key={skill} variant="success">{skill}</Badge>) : <span className="text-sm text-muted-foreground">No matching skills were found in the saved profile.</span>}</div></div>
+                <div><div className="mb-3 flex items-center gap-2 text-sm font-semibold text-warning"><AlertTriangle className="h-4 w-4" /> Missing or weak evidence</div><div className="flex flex-wrap gap-2">{result.missingSkills.length ? result.missingSkills.map(skill => <Badge key={skill} variant="outline" className="border-warning/50 text-warning">{skill}</Badge>) : <span className="text-sm text-muted-foreground">No extracted gaps.</span>}</div></div>
               </CardContent>
             </Card>
           </div>
-
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" /> Action Plan
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { text: "Update your Nexus Dynamics experience to highlight any A/B testing or growth metrics.", action: "Edit Nexus Role" },
-                  { text: "Add 'Framer' to your technical skills list if you have experience with it.", action: "Add Skill" },
-                  { text: "Generate a targeted cover letter bridging your B2B background with their growth focus.", action: "Draft Cover Letter" }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50">
-                    <p className="text-sm">{item.text}</p>
-                    <Button size="sm" variant="secondary" className="shrink-0 ml-4">{item.action} <ArrowRight className="w-3 h-3 ml-2" /></Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="flex justify-center mt-8">
-             <Button variant="ghost" onClick={() => setStatus('idle')} className="text-muted-foreground">
-               Start New Analysis
-             </Button>
-          </div>
+          <div className="flex justify-center"><Button variant="ghost" onClick={() => { setResult(null); setProgress(0); }}>Analyze another job</Button></div>
         </div>
       )}
     </div>

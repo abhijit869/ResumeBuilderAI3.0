@@ -1,1 +1,2 @@
 - [ResumeGPT integrations](resume-gpt-integrations.md) — external profile and job-page imports require authorized connectors; never scrape arbitrary LinkedIn accounts.
+- [OpenCode Zen resume AI](opencode-zen-resume-ai.md) — server-side grounded generation uses DeepSeek V4 Flash Free through OpenCode Zen.

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { saveWorkspaceProfile } from '@workspace/api-client-react';
 import { useAppStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -65,8 +66,10 @@ function ResumePreview() {
 }
 
 export default function ResumeBuilder() {
-  const { resumeData, updateSummary, updateExperience, updateContact, updateSkills, atsScore } = useAppStore();
+  const { resumeData, setResumeData, updateProfile, updateSummary, updateExperience, updateContact, updateSkills, atsScore } = useAppStore();
   const [activeTab, setActiveTab] = useState("basics");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const handleSkillChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const skillsArray = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
@@ -82,6 +85,22 @@ export default function ResumeBuilder() {
     }
   };
 
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await saveWorkspaceProfile({ profileUrl: resumeData.contact.linkedin || null, profile: resumeData });
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addExperience = () => {
+    setResumeData({ ...resumeData, experience: [...resumeData.experience, { id: `experience-${Date.now()}`, role: '', company: '', dates: '', bullets: [''] }] });
+    setActiveTab('experience');
+  };
+
   return (
     <div className="flex h-full animate-in fade-in duration-500">
       {/* Editor Panel */}
@@ -95,8 +114,8 @@ export default function ResumeBuilder() {
             <Badge variant="outline" className="border-success/30 text-success bg-success/10 font-mono">
               ATS: {atsScore}
             </Badge>
-            <Button size="sm" variant="secondary" className="gap-2">
-              <Save className="w-4 h-4" /> Save
+            <Button size="sm" variant="secondary" className="gap-2" onClick={handleSave} disabled={saving}>
+              <Save className="w-4 h-4" /> {saving ? 'Saving…' : saved ? 'Saved' : 'Save'}
             </Button>
           </div>
         </header>
@@ -114,11 +133,11 @@ export default function ResumeBuilder() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Full Name</label>
-                    <Input value={resumeData.name} onChange={(e) => updateContact({ ...resumeData.contact, /* Note: Name is root level, ignoring root update for brevity in demo */ })} readOnly className="bg-muted/50" />
+                    <Input value={resumeData.name} onChange={(e) => updateProfile({ name: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Target Title</label>
-                    <Input value={resumeData.title} readOnly className="bg-muted/50" />
+                    <Input value={resumeData.title} onChange={(e) => updateProfile({ title: e.target.value })} />
                   </div>
                 </div>
 
@@ -187,7 +206,7 @@ export default function ResumeBuilder() {
                   </div>
                 </Card>
               ))}
-              <Button variant="outline" className="w-full border-dashed border-2 py-8 text-muted-foreground hover:text-primary hover:border-primary hover:bg-primary/5">
+              <Button variant="outline" onClick={addExperience} className="w-full border-dashed border-2 py-8 text-muted-foreground hover:text-primary hover:border-primary hover:bg-primary/5">
                 + Add Experience
               </Button>
             </TabsContent>
@@ -224,7 +243,7 @@ export default function ResumeBuilder() {
             <Eye className="w-4 h-4" />
             <span className="text-sm font-medium">Live Preview</span>
           </div>
-          <Button variant="default" size="sm" className="gap-2 shadow-lg shadow-primary/20">
+          <Button variant="default" size="sm" onClick={() => window.print()} className="gap-2 shadow-lg shadow-primary/20">
             <Download className="w-4 h-4" /> Export PDF
           </Button>
         </header>
