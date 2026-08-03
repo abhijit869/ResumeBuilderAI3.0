@@ -73,6 +73,7 @@ export type ResumeTemplate = {
   description: string;
   accent: string;
   accentColor: string;
+  layout?: 'ats' | 'editorial' | 'sidebar' | 'timeline' | 'executive' | 'technical' | 'minimal';
 };
 
 export type AgentStep = {
@@ -134,15 +135,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [resumeMode, setResumeMode] = useState<ResumeMode>('auto');
   const [profileSource, setProfileSource] = useState<ProfileSource>('current');
   const [jobAnalysis, setJobAnalysis] = useState<JobAnalysis | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>({
-    id: 'ats-clarity',
-    name: 'ATS Clarity',
-    category: 'ATS optimized',
-    description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
-    accent: 'from-cyan-400 to-blue-500',
-    accentColor: '#06b6d4',
+  const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(() => {
+    if (typeof window === 'undefined') return {
+      id: 'ats-clarity',
+      name: 'ATS Clarity',
+      category: 'ATS optimized',
+      description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
+      accent: 'from-cyan-400 to-blue-500',
+      accentColor: '#06b6d4',
+      layout: 'ats',
+    };
+    try {
+      const stored = window.localStorage.getItem('resumegpt-selected-template');
+      if (stored) {
+        const parsed = JSON.parse(stored) as ResumeTemplate;
+        if (parsed?.id && parsed?.name) return parsed;
+      }
+    } catch {
+      window.localStorage.removeItem('resumegpt-selected-template');
+    }
+    return {
+      id: 'ats-clarity',
+      name: 'ATS Clarity',
+      category: 'ATS optimized',
+      description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
+      accent: 'from-cyan-400 to-blue-500',
+      accentColor: '#06b6d4',
+      layout: 'ats',
+    };
   });
-  const [templateColor, setTemplateColor] = useState('#06b6d4');
+  const [templateColor, setTemplateColor] = useState(() => {
+    if (typeof window === 'undefined') return '#06b6d4';
+    return window.localStorage.getItem('resumegpt-template-color') || selectedTemplate.accentColor;
+  });
   const [agentWorkflow, setAgentWorkflow] = useState<AgentStep[]>([]);
 
   useEffect(() => {
@@ -188,6 +213,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === 'undefined') return;
     if (jobAnalysis) window.localStorage.setItem('resumegpt-last-job-analysis', JSON.stringify(jobAnalysis));
   }, [jobAnalysis]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('resumegpt-selected-template', JSON.stringify(selectedTemplate));
+    window.localStorage.setItem('resumegpt-template-color', templateColor);
+  }, [selectedTemplate, templateColor]);
 
   const updateProfile = (profile: Partial<Pick<ResumeData, 'name' | 'title' | 'summary'>>) => {
     setResumeData(prev => ({ ...prev, ...profile }));

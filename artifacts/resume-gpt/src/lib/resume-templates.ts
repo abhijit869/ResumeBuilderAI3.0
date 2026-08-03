@@ -1,0 +1,122 @@
+import type { ResumeTemplate } from '@/store';
+
+export const DEFAULT_RESUME_TEMPLATE: ResumeTemplate = {
+  id: 'ats-clarity',
+  name: 'ATS Clarity',
+  category: 'ATS optimized',
+  description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
+  accent: 'from-cyan-400 to-blue-500',
+  accentColor: '#06b6d4',
+  layout: 'ats',
+};
+
+export const RESUME_TEMPLATES: ResumeTemplate[] = [
+  DEFAULT_RESUME_TEMPLATE,
+  {
+    id: 'executive-signal',
+    name: 'Executive Signal',
+    category: 'Executive',
+    description: 'Confident typography and measured spacing for senior leadership roles.',
+    accent: 'from-amber-300 to-orange-500',
+    accentColor: '#f59e0b',
+    layout: 'executive',
+  },
+  {
+    id: 'studio-grid',
+    name: 'Studio Grid',
+    category: 'Creative',
+    description: 'A refined visual system for product, design, and brand portfolios.',
+    accent: 'from-fuchsia-400 to-purple-500',
+    accentColor: '#d946ef',
+    layout: 'minimal',
+  },
+  {
+    id: 'modern-column',
+    name: 'Modern Column',
+    category: 'Modern',
+    description: 'A balanced two-column layout with fast visual scanning.',
+    accent: 'from-emerald-300 to-teal-500',
+    accentColor: '#10b981',
+    layout: 'technical',
+  },
+  {
+    id: 'research-paper',
+    name: 'Research Paper',
+    category: 'Academic',
+    description: 'Structured sections for research, publications, and credentials.',
+    accent: 'from-violet-300 to-indigo-500',
+    accentColor: '#8b5cf6',
+    layout: 'ats',
+  },
+  {
+    id: 'minimal-one',
+    name: 'Minimal One',
+    category: 'Minimal',
+    description: 'Quiet, premium, and intentionally focused on your strongest evidence.',
+    accent: 'from-slate-300 to-slate-500',
+    accentColor: '#64748b',
+    layout: 'minimal',
+  },
+  {
+    id: 'editorial-profile',
+    name: 'Editorial Profile',
+    category: 'Premium editorial',
+    description: 'Centered identity, fine rules, compact timelines, and color-ready sections.',
+    accent: 'from-teal-700 via-slate-700 to-cyan-500',
+    accentColor: '#0f766e',
+    layout: 'editorial',
+  },
+  {
+    id: 'midnight-sidebar',
+    name: 'Midnight Sidebar',
+    category: 'Professional',
+    description: 'A strong dark information rail inspired by modern UX and product resumes.',
+    accent: 'from-slate-950 via-slate-800 to-cyan-700',
+    accentColor: '#22d3ee',
+    layout: 'sidebar',
+  },
+  {
+    id: 'timeline-profile',
+    name: 'Timeline Profile',
+    category: 'Structured',
+    description: 'A compact profile rail with a clear chronology for experience-led careers.',
+    accent: 'from-indigo-950 via-slate-800 to-blue-600',
+    accentColor: '#60a5fa',
+    layout: 'timeline',
+  },
+  {
+    id: 'compact-executive',
+    name: 'Compact Executive',
+    category: 'Leadership',
+    description: 'A crisp top header and dense evidence blocks for experienced candidates.',
+    accent: 'from-slate-100 via-slate-300 to-slate-500',
+    accentColor: '#334155',
+    layout: 'executive',
+  },
+  {
+    id: 'technical-split',
+    name: 'Technical Split',
+    category: 'Technical',
+    description: 'Experience stays dominant while highlights, education, and certifications stay visible.',
+    accent: 'from-slate-700 via-cyan-700 to-cyan-400',
+    accentColor: '#0891b2',
+    layout: 'technical',
+  },
+  {
+    id: 'blueprint-minimal',
+    name: 'Blueprint Minimal',
+    category: 'Minimal',
+    description: 'Airy two-column structure with blue section labels and a project-ready rhythm.',
+    accent: 'from-sky-100 via-white to-blue-200',
+    accentColor: '#0369a1',
+    layout: 'minimal',
+  },
+];
+
+export function templateWithLayout(template: ResumeTemplate): ResumeTemplate {
+  return {
+    ...DEFAULT_RESUME_TEMPLATE,
+    ...template,
+    layout: template.layout ?? (template.id === 'editorial-profile' ? 'editorial' : 'ats'),
+  };
+}

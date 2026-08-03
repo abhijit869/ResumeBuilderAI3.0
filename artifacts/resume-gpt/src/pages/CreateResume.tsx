@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { ResumeExportActions } from '@/components/ResumeExportActions';
+import { RESUME_TEMPLATES } from '@/lib/resume-templates';
 import {
   ProfileSource,
   ResumeMode,
@@ -32,65 +33,6 @@ import {
 } from '@/store';
 
 type Stage = 'profile' | 'job' | 'match' | 'design' | 'complete';
-
-const templates: ResumeTemplate[] = [
-  {
-    id: 'ats-clarity',
-    name: 'ATS Clarity',
-    category: 'ATS optimized',
-    description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
-    accent: 'from-cyan-400 to-blue-500',
-    accentColor: '#06b6d4',
-  },
-  {
-    id: 'executive-signal',
-    name: 'Executive Signal',
-    category: 'Executive',
-    description: 'Confident typography and measured spacing for senior leadership roles.',
-    accent: 'from-amber-300 to-orange-500',
-    accentColor: '#f59e0b',
-  },
-  {
-    id: 'studio-grid',
-    name: 'Studio Grid',
-    category: 'Creative',
-    description: 'A refined visual system for product, design, and brand portfolios.',
-    accent: 'from-fuchsia-400 to-purple-500',
-    accentColor: '#d946ef',
-  },
-  {
-    id: 'modern-column',
-    name: 'Modern Column',
-    category: 'Modern',
-    description: 'A balanced two-column layout with fast visual scanning.',
-    accent: 'from-emerald-300 to-teal-500',
-    accentColor: '#10b981',
-  },
-  {
-    id: 'research-paper',
-    name: 'Research Paper',
-    category: 'Academic',
-    description: 'Structured sections for research, publications, and credentials.',
-    accent: 'from-violet-300 to-indigo-500',
-    accentColor: '#8b5cf6',
-  },
-  {
-    id: 'minimal-one',
-    name: 'Minimal One',
-    category: 'Minimal',
-    description: 'Quiet, premium, and intentionally focused on your strongest evidence.',
-    accent: 'from-slate-300 to-slate-500',
-    accentColor: '#64748b',
-  },
-  {
-    id: 'editorial-profile',
-    name: 'Editorial Profile',
-    category: 'Premium editorial',
-    description: 'Centered identity, fine rules, compact timelines, and color-ready sections inspired by your uploaded references.',
-    accent: 'from-teal-700 via-slate-700 to-cyan-500',
-    accentColor: '#0f766e',
-  },
-];
 
 const stages: { id: Stage; label: string }[] = [
   { id: 'profile', label: 'Profile' },
@@ -173,6 +115,7 @@ function TemplateCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const layout = template.layout ?? 'ats';
   return (
     <button
       type="button"
@@ -185,13 +128,23 @@ function TemplateCard({
     >
       <div className={`relative mb-4 flex h-36 items-end overflow-hidden rounded-lg bg-gradient-to-br ${template.accent} p-3`}>
         <div className="absolute right-3 top-3 h-3 w-3 rounded-full border border-white/70" style={{ backgroundColor: template.accentColor }} />
-        <div className="w-full rounded-md bg-white/90 p-3 text-slate-900 shadow-xl transition-transform group-hover:-translate-y-1">
-          <div className="h-2 w-2/5 rounded" style={{ backgroundColor: template.accentColor }} />
-          <div className="mt-2 h-1.5 w-4/5 rounded bg-slate-900/20" />
-          <div className="mt-4 grid grid-cols-3 gap-1">
-            <div className="h-12 rounded bg-slate-900/10" />
-            <div className="h-12 rounded bg-slate-900/10" />
-            <div className="h-12 rounded bg-slate-900/10" />
+        <div className={`relative flex h-full w-full overflow-hidden rounded-md bg-white text-slate-900 shadow-xl transition-transform group-hover:-translate-y-1 ${layout === 'sidebar' || layout === 'timeline' ? 'flex-row' : ''}`}>
+          {(layout === 'sidebar' || layout === 'timeline') && (
+            <div className={`w-[30%] shrink-0 p-2 ${layout === 'timeline' ? 'bg-slate-800' : 'bg-slate-950'}`}>
+              <div className="mx-auto h-5 w-5 rounded-full bg-white/80" />
+              <div className="mt-4 h-1 w-4/5 rounded bg-white/70" />
+              <div className="mt-2 h-1 w-3/5 rounded bg-white/40" />
+              <div className="mt-5 space-y-1.5">{[1, 2, 3, 4].map(item => <div key={item} className="h-1 w-full rounded bg-white/30" />)}</div>
+            </div>
+          )}
+          <div className="min-w-0 flex-1 p-3">
+            {layout === 'executive' && <div className="mb-3 flex items-center justify-between border-b pb-2"><div className="h-3 w-2/5 rounded bg-slate-900/80" /><div className="h-2 w-1/4 rounded bg-slate-900/20" /></div>}
+            {layout !== 'executive' && <div className="h-2 w-2/5 rounded" style={{ backgroundColor: template.accentColor }} />}
+            <div className="mt-2 h-1.5 w-4/5 rounded bg-slate-900/20" />
+            <div className={`mt-4 grid gap-2 ${layout === 'technical' || layout === 'minimal' ? 'grid-cols-[1.5fr_1fr]' : 'grid-cols-1'}`}>
+              <div className="space-y-2"><div className="h-1.5 w-1/2 rounded" style={{ backgroundColor: `${template.accentColor}99` }} />{[1, 2, 3].map(item => <div key={item} className="h-1 rounded bg-slate-900/15" />)}</div>
+              {(layout === 'technical' || layout === 'minimal') && <div className="space-y-2 border-l pl-2"><div className="h-1.5 w-3/4 rounded" style={{ backgroundColor: template.accentColor }} />{[1, 2, 3].map(item => <div key={item} className="h-1 rounded bg-slate-900/15" />)}</div>}
+            </div>
           </div>
         </div>
       </div>
@@ -566,12 +519,16 @@ export default function CreateResume() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {templates.map(template => (
+                {RESUME_TEMPLATES.map(template => (
                   <TemplateCard
                     key={template.id}
                     template={template}
                     selected={selectedTemplate.id === template.id}
-                    onSelect={() => { setSelectedTemplate(template); setTemplateColor(template.accentColor); }}
+                    onSelect={() => {
+                      if (selectedTemplate.id === template.id) return;
+                      setSelectedTemplate(template);
+                      setTemplateColor(template.accentColor);
+                    }}
                   />
                 ))}
               </div>

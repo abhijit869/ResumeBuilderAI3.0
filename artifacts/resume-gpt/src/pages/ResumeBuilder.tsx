@@ -10,11 +10,13 @@ import { Badge } from '@/components/ui/badge';
 import { Save, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles } from 'lucide-react';
 import { improveBulletLocally } from '@/lib/local-tools';
 import { ResumeExportActions } from '@/components/ResumeExportActions';
+import type { ResumeData, ResumeTemplate } from '@/store';
 
 function ResumePreview() {
   const { resumeData, selectedTemplate, templateColor } = useAppStore();
+  const layout = selectedTemplate.layout ?? (selectedTemplate.id === 'editorial-profile' ? 'editorial' : 'ats');
 
-  if (selectedTemplate.id === 'editorial-profile') {
+  if (layout === 'editorial') {
     return (
       <div className="w-full max-w-[800px] min-h-[1050px] rounded-sm bg-white px-10 py-9 font-serif leading-relaxed text-slate-900 shadow-2xl">
         <header className="border-b-2 pb-5 text-center" style={{ borderColor: `${templateColor}55` }}>
@@ -111,57 +113,137 @@ function ResumePreview() {
     );
   }
 
+  if (layout === 'sidebar' || layout === 'timeline') {
+    return <SidebarPreview data={resumeData} template={selectedTemplate} accent={templateColor} timeline={layout === 'timeline'} />;
+  }
+
+  if (layout === 'executive') {
+    return <ExecutivePreview data={resumeData} accent={templateColor} />;
+  }
+
+  if (layout === 'technical') {
+    return <TechnicalPreview data={resumeData} accent={templateColor} />;
+  }
+
   return (
-    <div className="bg-white text-black p-8 shadow-2xl rounded-sm w-full max-w-[800px] min-h-[1050px] origin-top scale-[0.6] sm:scale-[0.8] xl:scale-100 transition-transform font-serif leading-relaxed h-max">
-      <header className="mb-6 border-b-2 border-black/10 pb-4">
-        <h1 className="text-4xl font-bold text-black mb-1 font-sans">{resumeData.name}</h1>
-        <div className="text-xl text-black/70 mb-2 font-sans">{resumeData.title}</div>
-        <div className="flex gap-4 text-xs text-black/60 font-sans">
-          <span>{resumeData.contact.email}</span>
-          <span>•</span>
-          <span>{resumeData.contact.phone}</span>
-          <span>•</span>
-          <span>{resumeData.contact.location}</span>
-        </div>
+    <StandardPreview data={resumeData} accent={templateColor} />
+  );
+}
+
+function StandardPreview({ data, accent }: { data: ResumeData; accent: string }) {
+  return (
+    <div className="w-full max-w-[800px] min-h-[1050px] rounded-sm bg-white p-8 font-serif leading-relaxed text-black shadow-2xl">
+      <header className="mb-6 border-b-2 pb-4" style={{ borderColor: `${accent}55` }}>
+        <h1 className="mb-1 font-sans text-4xl font-bold" style={{ color: accent }}>{data.name || 'Your Name'}</h1>
+        <div className="mb-2 font-sans text-xl text-black/70">{data.title || 'Professional Title'}</div>
+        <ContactLine data={data} />
       </header>
-
-      <section className="mb-6">
-        <p className="text-sm text-black/80">{resumeData.summary}</p>
-      </section>
-
-      <section className="mb-6">
-        <h2 className="text-lg font-bold text-black mb-3 font-sans uppercase tracking-widest border-b border-black/10 pb-1">Experience</h2>
-        <div className="space-y-5">
-          {resumeData.experience.map(exp => (
-            <div key={exp.id}>
-              <div className="flex justify-between items-baseline mb-1">
-                <h3 className="font-bold text-black font-sans">{exp.role}</h3>
-                <span className="text-xs font-sans text-black/60">{exp.dates}</span>
-              </div>
-              <div className="text-sm font-sans text-black/80 mb-2 italic">{exp.company}</div>
-              <ul className="list-disc pl-4 space-y-1 text-sm text-black/80">
-                {exp.bullets.map((bullet, i) => (
-                  <li key={i}>{bullet}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-lg font-bold text-black mb-3 font-sans uppercase tracking-widest border-b border-black/10 pb-1">Skills</h2>
-        <div className="flex flex-wrap gap-x-2 gap-y-1 text-sm text-black/80">
-          {resumeData.skills.map((skill, i) => (
-            <React.Fragment key={i}>
-              <span>{skill}</span>
-              {i < resumeData.skills.length - 1 && <span className="text-black/30">•</span>}
-            </React.Fragment>
-          ))}
-        </div>
-      </section>
+      <SummaryBlock data={data} />
+      <ExperienceBlock data={data} accent={accent} />
+      <SkillsBlock data={data} accent={accent} />
     </div>
   );
+}
+
+function SidebarPreview({ data, template, accent, timeline }: { data: ResumeData; template: ResumeTemplate; accent: string; timeline: boolean }) {
+  return (
+    <div className="flex w-full max-w-[800px] min-h-[1050px] overflow-hidden rounded-sm bg-white font-sans text-slate-900 shadow-2xl">
+      <aside className={`w-[30%] shrink-0 p-7 text-white ${timeline ? 'bg-slate-800' : 'bg-slate-950'}`}>
+        <div className="mb-8 flex h-16 w-16 items-center justify-center rounded-full border-4 border-white/30 text-2xl font-bold" style={{ backgroundColor: `${accent}aa` }}>
+          {(data.name || 'Y').slice(0, 1).toUpperCase()}
+        </div>
+        <h1 className="text-xl font-black leading-tight">{data.name || 'Your Name'}</h1>
+        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/70">{data.title || 'Professional Title'}</p>
+        <SidebarSection title="Contact">
+          <ContactLine data={data} dark />
+        </SidebarSection>
+        <SidebarSection title="Skills">
+          <ul className="space-y-2 text-xs text-white/80">{data.skills.slice(0, 8).map((skill, index) => <li key={`${skill}-${index}`}>• {skill}</li>)}</ul>
+        </SidebarSection>
+        <SidebarSection title="Languages">
+          <ul className="space-y-2 text-xs text-white/80">{(data.languages.length ? data.languages : [{ name: 'English', proficiency: 'Professional' }]).slice(0, 4).map((language, index) => <li key={`${language.name}-${index}`}>{language.name} <span className="block text-[10px] text-white/50">{language.proficiency}</span></li>)}</ul>
+        </SidebarSection>
+      </aside>
+      <main className="min-w-0 flex-1 p-8">
+        <h2 className="mb-2 text-2xl font-black" style={{ color: accent }}>{timeline ? 'Profile' : 'About Me'}</h2>
+        <p className="mb-7 text-sm leading-relaxed text-slate-600">{data.summary || 'Add a concise professional summary that connects your strongest evidence to the target role.'}</p>
+        <h2 className="mb-4 border-b-2 pb-2 text-lg font-black uppercase tracking-widest" style={{ borderColor: `${accent}66`, color: accent }}>Experience</h2>
+        <div className={timeline ? 'border-l-2 pl-5' : 'space-y-6'} style={timeline ? { borderColor: `${accent}66` } : undefined}>
+          {data.experience.map(exp => (
+            <article key={exp.id} className={timeline ? 'relative mb-6' : ''}>
+              {timeline && <span className="absolute -left-[25px] top-1 h-3 w-3 rounded-full border-2 border-white" style={{ backgroundColor: accent }} />}
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-bold">{exp.role || 'Role'}</h3><span className="text-xs text-slate-500">{exp.dates}</span>
+              </div>
+              <div className="text-xs font-semibold" style={{ color: accent }}>{exp.company}</div>
+              <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-slate-600">{exp.bullets.filter(Boolean).map((bullet, index) => <li key={`${exp.id}-${index}`}>{bullet}</li>)}</ul>
+            </article>
+          ))}
+        </div>
+        <h2 className="mb-3 mt-8 border-b-2 pb-2 text-lg font-black uppercase tracking-widest" style={{ borderColor: `${accent}66`, color: accent }}>Education</h2>
+        {data.education.map((education, index) => <div key={`${education.school}-${index}`} className="mb-3 text-sm"><strong>{education.degree}</strong><div className="text-slate-600">{education.school} · {education.dates}</div></div>)}
+      </main>
+    </div>
+  );
+}
+
+function ExecutivePreview({ data, accent }: { data: ResumeData; accent: string }) {
+  return (
+    <div className="w-full max-w-[800px] min-h-[1050px] rounded-sm bg-white p-9 font-serif text-slate-900 shadow-2xl">
+      <header className="mb-7 grid grid-cols-[1fr_auto] gap-8 border-b pb-6" style={{ borderColor: `${accent}55` }}>
+        <div><h1 className="text-4xl font-black leading-none">{data.name || 'Your Name'}</h1><p className="mt-2 text-sm font-bold uppercase tracking-[0.18em]" style={{ color: accent }}>{data.title || 'Professional Title'}</p></div>
+        <ContactLine data={data} align="right" />
+      </header>
+      <div className="grid grid-cols-[1.5fr_0.8fr] gap-8">
+        <div><SectionHeading title="Experience" accent={accent} /><ExperienceBlock data={data} accent={accent} /><SectionHeading title="Education" accent={accent} /><EducationBlock data={data} /></div>
+        <div><SectionHeading title="Summary" accent={accent} /><p className="text-sm leading-relaxed text-slate-600">{data.summary || 'Add your executive summary.'}</p><SectionHeading title="Highlights" accent={accent} /><SkillsBlock data={data} accent={accent} /></div>
+      </div>
+    </div>
+  );
+}
+
+function TechnicalPreview({ data, accent }: { data: ResumeData; accent: string }) {
+  return (
+    <div className="w-full max-w-[800px] min-h-[1050px] rounded-sm bg-white p-9 font-sans text-slate-900 shadow-2xl">
+      <header className="mb-7 flex items-start justify-between border-b-2 pb-5" style={{ borderColor: accent }}>
+        <div><h1 className="text-3xl font-black">{data.name || 'Your Name'}</h1><p className="mt-1 text-sm font-semibold" style={{ color: accent }}>{data.title || 'Professional Title'}</p></div>
+        <ContactLine data={data} align="right" />
+      </header>
+      <div className="grid grid-cols-[1.6fr_0.9fr] gap-8">
+        <div><SectionHeading title="Professional Experience" accent={accent} /><ExperienceBlock data={data} accent={accent} /><SectionHeading title="Projects" accent={accent} /><div className="space-y-3 text-sm">{data.projects.map((project, index) => <div key={`${project.name}-${index}`}><strong>{project.name}</strong><p className="text-slate-600">{project.description}</p></div>)}</div></div>
+        <div className="border-l pl-5" style={{ borderColor: `${accent}55` }}><SectionHeading title="Summary" accent={accent} /><p className="text-sm leading-relaxed text-slate-600">{data.summary || 'Add a concise professional summary.'}</p><SectionHeading title="Skills" accent={accent} /><SkillsBlock data={data} accent={accent} /><SectionHeading title="Certifications" accent={accent} /><div className="space-y-2 text-sm">{data.certifications.map((certification, index) => <div key={`${certification.name}-${index}`}><strong>{certification.name}</strong><div className="text-slate-500">{certification.issuer}</div></div>)}</div></div>
+      </div>
+    </div>
+  );
+}
+
+function ContactLine({ data, dark = false, align = 'left' }: { data: ResumeData; dark?: boolean; align?: 'left' | 'right' }) {
+  const values = [data.contact.email, data.contact.phone, data.contact.location].filter(Boolean);
+  return <div className={`flex flex-col gap-1 text-xs ${dark ? 'text-white/70' : 'text-slate-500'} ${align === 'right' ? 'items-end text-right' : ''}`}>{values.map((value, index) => <span key={`${value}-${index}`}>{value}</span>)}</div>;
+}
+
+function SummaryBlock({ data }: { data: ResumeData }) {
+  return <section className="mb-6"><p className="text-sm leading-relaxed text-black/70">{data.summary || 'Add a concise professional summary that connects your strongest evidence to the target role.'}</p></section>;
+}
+
+function ExperienceBlock({ data, accent }: { data: ResumeData; accent: string }) {
+  return <section className="mb-6"><SectionHeading title="Experience" accent={accent} /><div className="space-y-5">{data.experience.map(exp => <div key={exp.id}><div className="flex flex-wrap items-baseline justify-between gap-2"><h3 className="font-bold">{exp.role || 'Role'}</h3><span className="text-xs text-black/60">{exp.dates}</span></div><div className="mb-2 text-sm italic text-black/70">{exp.company}</div><ul className="list-disc space-y-1 pl-4 text-sm text-black/70">{exp.bullets.filter(Boolean).map((bullet, index) => <li key={`${exp.id}-${index}`}>{bullet}</li>)}</ul></div>)}</div></section>;
+}
+
+function SkillsBlock({ data, accent }: { data: ResumeData; accent: string }) {
+  return <div className="flex flex-wrap gap-2 text-sm">{data.skills.map((skill, index) => <span key={`${skill}-${index}`} className="rounded border px-2 py-1" style={{ borderColor: `${accent}55`, color: accent }}>{skill}</span>)}</div>;
+}
+
+function EducationBlock({ data }: { data: ResumeData }) {
+  return <div className="space-y-3 text-sm">{data.education.map((education, index) => <div key={`${education.school}-${index}`}><strong>{education.degree}</strong><div className="text-slate-600">{education.school} · {education.dates}</div></div>)}</div>;
+}
+
+function SectionHeading({ title, accent }: { title: string; accent: string }) {
+  return <h2 className="mb-3 border-b pb-2 font-sans text-sm font-black uppercase tracking-widest" style={{ borderColor: `${accent}66`, color: accent }}>{title}</h2>;
+}
+
+function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return <section className="mt-8"><h2 className="mb-2 border-b border-white/30 pb-1 text-xs font-bold uppercase tracking-[0.16em]">{title}</h2>{children}</section>;
 }
 
 function EditorialSection({

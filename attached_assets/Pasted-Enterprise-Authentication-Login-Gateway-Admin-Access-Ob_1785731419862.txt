@@ -1,0 +1,433 @@
+Enterprise Authentication, Login Gateway & Admin Access
+Objective
+
+Build a secure, enterprise-grade authentication system for an AI Resume Builder SaaS application.
+
+The authentication system must be modern, responsive, highly secure, and production-ready.
+
+Do not use hidden backdoors or client-side secrets.
+
+Authentication Flow
+
+Implement the following pages:
+
+Splash Screen
+Welcome Page
+Login
+Register
+Forgot Password
+Reset Password
+Verify Email
+Loading Screen
+Session Expired
+Unauthorized
+Admin Dashboard
+User Dashboard
+Login Methods
+
+Support:
+
+✓ Email + Password
+
+✓ Google Login (OAuth)
+
+✓ GitHub Login
+
+✓ Microsoft Login
+
+✓ LinkedIn Login (where supported)
+
+Email Login
+
+Fields
+
+Email
+
+Password
+
+Remember Me
+
+Forgot Password
+
+Login Button
+
+Register Button
+
+Continue with Google
+
+Continue with GitHub
+
+Continue with Microsoft
+
+Validation
+
+Validate email format.
+
+Password minimum:
+
+8 characters
+uppercase
+lowercase
+number
+special character
+
+Display friendly validation errors.
+
+Security
+
+Implement
+
+JWT
+
+Refresh Tokens
+
+HTTP Only Cookies
+
+CSRF Protection
+
+XSS Protection
+
+SQL Injection Protection
+
+Rate Limiting
+
+Brute Force Detection
+
+Device Tracking
+
+Session Management
+
+Automatic Logout
+
+Audit Logs
+
+Password Hashing using Argon2 or bcrypt
+
+Default Administrator
+
+On the first application setup, automatically create a default administrator account if one does not already exist.
+
+Example configuration:
+
+Email:
+admin123@gmail.com
+
+Role:
+Super Admin
+
+Status:
+Active
+
+The password must not be hardcoded in the frontend. Instead, it should be stored securely as a hashed value on the server and configurable through environment variables or a secure setup process.
+
+If the user logs in with the administrator account and valid credentials:
+
+Role = SUPER_ADMIN
+
+Grant access to:
+
+Admin Dashboard
+User Management
+AI Configuration
+Model Configuration
+Billing
+Analytics
+Resume Templates
+AI Agents
+Prompt Library
+Feature Flags
+Logs
+System Settings
+
+Never reveal the existence of the administrator account in the UI.
+
+Role Based Access
+
+Roles
+
+Guest
+
+Free User
+
+Premium User
+
+Recruiter
+
+Moderator
+
+Admin
+
+Super Admin
+
+Each route must verify permissions before rendering.
+
+Login Gateway
+
+Flow
+
+Splash
+
+↓
+
+Authentication Check
+
+↓
+
+If authenticated
+
+↓
+
+Dashboard
+
+Else
+
+↓
+
+Login Screen
+
+Session Flow
+
+App Opens
+
+↓
+
+Check Token
+
+↓
+
+Token Valid
+
+↓
+
+Dashboard
+
+↓
+
+Token Expired
+
+↓
+
+Refresh Token
+
+↓
+
+If Success
+
+↓
+
+Continue
+
+↓
+
+Else
+
+↓
+
+Login Screen
+
+Dashboard Routing
+
+Guest
+
+↓
+
+Welcome
+
+User
+
+↓
+
+Resume Dashboard
+
+Recruiter
+
+↓
+
+Recruiter Dashboard
+
+Admin
+
+↓
+
+Admin Dashboard
+
+Super Admin
+
+↓
+
+Full System Dashboard
+
+Loading Experience
+
+Animated logo
+
+Progress indicator
+
+Authentication status
+
+Session validation
+
+User profile loading
+
+Permission loading
+
+Theme loading
+
+Then enter dashboard.
+
+UI Design
+
+Modern SaaS
+
+Rounded cards
+
+Smooth animations
+
+Dark Mode
+
+Light Mode
+
+Glassmorphism
+
+Minimal design
+
+Responsive
+
+Mobile First
+
+Accessibility support
+
+Keyboard navigation
+
+Admin Dashboard
+
+Modules
+
+Analytics
+
+Users
+
+Organizations
+
+Subscriptions
+
+AI Agents
+
+Resume Templates
+
+Prompt Manager
+
+Email Manager
+
+Storage
+
+Database
+
+Activity Logs
+
+Feature Flags
+
+Billing
+
+Payments
+
+Notifications
+
+Security
+
+API Keys
+
+Model Routing
+
+OpenCode Integration
+
+Zen Integration
+
+Monitoring
+
+Backup
+
+System Health
+
+Authentication Middleware
+
+Every request must verify:
+
+Access Token
+
+User Status
+
+Role
+
+Subscription
+
+Permissions
+
+Organization
+
+Session
+
+Device
+
+Error Pages
+
+401 Unauthorized
+
+403 Forbidden
+
+404 Not Found
+
+429 Too Many Requests
+
+500 Internal Error
+
+Beautiful animated error pages
+
+Performance
+
+Lazy Loading
+
+Code Splitting
+
+Caching
+
+Optimistic UI
+
+Streaming
+
+Skeleton Loading
+
+Server Components
+
+Folder Structure
+app/
+
+auth/
+
+login/
+
+register/
+
+forgot-password/
+
+verify-email/
+
+dashboard/
+
+admin/
+
+middleware/
+
+api/
+
+components/
+
+hooks/
+
+lib/
+
+services/
+
+types/
+
+utils/
