@@ -39,6 +39,7 @@ const templates: ResumeTemplate[] = [
     category: 'ATS optimized',
     description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
     accent: 'from-cyan-400 to-blue-500',
+    accentColor: '#06b6d4',
   },
   {
     id: 'executive-signal',
@@ -46,6 +47,7 @@ const templates: ResumeTemplate[] = [
     category: 'Executive',
     description: 'Confident typography and measured spacing for senior leadership roles.',
     accent: 'from-amber-300 to-orange-500',
+    accentColor: '#f59e0b',
   },
   {
     id: 'studio-grid',
@@ -53,6 +55,7 @@ const templates: ResumeTemplate[] = [
     category: 'Creative',
     description: 'A refined visual system for product, design, and brand portfolios.',
     accent: 'from-fuchsia-400 to-purple-500',
+    accentColor: '#d946ef',
   },
   {
     id: 'modern-column',
@@ -60,6 +63,7 @@ const templates: ResumeTemplate[] = [
     category: 'Modern',
     description: 'A balanced two-column layout with fast visual scanning.',
     accent: 'from-emerald-300 to-teal-500',
+    accentColor: '#10b981',
   },
   {
     id: 'research-paper',
@@ -67,6 +71,7 @@ const templates: ResumeTemplate[] = [
     category: 'Academic',
     description: 'Structured sections for research, publications, and credentials.',
     accent: 'from-violet-300 to-indigo-500',
+    accentColor: '#8b5cf6',
   },
   {
     id: 'minimal-one',
@@ -74,6 +79,15 @@ const templates: ResumeTemplate[] = [
     category: 'Minimal',
     description: 'Quiet, premium, and intentionally focused on your strongest evidence.',
     accent: 'from-slate-300 to-slate-500',
+    accentColor: '#64748b',
+  },
+  {
+    id: 'editorial-profile',
+    name: 'Editorial Profile',
+    category: 'Premium editorial',
+    description: 'Centered identity, fine rules, compact timelines, and color-ready sections inspired by your uploaded references.',
+    accent: 'from-teal-700 via-slate-700 to-cyan-500',
+    accentColor: '#0f766e',
   },
 ];
 
@@ -146,6 +160,49 @@ function StageRail({ stage }: { stage: Stage }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function TemplateCard({
+  template,
+  selected,
+  onSelect,
+}: {
+  template: ResumeTemplate;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`group rounded-xl border p-3 text-left transition-all ${
+        selected
+          ? 'border-primary bg-primary/10 ring-1 ring-primary/40'
+          : 'border-border/60 bg-background/30 hover:border-primary/40'
+      }`}
+    >
+      <div className={`relative mb-4 flex h-36 items-end overflow-hidden rounded-lg bg-gradient-to-br ${template.accent} p-3`}>
+        <div className="absolute right-3 top-3 h-3 w-3 rounded-full border border-white/70" style={{ backgroundColor: template.accentColor }} />
+        <div className="w-full rounded-md bg-white/90 p-3 text-slate-900 shadow-xl transition-transform group-hover:-translate-y-1">
+          <div className="h-2 w-2/5 rounded" style={{ backgroundColor: template.accentColor }} />
+          <div className="mt-2 h-1.5 w-4/5 rounded bg-slate-900/20" />
+          <div className="mt-4 grid grid-cols-3 gap-1">
+            <div className="h-12 rounded bg-slate-900/10" />
+            <div className="h-12 rounded bg-slate-900/10" />
+            <div className="h-12 rounded bg-slate-900/10" />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-semibold">{template.name}</div>
+          <div className="mt-1 text-[10px] uppercase tracking-wider text-primary">{template.category}</div>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{template.description}</p>
+        </div>
+        {selected && <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />}
+      </div>
+    </button>
   );
 }
 
@@ -282,6 +339,8 @@ export default function CreateResume() {
     setTargetMatchScore,
     selectedTemplate,
     setSelectedTemplate,
+    templateColor,
+    setTemplateColor,
     setResumeData,
   } = useAppStore();
   const [stage, setStage] = useState<Stage>('profile');
@@ -494,7 +553,37 @@ export default function CreateResume() {
         )}
 
         {stage === 'design' && (
-          <Card className="border-border/60 bg-card/60 backdrop-blur"><CardHeader><CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> Choose your resume direction</CardTitle><CardDescription>Every template keeps your content readable. Pick the impression that fits the role.</CardDescription></CardHeader><CardContent><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{templates.map(template => <button key={template.id} type="button" onClick={() => setSelectedTemplate(template)} className={`group rounded-xl border p-3 text-left transition-all ${selectedTemplate.id === template.id ? 'border-primary bg-primary/10 ring-1 ring-primary/40' : 'border-border/60 bg-background/30 hover:border-primary/40'}`}><div className={`mb-4 flex h-36 items-end rounded-lg bg-gradient-to-br ${template.accent} p-3`}><div className="w-full rounded-md bg-white/90 p-3 text-slate-900 shadow-xl transition-transform group-hover:-translate-y-1"><div className="h-2 w-2/5 rounded bg-slate-900/80" /><div className="mt-2 h-1.5 w-4/5 rounded bg-slate-900/20" /><div className="mt-4 grid grid-cols-3 gap-1"><div className="h-12 rounded bg-slate-900/10" /><div className="h-12 rounded bg-slate-900/10" /><div className="h-12 rounded bg-slate-900/10" /></div></div></div><div className="flex items-start justify-between gap-3"><div><div className="font-semibold">{template.name}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-primary">{template.category}</div><p className="mt-2 text-xs leading-relaxed text-muted-foreground">{template.description}</p></div>{selectedTemplate.id === template.id && <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />}</div></button>)}</div><div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4"><div><div className="text-sm font-semibold">Selected: {selectedTemplate.name}</div><div className="text-xs text-muted-foreground">You can change the design later without losing your content.</div></div><Button onClick={handleGenerate}>Build tailored resume <WandSparkles className="ml-2 h-4 w-4" /></Button></div></CardContent></Card>
+          <Card className="border-border/60 bg-card/60 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> Choose your resume direction</CardTitle>
+              <CardDescription>Every template keeps your content readable. Pick a layout and customize its accent color before the AI build.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {templates.map(template => (
+                  <TemplateCard
+                    key={template.id}
+                    template={template}
+                    selected={selectedTemplate.id === template.id}
+                    onSelect={() => { setSelectedTemplate(template); setTemplateColor(template.accentColor); }}
+                  />
+                ))}
+              </div>
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div>
+                  <div className="text-sm font-semibold">Selected: {selectedTemplate.name}</div>
+                  <div className="text-xs text-muted-foreground">Your color choice stays active in the builder preview.</div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    Accent color
+                    <input aria-label="Resume accent color" type="color" value={templateColor} onChange={event => setTemplateColor(event.target.value)} className="h-8 w-10 cursor-pointer rounded border border-border bg-transparent p-0.5" />
+                  </label>
+                  <Button onClick={handleGenerate}>Build tailored resume <WandSparkles className="ml-2 h-4 w-4" /></Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {stage === 'complete' && jobAnalysis && (

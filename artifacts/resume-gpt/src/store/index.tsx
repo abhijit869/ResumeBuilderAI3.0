@@ -72,6 +72,7 @@ export type ResumeTemplate = {
   category: string;
   description: string;
   accent: string;
+  accentColor: string;
 };
 
 export type AppState = {
@@ -94,6 +95,8 @@ export type AppState = {
   setJobAnalysis: (analysis: JobAnalysis | null) => void;
   selectedTemplate: ResumeTemplate;
   setSelectedTemplate: (template: ResumeTemplate) => void;
+  templateColor: string;
+  setTemplateColor: (color: string) => void;
 };
 
 const initialData: ResumeData = {
@@ -129,7 +132,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     category: 'ATS optimized',
     description: 'Clean hierarchy, recruiter-friendly scanning, and reliable parsing.',
     accent: 'from-cyan-400 to-blue-500',
+    accentColor: '#06b6d4',
   });
+  const [templateColor, setTemplateColor] = useState('#06b6d4');
 
   useEffect(() => {
     let cancelled = false;
@@ -199,6 +204,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setJobAnalysis,
       selectedTemplate,
       setSelectedTemplate,
+      templateColor,
+      setTemplateColor,
     }}>
       {children}
     </AppContext.Provider>

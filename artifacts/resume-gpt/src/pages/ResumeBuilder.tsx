@@ -10,7 +10,104 @@ import { Badge } from '@/components/ui/badge';
 import { Save, Download, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles } from 'lucide-react';
 
 function ResumePreview() {
-  const { resumeData } = useAppStore();
+  const { resumeData, selectedTemplate, templateColor } = useAppStore();
+
+  if (selectedTemplate.id === 'editorial-profile') {
+    return (
+      <div className="w-full max-w-[800px] min-h-[1050px] rounded-sm bg-white px-10 py-9 font-serif leading-relaxed text-slate-900 shadow-2xl">
+        <header className="border-b-2 pb-5 text-center" style={{ borderColor: `${templateColor}55` }}>
+          <h1 className="font-sans text-4xl font-black tracking-tight" style={{ color: templateColor }}>
+            {resumeData.name || 'Your Name'}
+          </h1>
+          <div className="mt-1 font-sans text-lg font-semibold uppercase tracking-[0.2em] text-slate-700">
+            {resumeData.title || 'Professional Title'}
+          </div>
+          <div className="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-slate-600">
+            {[resumeData.contact.location, resumeData.contact.email, resumeData.contact.phone, resumeData.contact.linkedin]
+              .filter(Boolean)
+              .map((item, index) => (
+                <span key={`${item}-${index}`} className="flex items-center gap-3">
+                  {index > 0 && <span aria-hidden="true" className="text-slate-300">•</span>}
+                  {item}
+                </span>
+              ))}
+          </div>
+        </header>
+
+        <div className="mt-6 space-y-6">
+          <EditorialSection title="Profile" color={templateColor}>
+            <p className="text-sm text-slate-700">
+              {resumeData.summary || 'Add a concise professional summary that connects your strongest evidence to the target role.'}
+            </p>
+          </EditorialSection>
+
+          {resumeData.experience.length > 0 && (
+            <EditorialSection title="Experience" color={templateColor}>
+              <div className="space-y-5">
+                {resumeData.experience.map(exp => (
+                  <div key={exp.id} className="grid grid-cols-[112px_1fr] gap-4">
+                    <div className="pt-1 text-xs font-semibold text-slate-500">{exp.dates}</div>
+                    <div>
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h3 className="font-sans text-base font-bold">{exp.role || 'Role'}</h3>
+                        <span className="text-xs font-semibold" style={{ color: templateColor }}>{exp.company}</span>
+                      </div>
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-slate-700">
+                        {exp.bullets.filter(Boolean).map((bullet, index) => (
+                          <li key={`${exp.id}-bullet-${index}`}>{bullet}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </EditorialSection>
+          )}
+
+          {resumeData.education.length > 0 && (
+            <EditorialSection title="Education" color={templateColor}>
+              <div className="space-y-3 text-sm">
+                {resumeData.education.map((education, index) => (
+                  <div key={`${education.school}-${index}`} className="grid grid-cols-[112px_1fr] gap-4">
+                    <div className="text-xs font-semibold text-slate-500">{education.dates}</div>
+                    <div>
+                      <strong>{education.degree}</strong>
+                      {education.school && <> · {education.school}</>}
+                      {education.details && <div className="text-slate-600">{education.details}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </EditorialSection>
+          )}
+
+          <EditorialSection title="Skills" color={templateColor}>
+            <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+              {resumeData.skills.map((skill, index) => (
+                <div key={`${skill}-${index}`} className="border-b border-slate-200 pb-1">{skill}</div>
+              ))}
+            </div>
+          </EditorialSection>
+
+          {(resumeData.projects.length > 0 || resumeData.certifications.length > 0 || resumeData.languages.length > 0) && (
+            <EditorialSection title="Additional Information" color={templateColor}>
+              <div className="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
+                {resumeData.projects.map((project, index) => (
+                  <div key={`project-${index}`}><strong>{project.name}</strong>{project.description && ` — ${project.description}`}</div>
+                ))}
+                {resumeData.certifications.map((certification, index) => (
+                  <div key={`certification-${index}`}><strong>{certification.name}</strong>{certification.issuer && ` · ${certification.issuer}`}</div>
+                ))}
+                {resumeData.languages.map((language, index) => (
+                  <div key={`language-${index}`}><strong>{language.name}</strong>{language.proficiency && ` · ${language.proficiency}`}</div>
+                ))}
+              </div>
+            </EditorialSection>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white text-black p-8 shadow-2xl rounded-sm w-full max-w-[800px] min-h-[1050px] origin-top scale-[0.6] sm:scale-[0.8] xl:scale-100 transition-transform font-serif leading-relaxed h-max">
@@ -65,8 +162,42 @@ function ResumePreview() {
   );
 }
 
+function EditorialSection({
+  title,
+  color,
+  children,
+}: {
+  title: string;
+  color: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <div
+        className="mb-3 border-b pb-1 font-sans text-sm font-black uppercase tracking-[0.18em]"
+        style={{ borderColor: `${color}80`, color }}
+      >
+        {title}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export default function ResumeBuilder() {
-  const { resumeData, setResumeData, updateProfile, updateSummary, updateExperience, updateContact, updateSkills, atsScore } = useAppStore();
+  const {
+    resumeData,
+    setResumeData,
+    updateProfile,
+    updateSummary,
+    updateExperience,
+    updateContact,
+    updateSkills,
+    atsScore,
+    selectedTemplate,
+    templateColor,
+    setTemplateColor,
+  } = useAppStore();
   const [activeTab, setActiveTab] = useState("basics");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -111,6 +242,17 @@ export default function ResumeBuilder() {
             <h2 className="font-semibold">Editor</h2>
           </div>
           <div className="flex items-center gap-3">
+            <label className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
+              <span className="sr-only">Template accent color</span>
+              <input
+                aria-label="Template accent color"
+                type="color"
+                value={templateColor}
+                onChange={(event) => setTemplateColor(event.target.value)}
+                className="h-7 w-8 cursor-pointer rounded border border-border bg-transparent p-0.5"
+              />
+            </label>
+            <span className="hidden text-xs text-muted-foreground lg:inline">{selectedTemplate.name}</span>
             <Badge variant="outline" className="border-success/30 text-success bg-success/10 font-mono">
               ATS: {atsScore}
             </Badge>
