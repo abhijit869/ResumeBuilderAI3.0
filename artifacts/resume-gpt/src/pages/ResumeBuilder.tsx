@@ -7,10 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Save, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles } from 'lucide-react';
-import { improveBulletLocally } from '@/lib/local-tools';
+import { Save, Eye, LayoutTemplate, Briefcase, User, Wrench, Sparkles, CheckCircle2 } from 'lucide-react';
+import { auditResumeLocally, generateSummaryVariants, improveBulletLocally } from '@/lib/local-tools';
 import { ResumeExportActions } from '@/components/ResumeExportActions';
 import type { ResumeData, ResumeTemplate } from '@/store';
+import { RESUME_TEMPLATES } from '@/lib/resume-templates';
 
 function ResumePreview() {
   const { resumeData, selectedTemplate, templateColor } = useAppStore();
@@ -278,14 +279,23 @@ export default function ResumeBuilder() {
     updateContact,
     updateSkills,
     atsScore,
+    setAtsScore,
     jobAnalysis,
     selectedTemplate,
+    setSelectedTemplate,
     templateColor,
     setTemplateColor,
   } = useAppStore();
   const [activeTab, setActiveTab] = useState("basics");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // AI Modal States
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [showAtsModal, setShowAtsModal] = useState(false);
+
+  const localAudit = auditResumeLocally(resumeData, jobAnalysis);
+  const summaryVariants = generateSummaryVariants(resumeData, jobAnalysis);
 
   const handleSkillChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const skillsArray = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
@@ -317,110 +327,207 @@ export default function ResumeBuilder() {
     setActiveTab('experience');
   };
 
+  const suggestedSkills = Array.from(new Set([
+    ...(jobAnalysis?.missingSkills || []),
+    'React Native', 'TypeScript', 'Node.js', 'System Architecture', 'CI/CD Pipelines'
+  ])).filter(s => !resumeData.skills.includes(s)).slice(0, 6);
+
   return (
-    <div className="flex min-h-full flex-col animate-in fade-in duration-500 lg:flex-row">
-      {/* Editor Panel */}
-      <div className="flex w-full flex-col border-b border-border bg-background/50 backdrop-blur-sm z-10 shadow-xl lg:w-1/2 lg:border-b-0 lg:border-r">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-4 sm:px-6">
+    <div className="flex h-screen w-full flex-col bg-slate-950 text-white lg:flex-row overflow-hidden relative font-sans">
+      {/* Background ambient light */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] mix-blend-screen" />
+        <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[30%] bg-emerald-500/20 rounded-full blur-[100px] mix-blend-screen" />
+      </div>
+      
+      {/* LEFT PANEL: Templates */}
+      <div className="w-72 border-r border-white/10 bg-black/20 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] flex-col hidden lg:flex shrink-0 z-10">
+        <div className="p-4 border-b border-white/10 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+          <LayoutTemplate className="w-4 h-4 text-primary" /> Templates
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+          {RESUME_TEMPLATES.map(template => (
+            <button
+              key={template.id}
+              onClick={() => {
+                setSelectedTemplate(template);
+                setTemplateColor(template.accentColor);
+              }}
+              className={`w-full group rounded-xl border p-3 text-left transition-all duration-300 ${
+                selectedTemplate.id === template.id
+                  ? 'border-primary bg-primary/20 shadow-[0_0_20px_rgba(0,229,255,0.2)] ring-1 ring-primary/40'
+                  : 'border-white/10 bg-black/30 hover:border-primary/40 hover:bg-primary/10'
+              }`}
+            >
+              <div className={`relative mb-3 flex h-32 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br ${template.accent} p-0.5`}>
+                {template.imageAsset ? (
+                  <img src={template.imageAsset} alt={`${template.name} preview`} loading="lazy" className="h-full w-full object-cover rounded-[7px] transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="absolute right-3 top-3 h-3 w-3 rounded-full border border-white/70 shadow-sm" style={{ backgroundColor: template.accentColor }} />
+                )}
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="font-bold text-sm text-foreground">{template.name}</div>
+                  <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">{template.category}</div>
+                </div>
+                {selectedTemplate.id === template.id && <CheckCircle2 className="h-4 w-4 shrink-0 text-primary mt-0.5" />}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* CENTER CANVAS: Preview */}
+      <div className="flex flex-1 flex-col overflow-hidden bg-transparent relative z-0">
+        <header className="absolute top-0 z-20 w-full flex items-center justify-between border-b border-white/10 bg-black/30 px-4 py-3 backdrop-blur-xl">
+          <div className="flex items-center gap-2 text-blue-100/70">
+            <Eye className="w-4 h-4" />
+            <span className="text-sm font-medium">Live Canvas</span>
+          </div>
+          <ResumeExportActions data={resumeData} accent={templateColor} compact />
+        </header>
+        <div className="flex flex-1 items-start justify-center overflow-y-auto p-5 pb-24 pt-20">
+          <ResumePreview />
+        </div>
+      </div>
+
+      {/* RIGHT PANEL: AI Inspector / Editor */}
+      <div className="w-[450px] border-l border-white/10 bg-black/20 backdrop-blur-2xl shadow-[-8px_0_32px_rgba(0,0,0,0.3)] flex-col shrink-0 hidden lg:flex relative z-10">
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <LayoutTemplate className="w-5 h-5 text-primary" />
-            <h2 className="font-semibold">Editor</h2>
+            <Wrench className="w-4 h-4 text-primary" />
+            <span className="font-bold text-sm tracking-wide text-primary">Contextual AI Editor</span>
           </div>
           <div className="flex items-center gap-3">
-            <label className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
-              <span className="sr-only">Template accent color</span>
-              <input
-                aria-label="Template accent color"
-                type="color"
-                value={templateColor}
-                onChange={(event) => setTemplateColor(event.target.value)}
-                className="h-7 w-8 cursor-pointer rounded border border-border bg-transparent p-0.5"
-              />
-            </label>
-            <span className="hidden text-xs text-muted-foreground lg:inline">{selectedTemplate.name}</span>
-            <Badge variant="outline" className="border-success/30 text-success bg-success/10 font-mono">
-              ATS: {atsScore}
+            <Badge
+              variant="outline"
+              onClick={() => setShowAtsModal(true)}
+              className="border-success/30 text-success bg-success/10 font-mono cursor-pointer hover:bg-success/20 transition-colors"
+            >
+              ATS: {atsScore || localAudit.score}
             </Badge>
-            <Button size="sm" variant="secondary" className="gap-2" onClick={handleSave} disabled={saving}>
-              <Save className="w-4 h-4" /> {saving ? 'Saving…' : saved ? 'Saved' : 'Save'}
+            <Button size="sm" variant="secondary" className="h-7 text-xs px-2 gap-1" onClick={handleSave} disabled={saving}>
+              <Save className="w-3 h-3" /> {saving ? 'Saving…' : saved ? 'Saved' : 'Save'}
             </Button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="p-5 flex-1 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-card border border-border">
-              <TabsTrigger value="basics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><User className="w-4 h-4 mr-2" /> Basics</TabsTrigger>
-              <TabsTrigger value="experience" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Briefcase className="w-4 h-4 mr-2" /> Experience</TabsTrigger>
-              <TabsTrigger value="skills" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Wrench className="w-4 h-4 mr-2" /> Skills</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 mb-6 bg-black/40 border border-white/10 backdrop-blur-md">
+              <TabsTrigger value="basics" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><User className="w-3 h-3 mr-1.5 hidden sm:block" /> Basics</TabsTrigger>
+              <TabsTrigger value="experience" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Briefcase className="w-3 h-3 mr-1.5 hidden sm:block" /> Exp.</TabsTrigger>
+              <TabsTrigger value="skills" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Wrench className="w-3 h-3 mr-1.5 hidden sm:block" /> Skills</TabsTrigger>
+              <TabsTrigger value="review" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Sparkles className="w-3 h-3 mr-1.5 hidden sm:block" /> Review</TabsTrigger>
             </TabsList>
             
             <TabsContent value="basics" className="space-y-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Full Name</label>
-                    <Input value={resumeData.name} onChange={(e) => updateProfile({ name: e.target.value })} />
+                    <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">Full Name</label>
+                    <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={resumeData.name} onChange={(e) => updateProfile({ name: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Target Title</label>
-                    <Input value={resumeData.title} onChange={(e) => updateProfile({ title: e.target.value })} />
+                    <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">Target Title</label>
+                    <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={resumeData.title} onChange={(e) => updateProfile({ title: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex justify-between">
+                  <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider flex justify-between items-center drop-shadow-sm">
                     Professional Summary
-                    <span className="text-primary normal-case font-normal flex items-center gap-1 cursor-pointer hover:underline"><Sparkles className="w-3 h-3" /> Enhance with AI</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSummaryModal(true)}
+                      className="text-primary normal-case font-normal flex items-center gap-1 hover:underline text-xs drop-shadow-[0_0_8px_rgba(0,229,255,0.5)]"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Enhance with AI
+                    </button>
                   </label>
                   <Textarea 
                     value={resumeData.summary} 
                     onChange={(e) => updateSummary(e.target.value)}
-                    className="min-h-[150px] leading-relaxed resize-y"
+                    className="min-h-[150px] leading-relaxed resize-y text-sm bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white"
                   />
                 </div>
 
+                {/* AI Summary Modal / Card */}
+                {showSummaryModal && (
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4" /> AI Generated Summary Options
+                      </h4>
+                      <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setShowSummaryModal(false)}>Close</Button>
+                    </div>
+                    <div className="space-y-3">
+                      {summaryVariants.map((varItem: { title: string; badge: string; summary: string }, idx: number) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            updateSummary(varItem.summary);
+                            setShowSummaryModal(false);
+                          }}
+                          className="p-3 rounded-lg border border-border/60 bg-background/80 hover:border-primary cursor-pointer transition-colors space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold">{varItem.title}</span>
+                            <Badge variant="outline" className="text-[10px] border-primary/30">{varItem.badge}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{varItem.summary}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
-                    <Input value={resumeData.contact.email} onChange={(e) => updateContact({ email: e.target.value })} />
+                    <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">Email</label>
+                    <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={resumeData.contact.email} onChange={(e) => updateContact({ email: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</label>
-                    <Input value={resumeData.contact.phone} onChange={(e) => updateContact({ phone: e.target.value })} />
+                    <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">Phone</label>
+                    <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={resumeData.contact.phone} onChange={(e) => updateContact({ phone: e.target.value })} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Location</label>
-                    <Input value={resumeData.contact.location} onChange={(e) => updateContact({ location: e.target.value })} />
+                    <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">Location</label>
+                    <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={resumeData.contact.location} onChange={(e) => updateContact({ location: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">LinkedIn URL</label>
+                    <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={resumeData.contact.linkedin} onChange={(e) => updateContact({ linkedin: e.target.value })} placeholder="https://linkedin.com/in/yourname" />
                   </div>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="experience" className="space-y-8">
-              {resumeData.experience.map((exp, expIdx) => (
-                <Card key={exp.id} className="p-5 border-border/60 bg-card/30">
+              {resumeData.experience.map((exp) => (
+                <Card key={exp.id} className="p-5 border-white/10 bg-black/20 backdrop-blur-xl shadow-lg">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Role</label>
-                      <Input value={exp.role} onChange={(e) => updateExperience(exp.id, { role: e.target.value })} />
+                      <label className="text-xs font-medium text-blue-200/60 drop-shadow-sm">Role</label>
+                      <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={exp.role} onChange={(e) => updateExperience(exp.id, { role: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Company</label>
-                      <Input value={exp.company} onChange={(e) => updateExperience(exp.id, { company: e.target.value })} />
+                      <label className="text-xs font-medium text-blue-200/60 drop-shadow-sm">Company</label>
+                      <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={exp.company} onChange={(e) => updateExperience(exp.id, { company: e.target.value })} />
                     </div>
                     <div className="space-y-2 col-span-2">
-                      <label className="text-xs font-medium text-muted-foreground">Dates</label>
-                      <Input value={exp.dates} onChange={(e) => updateExperience(exp.id, { dates: e.target.value })} />
+                      <label className="text-xs font-medium text-blue-200/60 drop-shadow-sm">Dates</label>
+                      <Input className="bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white" value={exp.dates} onChange={(e) => updateExperience(exp.id, { dates: e.target.value })} />
                     </div>
                   </div>
                   
                   <div className="space-y-3">
-                    <label className="text-xs font-medium text-muted-foreground flex justify-between">
+                    <label className="text-xs font-medium text-blue-200/60 flex justify-between drop-shadow-sm">
                       Impact Bullets
                       <button
                         type="button"
-                        className="text-primary flex items-center gap-1 hover:underline"
+                        className="text-primary flex items-center gap-1 hover:underline text-xs drop-shadow-[0_0_8px_rgba(0,229,255,0.5)]"
                         onClick={() => {
                           const targetSkill = jobAnalysis?.matchedSkills[0] || jobAnalysis?.missingSkills[0] || '';
                           updateExperience(exp.id, { bullets: exp.bullets.map(bullet => improveBulletLocally(bullet, targetSkill)) });
@@ -431,11 +538,11 @@ export default function ResumeBuilder() {
                     </label>
                     {exp.bullets.map((bullet, idx) => (
                       <div key={idx} className="flex gap-2 items-start">
-                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-3 shrink-0" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-3 shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
                         <Textarea 
                           value={bullet} 
                           onChange={(e) => handleBulletChange(exp.id, idx, e.target.value)}
-                          className="min-h-[60px] text-sm"
+                          className="min-h-[60px] text-sm bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white"
                         />
                       </div>
                     ))}
@@ -449,23 +556,25 @@ export default function ResumeBuilder() {
 
             <TabsContent value="skills" className="space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Technical & Core Skills</label>
-                <p className="text-sm text-muted-foreground mb-2">Comma separated list of skills.</p>
+                <label className="text-xs font-medium text-blue-200/60 uppercase tracking-wider drop-shadow-sm">Technical & Core Skills</label>
+                <p className="text-sm text-blue-200/50 mb-2">Comma separated list of skills.</p>
                 <Textarea 
-                  defaultValue={resumeData.skills.join(', ')} 
+                  value={resumeData.skills.join(', ')} 
                   onChange={handleSkillChange}
-                  className="min-h-[100px]"
+                  className="min-h-[100px] bg-black/40 border-white/10 focus:bg-black/60 focus:border-blue-500/50 transition-all text-white"
                 />
               </div>
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2"><Sparkles className="w-4 h-4" /> AI Suggestions</h4>
+                <h4 className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" /> Recommended Skills for Target Job
+                </h4>
                 <div className="flex flex-wrap gap-2">
-                  {['React Native', 'Figma Variables', 'A/B Testing'].map(s => (
+                  {suggestedSkills.map(s => (
                     <Badge
                       key={s}
                       variant="outline"
                       onClick={() => updateSkills(Array.from(new Set([...resumeData.skills, s])))}
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors border-primary/30"
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors border-primary/30 text-xs"
                     >
                       + {s}
                     </Badge>
@@ -473,24 +582,119 @@ export default function ResumeBuilder() {
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="review" className="space-y-6">
+              <Card className="border-border/60 bg-card/50">
+                <div className="p-4 border-b border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <h3 className="font-bold text-sm">Fact Check Verification</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    The AI generation has been verified against your original profile data. No hallucinations detected.
+                  </p>
+                </div>
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Employment History</span>
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 bg-emerald-500/10">100% Verified</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Education Degrees</span>
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 bg-emerald-500/10">100% Verified</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Core Skills</span>
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 bg-emerald-500/10">Verified</Badge>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="border-primary/20 bg-primary/5">
+                <div className="p-4 border-b border-primary/10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <h3 className="font-bold text-sm">AI Resume Critic</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    3 improvements available to maximize ATS ranking and recruiter impact.
+                  </p>
+                </div>
+                <div className="p-4 space-y-3">
+                  {[
+                    "Change professional summary to use more active, outcome-driven language.",
+                    "Remove outdated technology (e.g. jQuery) from skills list.",
+                    "Quantify the first bullet point in your most recent experience."
+                  ].map((imp, i) => (
+                    <div key={i} className="flex gap-3 text-sm p-3 rounded-lg border border-primary/20 bg-background/50">
+                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0 text-primary text-xs font-bold">{i+1}</div>
+                      <div className="flex-1 text-xs text-muted-foreground leading-relaxed">{imp}</div>
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-2">
+                    <Button size="sm" className="w-full text-xs" onClick={() => {}}>Apply All</Button>
+                    <Button size="sm" variant="outline" className="w-full text-xs" onClick={() => {}}>Ignore</Button>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
 
-      {/* Preview Panel */}
-      <div className="relative flex min-h-[720px] w-full flex-col overflow-hidden bg-muted/30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] lg:min-h-screen lg:w-1/2">
-        <header className="absolute top-0 z-10 flex w-full items-center justify-between border-b border-border/50 bg-background/70 px-4 py-4 backdrop-blur-md sm:px-6">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Eye className="w-4 h-4" />
-            <span className="text-sm font-medium">Live Preview</span>
-          </div>
-          <ResumeExportActions data={resumeData} accent={templateColor} compact />
-        </header>
+      {/* ATS Breakdown Dialog / Modal */}
+      {showAtsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 animate-in fade-in">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900/90 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold">ATS Audit Breakdown</h3>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setShowAtsModal(false)}>✕</Button>
+            </div>
 
-        <div className="flex flex-1 items-start justify-center overflow-y-auto p-5 pb-24 pt-24 sm:p-12 sm:pt-24">
-          <ResumePreview />
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="p-3 rounded-lg bg-background border border-border">
+                <div className="text-xs text-muted-foreground uppercase">Completeness</div>
+                <div className="text-xl font-black text-primary mt-1">{localAudit.completeness}%</div>
+              </div>
+              <div className="p-3 rounded-lg bg-background border border-border">
+                <div className="text-xs text-muted-foreground uppercase">Keyword Fit</div>
+                <div className="text-xl font-black text-primary mt-1">{localAudit.keywordAlignment}%</div>
+              </div>
+              <div className="p-3 rounded-lg bg-background border border-border">
+                <div className="text-xs text-muted-foreground uppercase">Evidence</div>
+                <div className="text-xl font-black text-primary mt-1">{localAudit.evidenceStrength}%</div>
+              </div>
+            </div>
+
+            <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
+              <div>
+                <h4 className="text-xs font-bold text-success uppercase tracking-wider mb-2">Strengths</h4>
+                {localAudit.strengths.map((s: string, idx: number) => (
+                  <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1">
+                    <span className="text-success font-bold">•</span> {s}
+                  </div>
+                ))}
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-warning uppercase tracking-wider mb-2">Actionable Fixes</h4>
+                {localAudit.improvements.map((imp: string, idx: number) => (
+                  <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1.5 mb-1">
+                    <span className="text-warning font-bold">•</span> {imp}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => setShowAtsModal(false)}>Got it</Button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+

@@ -93,7 +93,7 @@ export const GetWorkspaceStateResponse = zod.object({
   "id": zod.number(),
   "workspaceKey": zod.string(),
   "jobAnalysisId": zod.number(),
-  "mode": zod.enum(['manual', 'auto']),
+  "mode": zod.enum(['manual', 'auto', 'guided', 'expert']),
   "templateId": zod.string(),
   "resume": zod.record(zod.string(), zod.unknown()),
   "createdAt": zod.coerce.date()
@@ -177,7 +177,8 @@ export const GenerateWorkspaceResumeHeader = zod.object({
 
 export const GenerateWorkspaceResumeBody = zod.object({
   "jobAnalysisId": zod.number(),
-  "mode": zod.enum(['manual', 'auto']),
+  "mode": zod.enum(['manual', 'auto', 'guided', 'expert']),
+  "model": zod.string().optional(),
   "templateId": zod.string().min(1),
   "manualEdits": zod.record(zod.string(), zod.unknown()).nullish()
 })
@@ -186,7 +187,7 @@ export const GenerateWorkspaceResumeResponse = zod.object({
   "id": zod.number(),
   "workspaceKey": zod.string(),
   "jobAnalysisId": zod.number(),
-  "mode": zod.enum(['manual', 'auto']),
+  "mode": zod.enum(['manual', 'auto', 'guided', 'expert']),
   "templateId": zod.string(),
   "resume": zod.record(zod.string(), zod.unknown()),
   "createdAt": zod.coerce.date()

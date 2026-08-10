@@ -1,20 +1,10 @@
 import { desc, eq } from "drizzle-orm";
-import { db, workspaceProfilesTable, jobAnalysesTable, resumeVersionsTable } from "@workspace/db";
+import { db, workspaceProfilesTable, jobAnalysesTable, resumeVersionsTable, workflowRunsTable, workflowStepsTable } from "@workspace/db";
 import { logger } from "./logger";
+import { computeEmbeddings, cosineSimilarity } from "./semantic";
 
-const OPENCODE_ZEN_MODELS = [
-  "deepseek-v4-flash-free",
-  "nemotron-3-ultra-free",
-  "mimo-v2.5-free",
-  "ling-3.0-flash-free",
-] as const;
-const AI_REQUEST_TIMEOUT_MS = 30_000;
-
-function getOpenCodeZenUrl(): string {
-  const configured = process.env.OPENCODEZEN_BASE_URL?.trim() || "https://opencode.ai/zen/v1";
-  const normalized = configured.replace(/\/+$/, "");
-  return normalized.endsWith("/chat/completions") ? normalized : `${normalized}/chat/completions`;
-}
+import { ModelRouter } from "../ai/ModelRouter";
+import { PromptRegistry } from "../ai/PromptRegistry";
 
 export type ExtractedPage = {
   title: string;
@@ -24,7 +14,7 @@ export type ExtractedPage = {
   fetchedAt: string;
 };
 
-export function getWorkspaceKey(value: unknown): string | null {
+export function getClerkUserId(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length >= 8 && trimmed.length <= 128 ? trimmed : null;
@@ -40,6 +30,26 @@ export function validatePublicUrl(value: string): URL | null {
     const url = new URL(normalizePublicUrl(value));
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     if (url.username || url.password) return null;
+    
+    // Basic SSRF protection
+    const hostname = url.hostname.toLowerCase();
+    if (
+      hostname === "localhost" ||
+      hostname.endsWith(".local") ||
+      hostname.endsWith(".internal") ||
+      /^127\.\d+\.\d+\.\d+$/.test(hostname) ||
+      /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+      /^192\.168\.\d+\.\d+$/.test(hostname) ||
+      /^169\.254\.\d+\.\d+$/.test(hostname) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(hostname) ||
+      hostname.includes("::") ||
+      hostname.startsWith("fd") ||
+      hostname.startsWith("fc") ||
+      hostname.startsWith("fe80")
+    ) {
+      return null;
+    }
+    
     return url;
   } catch {
     return null;
@@ -97,13 +107,13 @@ export async function fetchPublicPage(sourceUrl: string): Promise<ExtractedPage>
       },
     });
     const html = await response.text();
-    if (html.length < 80) throw new Error("The page returned no readable content.");
     if (!response.ok) {
       if (isLinkedInUrl(url) && (response.status === 999 || isLinkedInAuthorizationWall(html))) {
         throw new Error("LinkedIn requires authorization for this profile. Sign in with LinkedIn or upload an authorized profile export.");
       }
       throw new Error(`The page returned HTTP ${response.status}.`);
     }
+    if (html.length < 80) throw new Error("The page returned no readable content.");
 
     const text = cleanText(html);
     const title =
@@ -262,12 +272,53 @@ export function jobFromDescription(description: string) {
   };
 }
 
-export function compareProfileToJob(profile: Record<string, unknown>, job: Record<string, unknown>) {
-  const profileText = JSON.stringify(profile).toLowerCase();
+export async function compareProfileToJob(profile: Record<string, unknown>, job: Record<string, unknown>) {
   const required = Array.isArray(job.requiredSkills) ? job.requiredSkills.filter((value): value is string => typeof value === "string") : [];
-  const matchedSkills = required.filter(skill => profileText.includes(skill.toLowerCase()));
-  const missingSkills = required.filter(skill => !matchedSkills.includes(skill));
-  const matchScore = required.length ? Math.round((matchedSkills.length / required.length) * 100) : 0;
+  if (required.length === 0) {
+    return { matchScore: 0, matchedSkills: [], missingSkills: [], recommendations: [], evidence: [] };
+  }
+
+  // Flatten profile into semantic chunks
+  const profileChunks: string[] = [];
+  if (Array.isArray(profile.skills)) profileChunks.push(...profile.skills.filter((s): s is string => typeof s === "string"));
+  if (Array.isArray(profile.experience)) {
+    profile.experience.forEach((exp: any) => {
+      if (exp.role) profileChunks.push(exp.role);
+      if (Array.isArray(exp.bullets)) profileChunks.push(...exp.bullets.filter((b: any) => typeof b === "string"));
+    });
+  }
+  if (profileChunks.length === 0) profileChunks.push(JSON.stringify(profile));
+
+  // Compute embeddings
+  const requiredEmbeddings = await computeEmbeddings(required);
+  const profileEmbeddings = await computeEmbeddings(profileChunks);
+
+  const matchedSkills: string[] = [];
+  const missingSkills: string[] = [];
+
+  // Match if exact OR semantic similarity > 0.65
+  const profileText = JSON.stringify(profile).toLowerCase();
+  
+  for (let i = 0; i < required.length; i++) {
+    const reqText = required[i].toLowerCase();
+    let matched = profileText.includes(reqText);
+    
+    if (!matched && profileEmbeddings.length > 0) {
+      const reqVec = requiredEmbeddings[i];
+      for (const profVec of profileEmbeddings) {
+        const score = cosineSimilarity(reqVec, profVec);
+        if (score > 0.65) {
+          matched = true;
+          break;
+        }
+      }
+    }
+
+    if (matched) matchedSkills.push(required[i]);
+    else missingSkills.push(required[i]);
+  }
+
+  const matchScore = Math.round((matchedSkills.length / required.length) * 100);
   return {
     matchScore,
     matchedSkills,
@@ -277,67 +328,13 @@ export function compareProfileToJob(profile: Record<string, unknown>, job: Recor
   };
 }
 
-async function callOpenCodeZenOnce(prompt: string, model: string): Promise<string> {
-  const apiKey = process.env.OPENCODEZEN_API_KEY;
-  if (!apiKey) throw new Error("OPENCODEZEN_API_KEY is not configured.");
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), AI_REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(getOpenCodeZenUrl(), {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2,
-        max_tokens: 5000,
-      }),
-      signal: controller.signal,
-    });
-    const body = await response.json().catch(() => null) as { choices?: Array<{ message?: { content?: string } }>; error?: { message?: string } } | null;
-    if (!response.ok) throw new Error(body?.error?.message || `OpenCode Zen returned HTTP ${response.status}.`);
-    const content = body?.choices?.[0]?.message?.content;
-    if (!content) throw new Error("OpenCode Zen returned an empty response.");
-    return content;
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(`OpenCode Zen timed out after ${AI_REQUEST_TIMEOUT_MS / 1000} seconds.`);
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
 
-function parseJsonObject(value: string): Record<string, unknown> {
-  const candidate = value.match(/\{[\s\S]*\}/)?.[0];
-  if (!candidate) throw new Error("AI returned an invalid structured response.");
-  const parsed: unknown = JSON.parse(candidate);
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("AI returned an invalid structured response.");
-  return parsed as Record<string, unknown>;
-}
 
-async function callStructuredAgent(prompt: string, preferredModels: readonly string[] = OPENCODE_ZEN_MODELS): Promise<AgentOutput> {
-  const failures: string[] = [];
-  for (const model of preferredModels) {
-    try {
-      const content = await callOpenCodeZenOnce(prompt, model);
-      return { data: parseJsonObject(content), model };
-    } catch (error) {
-      failures.push(`${model}: ${error instanceof Error ? error.message : "request failed"}`);
-      logger.warn({ model }, "ResumeGPT AI agent failed; trying fallback");
-    }
-  }
-  throw new Error(`All configured AI agents failed. ${failures.join(" | ")}`);
-}
-
-export async function extractProfileWithAgents(page: ExtractedPage): Promise<Record<string, unknown>> {
+export async function extractProfileWithAgents(page: ExtractedPage, model?: string): Promise<Record<string, unknown>> {
   const deterministic = profileFromPage(page);
   try {
-    const result = await callStructuredAgent(
-      `You are a profile extraction agent. Extract only facts explicitly present in this public page text. Never infer or invent dates, employers, metrics, contact details, or qualifications. Return one JSON object with exactly these keys: name, title, summary, contact, experience, education, certifications, projects, languages, skills, extractedKeywords. Use arrays for experience, education, certifications, projects, languages, and skills. Use objects with sensible fields for each array item. If a field is not present, return an empty array or empty string. Public source URL: ${page.sourceUrl}. Page title: ${page.title}. Page description: ${page.description}. Page text: ${page.text.slice(0, 50000)}`,
-      ["mimo-v2.5-free", "ling-3.0-flash-free", "deepseek-v4-flash-free", "nemotron-3-ultra-free"],
-    );
+    const prompt = PromptRegistry.getProfileExtractionPrompt(page.title, page.description, page.text, page.sourceUrl);
+    const result = await ModelRouter.routeStructured(prompt, model);
     return normalizeProfileData({
       ...deterministic,
       ...result.data,
@@ -359,10 +356,8 @@ export async function analyzeJobWithAgents(page: ExtractedPage | null, descripti
   const deterministic = page ? jobFromPage(page) : jobFromDescription(description ?? "");
   const sourceText = page?.text ?? description ?? "";
   try {
-    const result = await callStructuredAgent(
-      `You are a job analysis agent. Extract only facts present in the supplied job source. Do not invent a company, location, salary, requirements, or seniority. Return one JSON object with exactly these keys: title, company, location, seniority, summary, requiredSkills, preferredSkills, responsibilities, qualifications, benefits, extractedKeywords. Use arrays for all list fields. Source URL: ${page?.sourceUrl || "pasted description"}. Job source: ${sourceText.slice(0, 50000)}`,
-      ["ling-3.0-flash-free", "nemotron-3-ultra-free", "mimo-v2.5-free", "deepseek-v4-flash-free"],
-    );
+    const prompt = PromptRegistry.getJobAnalysisPrompt(sourceText, page?.sourceUrl || "pasted description");
+    const result = await ModelRouter.routeStructured(prompt);
     return {
       ...deterministic,
       ...result.data,
@@ -380,68 +375,252 @@ export async function analyzeJobWithAgents(page: ExtractedPage | null, descripti
   }
 }
 
-export async function generateResumeWithAgents(profile: Record<string, unknown>, job: Record<string, unknown>, comparison: Record<string, unknown>, templateId: string, mode: string) {
+export async function generateResumeWithAgents(profile: Record<string, unknown>, job: Record<string, unknown>, comparison: Record<string, unknown>, templateId: string, mode: string, model?: string, clerkUserId?: string, jobAnalysisId?: number) {
   const evidence = JSON.stringify({ profile, job, comparison });
-  const planner = await callStructuredAgent(`You are Agent 1, a senior recruiter and ATS strategist. Based only on the evidence below, create a truthful resume plan. Never invent employers, dates, metrics, or skills. Return JSON with keys: positioning, sectionOrder, keywordsToEmphasize, evidenceToUse, gapsToFlag. Template: ${templateId}. Mode: ${mode}. Evidence: ${evidence}`, ["deepseek-v4-flash-free", "nemotron-3-ultra-free", "mimo-v2.5-free", "ling-3.0-flash-free"]);
-  const writer = await callStructuredAgent(`You are Agent 2, an expert resume writer. Using only the profile, job, comparison, and plan below, write a job-ready resume draft. Never fabricate facts; preserve uncertain items as reviewNotes. Return JSON with keys: name, headline, summary, experience, skills, education, certifications, projects, languages, contact, reviewNotes. Each experience item must retain profile evidence. Plan: ${JSON.stringify(planner.data)} Evidence: ${evidence}`, ["nemotron-3-ultra-free", "deepseek-v4-flash-free", "mimo-v2.5-free", "ling-3.0-flash-free"]);
-  const editor = await callStructuredAgent(`You are Agent 3, an ATS quality editor. Review this draft against the job evidence. Improve clarity, keyword alignment, action language, and scanability without adding unsupported facts. Return JSON with keys: name, headline, summary, experience, skills, education, certifications, projects, languages, contact, atsNotes, reviewNotes. Draft: ${JSON.stringify(writer.data)} Job: ${JSON.stringify(job)} Comparison: ${JSON.stringify(comparison)}`, ["deepseek-v4-flash-free", "nemotron-3-ultra-free", "mimo-v2.5-free", "ling-3.0-flash-free"]);
+  let runId: number | null = null;
+  let plannerData: any = null;
+  let writerData: any = null;
+  let editorData: any = null;
+  let plannerModel = "", writerModel = "", editorModel = "";
+
+  if (clerkUserId && jobAnalysisId) {
+    try {
+      const [run] = await db.insert(workflowRunsTable).values({ clerkUserId, jobAnalysisId, status: "in_progress", type: "resume_generation" }).returning();
+      runId = run.id;
+    } catch (e) {
+      logger.error({ err: e }, "Failed to create workflow run");
+    }
+  }
+
+  try {
+    // Planner Step
+    if (runId) await db.insert(workflowStepsTable).values({ workflowRunId: runId, stepName: "planner", status: "in_progress", startedAt: new Date() });
+    const plannerPrompt = PromptRegistry.getResumePlannerPrompt(templateId, mode, evidence);
+    const planner = await ModelRouter.routeStructured(plannerPrompt, model);
+    plannerData = planner.data;
+    plannerModel = planner.model;
+    if (runId) await db.update(workflowStepsTable).set({ status: "completed", output: plannerData, completedAt: new Date() }).where(eq(workflowStepsTable.workflowRunId, runId));
+
+    // Writer Step
+    if (runId) await db.insert(workflowStepsTable).values({ workflowRunId: runId, stepName: "writer", status: "in_progress", startedAt: new Date() });
+    const writerPrompt = PromptRegistry.getResumeWriterPrompt(evidence, JSON.stringify(plannerData));
+    const writer = await ModelRouter.routeStructured(writerPrompt, model);
+    writerData = writer.data;
+    writerModel = writer.model;
+    if (runId) await db.update(workflowStepsTable).set({ status: "completed", output: writerData, completedAt: new Date() }).where(eq(workflowStepsTable.workflowRunId, runId));
+
+    // Editor Step
+    if (runId) await db.insert(workflowStepsTable).values({ workflowRunId: runId, stepName: "editor", status: "in_progress", startedAt: new Date() });
+    const editorPrompt = PromptRegistry.getResumeEditorPrompt(JSON.stringify(writerData), JSON.stringify(job), JSON.stringify(comparison));
+    const editor = await ModelRouter.routeStructured(editorPrompt, model);
+    editorData = editor.data;
+    editorModel = editor.model;
+    if (runId) await db.update(workflowStepsTable).set({ status: "completed", output: editorData, completedAt: new Date() }).where(eq(workflowStepsTable.workflowRunId, runId));
+    if (runId) await db.update(workflowRunsTable).set({ status: "completed", result: editorData }).where(eq(workflowRunsTable.id, runId));
+  } catch (error) {
+    if (runId) await db.update(workflowRunsTable).set({ status: "failed" }).where(eq(workflowRunsTable.id, runId));
+    throw error;
+  }
+
   return {
-    ...normalizeProfileData(editor.data),
-    agentPlan: planner.data,
+    ...normalizeProfileData(editorData),
+    agentPlan: plannerData,
     agentWorkflow: [
-      { role: "planner", model: planner.model, status: "complete" },
-      { role: "writer", model: writer.model, status: "complete" },
-      { role: "ats-reviewer", model: editor.model, status: "complete" },
+      { role: "planner", model: plannerModel, status: "complete" },
+      { role: "writer", model: writerModel, status: "complete" },
+      { role: "ats-reviewer", model: editorModel, status: "complete" },
     ],
-    generatedBy: editor.model,
+    generatedBy: editorModel,
     generatedAt: new Date().toISOString(),
   };
 }
 
-export async function getSavedProfile(workspaceKey: string) {
-  const [record] = await db.select().from(workspaceProfilesTable).where(eq(workspaceProfilesTable.workspaceKey, workspaceKey)).limit(1);
+export async function generateCoverLetterWithAgents(profile: Record<string, unknown>, job: Record<string, unknown>, model?: string) {
+  const evidence = JSON.stringify({ profile, job });
+  const prompt = PromptRegistry.getCoverLetterPrompt(evidence);
+  const writer = await ModelRouter.routeStructured(prompt, model);
+  return {
+    content: typeof writer.data.content === 'string' ? writer.data.content : "Dear Hiring Manager,\n\nPlease find my resume attached.",
+    metadata: {
+      strengthsHighlighted: Array.isArray(writer.data.strengthsHighlighted) ? writer.data.strengthsHighlighted : [],
+      tone: typeof writer.data.tone === 'string' ? writer.data.tone : "professional",
+      model: writer.model,
+    }
+  };
+}
+
+export async function generateInterviewKitWithAgents(profile: Record<string, unknown>, job: Record<string, unknown>, model?: string) {
+  const evidence = JSON.stringify({ profile, job });
+  const prompt = PromptRegistry.getInterviewKitPrompt(evidence);
+  const coach = await ModelRouter.routeStructured(prompt, model);
+  return {
+    questions: Array.isArray(coach.data.questions) ? coach.data.questions : [],
+    talkingPoints: Array.isArray(coach.data.talkingPoints) ? coach.data.talkingPoints : [],
+    checklist: Array.isArray(coach.data.checklist) ? coach.data.checklist : [],
+    model: coach.model,
+  };
+}
+
+export async function generateAuditWithAgents(profile: Record<string, unknown>, job: Record<string, unknown>, model?: string) {
+  const evidence = JSON.stringify({ profile, job });
+  const prompt = PromptRegistry.getAuditPrompt(evidence);
+  const auditor = await ModelRouter.routeStructured(prompt, model);
+  return {
+    score: typeof auditor.data.score === 'number' ? auditor.data.score : 0,
+    completeness: typeof auditor.data.completeness === 'number' ? auditor.data.completeness : 0,
+    keywordAlignment: typeof auditor.data.keywordAlignment === 'number' ? auditor.data.keywordAlignment : 0,
+    evidenceStrength: typeof auditor.data.evidenceStrength === 'number' ? auditor.data.evidenceStrength : 0,
+    strengths: Array.isArray(auditor.data.strengths) ? auditor.data.strengths : [],
+    improvements: Array.isArray(auditor.data.improvements) ? auditor.data.improvements : [],
+    keywords: Array.isArray(auditor.data.keywords) ? auditor.data.keywords : [],
+    model: auditor.model,
+  };
+}
+
+export async function generatePortfolioWithAgents(profile: Record<string, unknown>, model?: string) {
+  const evidence = JSON.stringify({ profile });
+  const prompt = PromptRegistry.getPortfolioPrompt(evidence);
+  const designer = await ModelRouter.routeStructured(prompt, model);
+  return {
+    htmlTemplate: typeof designer.data.htmlTemplate === 'string' ? designer.data.htmlTemplate : "<div>Portfolio generation failed.</div>",
+    model: designer.model,
+  };
+}
+
+// In-memory fallback cache for offline development without live Postgres
+const memoryProfiles = new Map<string, any>();
+const memoryJobs = new Map<string, any[]>();
+const memoryResumes = new Map<string, any[]>();
+
+export async function getSavedProfile(clerkUserId: string) {
+  try {
+    const [record] = await db.select().from(workspaceProfilesTable).where(eq(workspaceProfilesTable.clerkUserId, clerkUserId)).limit(1);
+    if (record) return record;
+  } catch {
+    // Database connection offline fallback
+  }
+  return memoryProfiles.get(clerkUserId) || null;
+}
+
+export async function getLatestJob(clerkUserId: string) {
+  try {
+    const [record] = await db
+      .select()
+      .from(jobAnalysesTable)
+      .where(eq(jobAnalysesTable.clerkUserId, clerkUserId))
+      .orderBy(desc(jobAnalysesTable.analyzedAt), desc(jobAnalysesTable.id))
+      .limit(1);
+    if (record) return record;
+  } catch {
+    // Database connection offline fallback
+  }
+  const jobs = memoryJobs.get(clerkUserId) || [];
+  return jobs[jobs.length - 1] || null;
+}
+
+export async function getLatestResume(clerkUserId: string) {
+  try {
+    const [record] = await db
+      .select()
+      .from(resumeVersionsTable)
+      .where(eq(resumeVersionsTable.clerkUserId, clerkUserId))
+      .orderBy(desc(resumeVersionsTable.createdAt), desc(resumeVersionsTable.id))
+      .limit(1);
+    if (record) return record;
+  } catch {
+    // Database connection offline fallback
+  }
+  const resumes = memoryResumes.get(clerkUserId) || [];
+  return resumes[resumes.length - 1] || null;
+}
+
+export async function saveProfile(clerkUserId: string, profileUrl: string, profile: Record<string, unknown>, source = "public-url") {
+  const record = {
+    id: Date.now(),
+    clerkUserId,
+    profileUrl,
+    source,
+    profile,
+    fetchedAt: new Date(),
+    updatedAt: new Date(),
+  };
+  try {
+    const [dbRecord] = await db.insert(workspaceProfilesTable).values({ clerkUserId, profileUrl, source, profile }).onConflictDoUpdate({
+      target: workspaceProfilesTable.clerkUserId,
+      set: { profileUrl, source, profile, fetchedAt: new Date(), updatedAt: new Date() },
+    }).returning();
+    if (dbRecord) {
+      memoryProfiles.set(clerkUserId, dbRecord);
+      return dbRecord;
+    }
+  } catch {
+    // Database connection offline fallback
+  }
+  memoryProfiles.set(clerkUserId, record);
   return record;
 }
 
-export async function getLatestJob(workspaceKey: string) {
-  const [record] = await db
-    .select()
-    .from(jobAnalysesTable)
-    .where(eq(jobAnalysesTable.workspaceKey, workspaceKey))
-    .orderBy(desc(jobAnalysesTable.analyzedAt), desc(jobAnalysesTable.id))
-    .limit(1);
+export async function saveJob(clerkUserId: string, jobUrl: string | null, source: string, job: Record<string, unknown>, comparison: Record<string, unknown>) {
+  const record = {
+    id: Date.now(),
+    clerkUserId,
+    jobUrl,
+    source,
+    job,
+    comparison,
+    analyzedAt: new Date(),
+  };
+  try {
+    const [dbRecord] = await db.insert(jobAnalysesTable).values({ clerkUserId, jobUrl, source, job, comparison }).returning();
+    if (dbRecord) {
+      const existing = memoryJobs.get(clerkUserId) || [];
+      existing.push(dbRecord);
+      memoryJobs.set(clerkUserId, existing);
+      return dbRecord;
+    }
+  } catch {
+    // Database connection offline fallback
+  }
+  const existing = memoryJobs.get(clerkUserId) || [];
+  existing.push(record);
+  memoryJobs.set(clerkUserId, existing);
   return record;
 }
 
-export async function getLatestResume(workspaceKey: string) {
-  const [record] = await db
-    .select()
-    .from(resumeVersionsTable)
-    .where(eq(resumeVersionsTable.workspaceKey, workspaceKey))
-    .orderBy(desc(resumeVersionsTable.createdAt), desc(resumeVersionsTable.id))
-    .limit(1);
-  return record;
+export async function getJob(clerkUserId: string, id: number) {
+  try {
+    const [record] = await db.select().from(jobAnalysesTable).where(eq(jobAnalysesTable.id, id)).limit(1);
+    if (record?.clerkUserId === clerkUserId) return record;
+  } catch {
+    // Database connection offline fallback
+  }
+  const jobs = memoryJobs.get(clerkUserId) || [];
+  return jobs.find((j) => j.id === id || j.id === Number(id));
 }
 
-export async function saveProfile(workspaceKey: string, profileUrl: string, profile: Record<string, unknown>) {
-  const [record] = await db.insert(workspaceProfilesTable).values({ workspaceKey, profileUrl, source: "public-url", profile }).onConflictDoUpdate({
-    target: workspaceProfilesTable.workspaceKey,
-    set: { profileUrl, profile, fetchedAt: new Date(), updatedAt: new Date() },
-  }).returning();
-  return record;
-}
-
-export async function saveJob(workspaceKey: string, jobUrl: string | null, source: string, job: Record<string, unknown>, comparison: Record<string, unknown>) {
-  const [record] = await db.insert(jobAnalysesTable).values({ workspaceKey, jobUrl, source, job, comparison }).returning();
-  return record;
-}
-
-export async function getJob(workspaceKey: string, id: number) {
-  const [record] = await db.select().from(jobAnalysesTable).where(eq(jobAnalysesTable.id, id)).limit(1);
-  return record?.workspaceKey === workspaceKey ? record : undefined;
-}
-
-export async function saveResume(workspaceKey: string, jobAnalysisId: number, mode: string, templateId: string, resume: Record<string, unknown>) {
-  const [record] = await db.insert(resumeVersionsTable).values({ workspaceKey, jobAnalysisId, mode, templateId, resume }).returning();
+export async function saveResume(clerkUserId: string, jobAnalysisId: number, mode: string, templateId: string, resume: Record<string, unknown>) {
+  const record = {
+    id: Date.now(),
+    clerkUserId,
+    jobAnalysisId,
+    mode,
+    templateId,
+    resume,
+    createdAt: new Date(),
+  };
+  try {
+    const [dbRecord] = await db.insert(resumeVersionsTable).values({ clerkUserId, jobAnalysisId, mode, templateId, resume }).returning();
+    if (dbRecord) {
+      const existing = memoryResumes.get(clerkUserId) || [];
+      existing.push(dbRecord);
+      memoryResumes.set(clerkUserId, existing);
+      return dbRecord;
+    }
+  } catch {
+    // Database connection offline fallback
+  }
+  const existing = memoryResumes.get(clerkUserId) || [];
+  existing.push(record);
+  memoryResumes.set(clerkUserId, existing);
   return record;
 }

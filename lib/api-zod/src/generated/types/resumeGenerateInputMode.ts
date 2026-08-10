@@ -12,4 +12,6 @@ export type ResumeGenerateInputMode = typeof ResumeGenerateInputMode[keyof typeo
 export const ResumeGenerateInputMode = {
   manual: 'manual',
   auto: 'auto',
+  guided: 'guided',
+  expert: 'expert',
 } as const;

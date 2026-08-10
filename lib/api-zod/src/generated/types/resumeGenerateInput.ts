@@ -11,6 +11,7 @@ import type { ResumeGenerateInputMode } from './resumeGenerateInputMode';
 export interface ResumeGenerateInput {
   jobAnalysisId: number;
   mode: ResumeGenerateInputMode;
+  model?: string;
   /** @minLength 1 */
   templateId: string;
   /** @nullable */

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Download, FileImage, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadResumeFile, type ResumeExportFormat } from '@/lib/resume-export';
@@ -17,6 +17,18 @@ export function ResumeExportActions({
   const [downloaded, setDownloaded] = useState<ResumeExportFormat | null>(null);
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
 
   const exportFile = async (format: ResumeExportFormat) => {
     setExporting(format);
@@ -37,7 +49,7 @@ export function ResumeExportActions({
 
   return (
     <div className="flex flex-col items-end gap-1.5">
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
           <Button size={compact ? 'sm' : 'default'} onClick={() => void exportFile('pdf')} className="gap-2 pr-10 shadow-lg shadow-primary/20" disabled={Boolean(exporting)}>
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : downloaded ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
             {label}
@@ -46,6 +58,7 @@ export function ResumeExportActions({
           {open && (
             <div className="absolute right-0 top-11 z-50 w-52 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
               <button type="button" onClick={() => { setOpen(false); void exportFile('pdf'); }} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"><FileText className="h-4 w-4" /> PDF document <span className="ml-auto text-[10px] text-muted-foreground">.pdf</span></button>
+              <button type="button" onClick={() => { setOpen(false); void exportFile('docx'); }} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"><FileText className="h-4 w-4" /> Word document <span className="ml-auto text-[10px] text-muted-foreground">.docx</span></button>
               <button type="button" onClick={() => { setOpen(false); void exportFile('png'); }} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"><FileImage className="h-4 w-4" /> PNG image <span className="ml-auto text-[10px] text-muted-foreground">.png</span></button>
               <button type="button" onClick={() => { setOpen(false); void exportFile('jpg'); }} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"><FileImage className="h-4 w-4" /> JPG image <span className="ml-auto text-[10px] text-muted-foreground">.jpg</span></button>
             </div>

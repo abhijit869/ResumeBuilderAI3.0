@@ -363,6 +363,13 @@ export async function customFetch<T = unknown>(
     headers.set("x-workspace-key", workspaceKey);
   }
 
+  if (typeof window !== "undefined" && !headers.has("x-gemini-api-key")) {
+    const geminiKey = window.localStorage.getItem("resumegpt-gemini-key");
+    if (geminiKey) {
+      headers.set("x-gemini-api-key", geminiKey);
+    }
+  }
+
   if (
     typeof init.body === "string" &&
     !headers.has("content-type") &&

@@ -9,6 +9,7 @@
 export * from './error';
 export * from './errorResponse';
 export * from './healthStatus';
+export * from './importWorkspaceProfileInput';
 export * from './jobAnalysisRecord';
 export * from './jobAnalysisRecordComparison';
 export * from './jobAnalysisRecordJob';

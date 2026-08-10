@@ -12,4 +12,6 @@ export type ResumeVersionRecordMode = typeof ResumeVersionRecordMode[keyof typeo
 export const ResumeVersionRecordMode = {
   manual: 'manual',
   auto: 'auto',
+  guided: 'guided',
+  expert: 'expert',
 } as const;

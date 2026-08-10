@@ -181,6 +181,16 @@ components:
         error:
           type: string
       required: [error]
+    ImportWorkspaceProfileInput:
+      type: object
+      properties:
+        profileUrl:
+          type: string
+          format: uri
+        model:
+          type: string
+          minLength: 8
+      required: [profileUrl]
     ProfileImportInput:
       type: object
       properties:
@@ -213,7 +223,9 @@ components:
           type: number
         mode:
           type: string
-          enum: [manual, auto]
+          enum: [manual, auto, guided, expert]
+        model:
+          type: string
         templateId:
           type: string
           minLength: 1
@@ -257,7 +269,7 @@ components:
         id: { type: number }
         workspaceKey: { type: string }
         jobAnalysisId: { type: number }
-        mode: { type: string, enum: [manual, auto] }
+        mode: { type: string, enum: [manual, auto, guided, expert] }
         templateId: { type: string }
         resume:
           type: object

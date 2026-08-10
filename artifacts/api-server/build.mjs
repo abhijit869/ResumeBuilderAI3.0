@@ -54,7 +54,6 @@ async function buildAll() {
       "knex",
       "typeorm",
       "protobufjs",
-      "onnxruntime-node",
       "@tensorflow/*",
       "@prisma/client",
       "@mikro-orm/*",
@@ -96,13 +95,32 @@ async function buildAll() {
       "wrangler",
       "zeromq",
       "zeromq-prebuilt",
-      "playwright",
-      "puppeteer",
       "puppeteer-core",
       "electron",
+      "@xenova/transformers",
     ],
+    minify: true,
     sourcemap: "linked",
     plugins: [
+      {
+        name: "stub-missing-optional-externals",
+        setup(build) {
+          const optionalModules = new Set([
+            "sharp", "onnxruntime-node", "canvas", "better-sqlite3", "sqlite3",
+            "bcrypt", "argon2", "fsevents", "re2", "farmhash", "xxhash-addon",
+            "bufferutil", "utf-8-validate", "ssh2", "cpu-features", "dtrace-provider",
+            "isolated-vm", "lightningcss", "pg-native", "oracledb", "mongodb-client-encryption"
+          ]);
+          build.onResolve({ filter: /.*/ }, (args) => {
+            if (optionalModules.has(args.path)) {
+              return { path: args.path, namespace: "stub-optional" };
+            }
+          });
+          build.onLoad({ filter: /.*/, namespace: "stub-optional" }, () => {
+            return { contents: "export default {};", loader: "js" };
+          });
+        },
+      },
       // pino relies on workers to handle logging, instead of externalizing it we use a plugin to handle it
       esbuildPluginPino({ transports: ["pino-pretty"] })
     ],

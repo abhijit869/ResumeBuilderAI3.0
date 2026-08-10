@@ -13,6 +13,12 @@ export interface Error {
   error: string;
 }
 
+export interface ImportWorkspaceProfileInput {
+  profileUrl: string;
+  /** @minLength 8 */
+  model?: string;
+}
+
 export interface ProfileImportInput {
   /** @minLength 8 */
   profileUrl: string;
@@ -42,6 +48,8 @@ export type ResumeGenerateInputMode = typeof ResumeGenerateInputMode[keyof typeo
 export const ResumeGenerateInputMode = {
   manual: 'manual',
   auto: 'auto',
+  guided: 'guided',
+  expert: 'expert',
 } as const;
 
 /**
@@ -52,6 +60,7 @@ export type ResumeGenerateInputManualEdits = { [key: string]: unknown } | null;
 export interface ResumeGenerateInput {
   jobAnalysisId: number;
   mode: ResumeGenerateInputMode;
+  model?: string;
   /** @minLength 1 */
   templateId: string;
   /** @nullable */
@@ -98,6 +107,8 @@ export type ResumeVersionRecordMode = typeof ResumeVersionRecordMode[keyof typeo
 export const ResumeVersionRecordMode = {
   manual: 'manual',
   auto: 'auto',
+  guided: 'guided',
+  expert: 'expert',
 } as const;
 
 export type ResumeVersionRecordResume = { [key: string]: unknown };

@@ -54,8 +54,8 @@ export type ResumeData = {
   };
 };
 
-export type ResumeMode = 'manual' | 'auto';
-export type ProfileSource = 'current' | 'linkedin' | 'resume-file' | 'paste';
+export type ResumeMode = 'manual' | 'auto' | 'guided' | 'expert';
+export type ProfileSource = 'current' | 'linkedin' | 'github' | 'resume-file' | 'paste';
 export type JobAnalysis = {
   id?: number;
   role: string;
@@ -76,6 +76,7 @@ export type ResumeTemplate = {
   accent: string;
   accentColor: string;
   layout?: 'ats' | 'editorial' | 'sidebar' | 'timeline' | 'executive' | 'technical' | 'minimal';
+  imageAsset?: string;
 };
 
 export type AgentStep = {
@@ -98,6 +99,8 @@ export type AppState = {
   setTargetMatchScore: (score: number) => void;
   resumeMode: ResumeMode;
   setResumeMode: (mode: ResumeMode) => void;
+  preferredModel: string;
+  setPreferredModel: (model: string) => void;
   profileSource: ProfileSource;
   setProfileSource: (source: ProfileSource) => void;
   jobAnalysis: JobAnalysis | null;
@@ -133,10 +136,19 @@ function createInitialData(): ResumeData {
 function normalizeResumeData(value: unknown, base = createInitialData()): ResumeData {
   if (!value || typeof value !== 'object') return base;
   const candidate = value as Partial<ResumeData>;
+  const str = (v: unknown, fallback: string) => (typeof v === 'string' ? v : fallback);
+  const contactCandidate = candidate.contact ?? {};
   return {
     ...base,
-    ...candidate,
-    contact: { ...base.contact, ...(candidate.contact ?? {}) },
+    name: str(candidate.name, base.name),
+    title: str(candidate.title, base.title),
+    summary: str(candidate.summary, base.summary),
+    contact: {
+      email: str((contactCandidate as Record<string, unknown>).email, base.contact.email),
+      phone: str((contactCandidate as Record<string, unknown>).phone, base.contact.phone),
+      location: str((contactCandidate as Record<string, unknown>).location, base.contact.location),
+      linkedin: str((contactCandidate as Record<string, unknown>).linkedin, base.contact.linkedin),
+    },
     experience: Array.isArray(candidate.experience) ? candidate.experience : base.experience,
     education: Array.isArray(candidate.education) ? candidate.education : base.education,
     projects: Array.isArray(candidate.projects) ? candidate.projects : base.projects,
@@ -180,6 +192,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [atsScore, setAtsScore] = useState<number>(0);
   const [targetMatchScore, setTargetMatchScore] = useState<number>(0);
   const [resumeMode, setResumeMode] = useState<ResumeMode>('auto');
+  const [preferredModel, setPreferredModel] = useState<string>('deepseek-v4-flash-free');
   const [profileSource, setProfileSource] = useState<ProfileSource>('current');
   const [jobAnalysis, setJobAnalysis] = useState<JobAnalysis | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplate>(() => {
@@ -254,7 +267,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         if (state.profile?.profile) {
           setResumeData(current => normalizeResumeData(state.profile?.profile, current));
-          setProfileSource(state.profile.source === 'public-url' ? 'linkedin' : 'current');
+          const src = state.profile.source;
+          setProfileSource(
+            src === 'linkedin' ? 'linkedin'
+            : src === 'resume-file' ? 'resume-file'
+            : src === 'manual' ? 'paste'
+            : src === 'public-url' ? 'linkedin'
+            : 'current'
+          );
         }
         if (state.job) {
           const job = normalizeJobAnalysis(state.job);
@@ -323,6 +343,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setTargetMatchScore,
       resumeMode,
       setResumeMode,
+      preferredModel,
+      setPreferredModel,
       profileSource,
       setProfileSource,
       jobAnalysis,
