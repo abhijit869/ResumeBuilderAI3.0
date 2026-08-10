@@ -7,21 +7,27 @@ Welcome to **Resume Builder AI 3.0**! This is a comprehensive, modern monorepo d
 This project is structured as a **pnpm workspace** monorepo, separating concerns into distinct applications and shared libraries.
 
 ### Applications (`/artifacts`)
-- **`resume-gpt`**: The main frontend application built with React, Vite, Tailwind CSS, and Shadcn UI components. It serves as the user-facing interface where users can interact with the AI to build and format their resumes.
-- **`api-server`**: The backend Express server handling business logic, API requests, PDF parsing, and interactions with AI models. It uses Drizzle ORM for database management and Clerk for authentication.
-- **`mockup-sandbox`**: A dedicated Vite sandbox environment for testing and developing isolated UI components before integrating them into the main application.
+- **`resume-gpt`**: The main frontend application built with React, Vite, Tailwind CSS (v4), and Shadcn UI components. It features a highly polished Windows 11-style glassmorphism dark mode UI. It serves as the user-facing interface where users can interact with the AI to build, analyze, and format their resumes.
+- **`api-server`**: The backend Express server handling business logic, API requests, and interactions with AI models. It uses Drizzle ORM for database management and Clerk for secure authentication. 
 
 ### Shared Libraries (`/lib`)
-- **`db`**: Database schemas and configurations using Drizzle ORM.
+- **`db`**: Database schemas and configurations using Drizzle ORM (PostgreSQL).
 - **`api-spec` & `api-zod`**: Shared API types and validation schemas using Zod, ensuring type safety between the frontend and backend.
 - **`api-client-react`**: Shared React query hooks and API clients to streamline frontend data fetching.
 
-## 🚀 How to Run and Scan the Project
+## 🚀 Key Features
+
+- **Google Gemini AI Engine**: The core AI generation utilizes Google Gemini (`gemini-2.5-flash` and `gemini-2.5-pro`) via the official `@google/genai` SDK.
+- **Bring Your Own Key (BYOK)**: Users can securely configure their own Google Gemini API Key directly in the frontend Settings UI, which is safely proxy-passed to the backend server.
+- **Glassmorphism UI**: A deeply immersive dark mode UI leveraging backdrop blurs, glowing drop shadows, and Framer Motion micro-animations.
+- **AI Agent Pipelines**: An intelligent multi-agent pipeline (Planner, Writer, Editor) working synchronously to analyze, rewrite, and ATS-optimize resumes and cover letters.
+
+## 💻 How to Run Locally
 
 To get the project up and running locally, follow these steps:
 
 ### Prerequisites
-Make sure you have Node.js and `pnpm` installed.
+Make sure you have Node.js (v20+) and `pnpm` installed.
 
 ### 1. Install Dependencies
 Run the following command at the root of the workspace to install all dependencies across the monorepo:
@@ -30,50 +36,27 @@ pnpm install
 ```
 
 ### 2. Set Up Environment Variables
-Copy the example environment file and configure it with your specific API keys (e.g., Clerk, Database URL, AI Provider):
+Copy the example environment file and configure it with your specific API keys (Clerk, Database URL, etc.):
 ```bash
 cp .env.example .env
 ```
 
 ### 3. Start Development Servers
-You can run the frontend and backend servers individually or use a workspace-wide command (if configured).
-
-**To start the API Server:**
+You can run the full stack simultaneously using the root workspace command:
 ```bash
-cd artifacts/api-server
-pnpm run dev
+pnpm dev
 ```
-
-**To start the Main Frontend (Resume GPT):**
-```bash
-cd artifacts/resume-gpt
-pnpm run dev
-```
+This will concurrently start the `api-server` (port 8080) and the `resume-gpt` frontend client (port 3000 or via Vite proxy).
 
 ## 🧠 Process & Prompts (AI Interaction)
 
-The core feature of this platform is its ability to use AI to generate, rewrite, and format resumes. Below is a detailed explanation of the process and example prompts you can use to interact with the AI assistant (me!) to build out or modify features in this project.
+The core feature of this platform is its ability to use AI to generate, rewrite, and format resumes. 
 
 ### The AI Generation Process
-1. **Input:** The user uploads an existing resume (PDF parsing via `pdf-parse`) or inputs raw details (experience, education, skills).
-2. **Analysis:** The `api-server` analyzes the content using predefined AI schemas and Zod validations to extract structured data.
-3. **Generation:** The AI rewrites bullet points, optimizes for specific job descriptions (ATS optimization), and formats the output.
-4. **Render:** The frontend `resume-gpt` renders the structured data into a beautiful, exportable resume format using React components.
-
-### 💬 Example Prompts to Evolve this Project
-If you want to add new features or debug issues, you can ask me using prompts like these:
-
-**For Frontend UI/UX:**
-- *"Design a new beautiful, modern resume template component in `artifacts/resume-gpt` using Tailwind CSS and Framer Motion for smooth entry animations."*
-- *"Implement a new multi-step form wizard for users to input their work experience step-by-step."*
-
-**For Backend / AI Logic:**
-- *"Update the Drizzle schema in `lib/db` to include a new table for saving cover letters, and create an API route in `api-server` to fetch them."*
-- *"Create a new AI prompt utility in `api-server` that takes a user's raw bullet point and a target job description, and rewrites it to highlight matching keywords."*
-
-**For Debugging:**
-- *"I am getting a CORS error when my frontend tries to fetch data from the `api-server`. Can you debug and fix the CORS configuration?"*
-- *"The PDF parser isn't extracting text correctly. Let's debug the file upload endpoint."*
+1. **Input:** The user inputs raw details (experience, education, skills) or selects an existing profile.
+2. **Analysis:** The `api-server` routes requests to the AI router using the user's provided Gemini API key.
+3. **Generation:** The AI rewrites bullet points, optimizes for specific job descriptions (ATS optimization), and formats the output into strict JSON using Zod schemas.
+4. **Render:** The frontend `resume-gpt` consumes the structured JSON and renders it into a beautiful, exportable document.
 
 ---
 
