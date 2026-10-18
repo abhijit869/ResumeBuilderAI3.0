@@ -5,7 +5,8 @@ import { sampleResume } from '@/lib/sample-data';
 
 const createEmptyResumeData = (): Omit<ResumeData, 'id' | 'createdAt' | 'updatedAt'> => ({
   title: 'Untitled Resume',
-  templateId: 'professional',
+  templateId: 'hoth',
+  atsScore: 88,
   personalInfo: {
     firstName: '',
     lastName: '',
@@ -58,11 +59,11 @@ const generateId = () => {
 const cloneResume = (resume: ResumeData): ResumeData => JSON.parse(JSON.stringify(resume)) as ResumeData;
 
 export const useResumeStore = create<ResumeStore>()(persist((set, get) => ({
-  resumes: [],
+  resumes: [sampleResume],
   currentResume: null,
   coverLetters: [],
   currentCoverLetter: null,
-
+  
   setResumes: (resumes) => set({ resumes }),
   setCurrentResume: (resume) => set({ currentResume: resume }),
   
@@ -72,6 +73,7 @@ export const useResumeStore = create<ResumeStore>()(persist((set, get) => ({
       ...createEmptyResumeData(),
       id: generateId(),
       title: title || 'Untitled Resume',
+      atsScore: 85,
       createdAt: now,
       updatedAt: now,
     };

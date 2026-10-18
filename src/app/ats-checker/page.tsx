@@ -112,54 +112,54 @@ export default function ATSCheckerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <Badge className="bg-emerald-100 text-emerald-800 mb-3 px-3 py-1">
-            Free ATS Resume Scanner
+          <Badge className="bg-orange-50 text-[#ff5e59] border border-orange-200 mb-3 px-3 py-1 font-bold text-xs uppercase tracking-wider">
+            Kickresume ATS Diagnostic Engine
           </Badge>
-          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
             ATS Resume Checker & Keyword Scanner
           </h1>
-          <p className="mt-3 text-base text-gray-600">
+          <p className="mt-3 text-sm sm:text-base text-gray-600">
             See how well your resume matches Applicant Tracking Systems. Get instant feedback on formatting, keyword density, and overall score.
           </p>
         </div>
 
         {/* Input Area */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-5">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-5">
             <div>
-              <Label className="text-sm font-bold text-gray-900">Your Resume Content</Label>
+              <Label className="text-xs font-bold text-gray-900">Your Resume Content</Label>
               <p className="text-xs text-gray-500 mb-2">Paste your resume text here</p>
               <Textarea
                 rows={10}
                 placeholder="Paste the text of your resume here (Summary, Experience, Skills, Education)..."
                 value={resumeText}
                 onChange={(e) => setResumeText(e.target.value)}
-                className="text-xs font-mono leading-relaxed"
+                className="text-xs font-mono leading-relaxed rounded-xl border-gray-200 focus:border-[#ff5e59]"
               />
             </div>
 
             <div>
-              <Label className="text-sm font-bold text-gray-900">Target Job Description (Optional)</Label>
+              <Label className="text-xs font-bold text-gray-900">Target Job Description (Optional)</Label>
               <p className="text-xs text-gray-500 mb-2">Paste the job ad to match specific requirements</p>
               <Textarea
                 rows={5}
                 placeholder="Paste the job description from LinkedIn, Indeed, etc..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                className="text-xs"
+                className="text-xs rounded-xl border-gray-200 focus:border-[#ff5e59]"
               />
             </div>
 
             <Button
               onClick={handleAnalyze}
               disabled={analyzing || !resumeText}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11 text-sm shadow-md"
+              className="w-full bg-[#ff5e59] hover:bg-[#ee4e34] text-white font-bold h-11 text-sm shadow-md shadow-orange-500/20 rounded-xl cursor-pointer transition-all"
             >
               {analyzing ? "Analyzing ATS Readiness..." : "Check Resume ATS Score"}
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -169,18 +169,18 @@ export default function ATSCheckerPage() {
           {/* Results Box */}
           <div className="space-y-6">
             {results ? (
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-sm space-y-6 animate-fade-in">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-6 animate-fade-in">
                 {/* Score Header */}
                 <div className="flex items-center justify-between border-b pb-6">
                   <div>
-                    <h3 className="font-bold text-gray-900 text-xl">Overall ATS Score</h3>
+                    <h3 className="font-extrabold text-gray-900 text-xl">Overall ATS Score</h3>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {results.matchedAgainstJobDescription
                         ? "Matched against the target job description"
                         : "Based on formatting, readability & baseline keywords"}
                     </p>
                   </div>
-                  <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-emerald-50 border-2 border-emerald-500 text-emerald-700 font-extrabold text-3xl shadow-inner">
+                  <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-orange-50 border-2 border-[#ff5e59] text-[#ff5e59] font-black text-3xl shadow-inner">
                     {results.score}%
                   </div>
                 </div>
@@ -188,14 +188,14 @@ export default function ATSCheckerPage() {
                 {/* Found Keywords */}
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-[#00b5b8]" />
                     Keywords Detected ({results.foundKeywords.length})
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {results.foundKeywords.length ? results.foundKeywords.map((kw) => (
                       <span
                         key={kw}
-                        className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium rounded-lg"
+                        className="px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold rounded-lg"
                       >
                         ✓ {kw}
                       </span>
@@ -207,14 +207,14 @@ export default function ATSCheckerPage() {
                 {results.missingKeywords.length > 0 && (
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2 flex items-center gap-1.5">
-                      <AlertCircle className="w-4 h-4 text-amber-500" />
+                      <AlertCircle className="w-4 h-4 text-[#ff5e59]" />
                       Recommended Keywords to Add
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {results.missingKeywords.map((kw) => (
                         <span
                           key={kw}
-                          className="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium rounded-lg"
+                          className="px-2.5 py-1 bg-orange-50 border border-orange-200 text-[#ee4e34] text-xs font-bold rounded-lg"
                         >
                           + {kw}
                         </span>
@@ -231,7 +231,7 @@ export default function ATSCheckerPage() {
                   <ul className="space-y-2 text-xs text-gray-600">
                     {results.suggestions.map((sug, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-emerald-600 font-bold">•</span>
+                        <span className="text-[#ff5e59] font-bold">•</span>
                         <span>{sug}</span>
                       </li>
                     ))}
@@ -239,11 +239,11 @@ export default function ATSCheckerPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm text-center min-h-[380px] flex flex-col items-center justify-center">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
+              <div className="bg-white rounded-3xl p-8 border border-gray-200/80 shadow-xs text-center min-h-[380px] flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-orange-50 text-[#ff5e59] rounded-2xl flex items-center justify-center mb-4">
                   <BarChart3 className="w-8 h-8" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg">Instant ATS Optimization</h3>
+                <h3 className="font-extrabold text-gray-900 text-lg">Instant ATS Optimization</h3>
                 <p className="text-xs text-gray-500 max-w-sm mt-1 leading-relaxed">
                   Paste your resume text on the left to see your real-time score, discover missing keywords, and verify ATS compatibility.
                 </p>

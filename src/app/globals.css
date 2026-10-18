@@ -2,6 +2,13 @@
 
 :root {
   --font-inter: "Inter", system-ui, sans-serif;
+  --kr-coral: #ff5e59;
+  --kr-coral-hover: #ee4e34;
+  --kr-teal: #00b5b8;
+  --kr-indigo: #5345ff;
+  --kr-dark: #1a1a1a;
+  --kr-gray-bg: #f4f7f8;
+  --kr-border: #e2e8f0;
 }
 
 * {
@@ -16,8 +23,8 @@ html {
 
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
-  color: #111827;
-  background: #ffffff;
+  color: #1a1a1a;
+  background: #f4f7f8;
 }
 
 /* Custom scrollbar */
@@ -173,5 +180,49 @@ body {
 }
 .resume-spacing-spacious section {
   margin-top: 2rem !important;
+}
+
+/* Kickresume Button & Badge utilities */
+.btn-kr-primary {
+  background-color: #ff5e59;
+  color: #ffffff;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-kr-primary:hover {
+  background-color: #ee4e34;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 94, 89, 0.25);
+}
+
+.btn-kr-ai {
+  background: linear-gradient(135deg, #5345ff 0%, #7928ca 100%);
+  color: #ffffff;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-kr-ai:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(83, 69, 255, 0.3);
+}
+
+.kr-badge-ai {
+  background-color: #f3f0ff;
+  color: #5345ff;
+  border: 1px solid #e0d7fe;
+  font-weight: 600;
+}
+
+.kr-card {
+  background-color: #ffffff;
+  border: 1px solid #e8ecef;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.kr-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 

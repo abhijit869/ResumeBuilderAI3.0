@@ -37,32 +37,33 @@ import { ProfessionalTemplate } from "@/components/templates/ProfessionalTemplat
 import { ModernTemplate } from "@/components/templates/ModernTemplate";
 import { MinimalTemplate } from "@/components/templates/MinimalTemplate";
 import { ExecutiveTemplate } from "@/components/templates/ExecutiveTemplate";
-import { TechTemplate } from "@/components/templates/TechTemplate";
-import { CreativeTemplate } from "@/components/templates/CreativeTemplate";
+import { ResumeTemplateRenderer } from "@/components/templates/ResumeTemplateRenderer";
 import { downloadElementAsPdf } from "@/lib/pdf";
 
 const COLOR_OPTIONS = [
-  { name: "Emerald", value: "#059669" },
-  { name: "Teal", value: "#0d9488" },
-  { name: "Navy", value: "#1e293b" },
-  { name: "Sapphire", value: "#2563eb" },
-  { name: "Indigo", value: "#4f46e5" },
+  { name: "Kickresume Coral", value: "#ff5e59" },
+  { name: "Teal", value: "#00b5b8" },
+  { name: "Indigo / AI", value: "#5345ff" },
+  { name: "Steel Blue", value: "#3b82f6" },
+  { name: "Mint Green", value: "#10b981" },
+  { name: "Gold", value: "#eab308" },
+  { name: "Brick Red", value: "#dc2626" },
+  { name: "Charcoal / Black", value: "#1e293b" },
   { name: "Purple", value: "#7c3aed" },
   { name: "Rose", value: "#e11d48" },
-  { name: "Amber", value: "#d97706" },
-  { name: "Forest", value: "#15803d" },
-  { name: "Crimson", value: "#be123c" },
+  { name: "Navy", value: "#0f172a" },
   { name: "Slate", value: "#475569" },
-  { name: "Midnight", value: "#0f172a" },
 ];
 
 const TEMPLATES = [
-  { id: "professional", name: "Professional", desc: "Corporate standard, clean header" },
-  { id: "modern", name: "Modern", desc: "Two-column sidebar, balanced design" },
-  { id: "executive", name: "Executive", desc: "Harvard / Wall Street serif layout" },
+  { id: "hoth", name: "Hoth", desc: "Kickresume's #1 most popular: sidebar, photo, and skill bars" },
+  { id: "europe", name: "Europe", desc: "Two-column European CV layout for maximum clarity" },
+  { id: "vegan", name: "Vegan", desc: "Eco-minimalist modern layout with subtle accents" },
+  { id: "basic", name: "Basic", desc: "Classic single-column ATS recruiter approved" },
+  { id: "modern", name: "Modern", desc: "Sleek contemporary design with clean typography" },
+  { id: "creative", name: "Creative", desc: "Vibrant header with dynamic skills" },
+  { id: "executive", name: "Executive", desc: "Leadership Wall Street serif layout" },
   { id: "tech", name: "Tech / Code", desc: "Developer-centric with code badges" },
-  { id: "creative", name: "Creative", desc: "Vibrant header with timeline" },
-  { id: "minimal", name: "Minimal", desc: "Distraction-free, typographic focus" },
 ];
 
 const FONT_OPTIONS = [
@@ -1342,19 +1343,7 @@ function ResumeEditorInner() {
               currentPaper === "letter" ? "max-w-[780px]" : "max-w-[760px]"
             } transition-all duration-150 mb-12 shadow-2xl rounded-sm overflow-hidden bg-white resume-font-${currentFont} resume-size-${currentFontSize} resume-spacing-${currentSpacing}`}
           >
-            {resume.templateId === "modern" ? (
-              <ModernTemplate data={resume} accentColor={currentAccent} />
-            ) : resume.templateId === "minimal" ? (
-              <MinimalTemplate data={resume} accentColor={currentAccent} />
-            ) : resume.templateId === "executive" ? (
-              <ExecutiveTemplate data={resume} accentColor={currentAccent} />
-            ) : resume.templateId === "tech" ? (
-              <TechTemplate data={resume} accentColor={currentAccent} />
-            ) : resume.templateId === "creative" ? (
-              <CreativeTemplate data={resume} accentColor={currentAccent} />
-            ) : (
-              <ProfessionalTemplate data={resume} accentColor={currentAccent} />
-            )}
+            <ResumeTemplateRenderer data={resume} />
           </div>
         </div>
       </div>

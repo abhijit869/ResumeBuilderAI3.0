@@ -9,6 +9,8 @@ export interface User {
   email: string;
   plan: "free" | "premium";
   avatar?: string;
+  aiCredits: number;
+  remainingProxycurlCredits?: number;
 }
 
 interface AuthContextType {
@@ -19,15 +21,19 @@ interface AuthContextType {
   updateProfile: (profile: Pick<User, "name" | "email">) => void;
   logout: () => void;
   upgradeToPremium: () => void;
+  useAiCredit: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const DEMO_USER: User = {
-  id: "user-default-1",
-  name: "Alex Morgan",
-  email: "alex@example.com",
+  id: "user-kr-9648945",
+  name: "sodopel885",
+  email: "sodopel885@juicehour.com",
   plan: "premium",
+  aiCredits: 5,
+  remainingProxycurlCredits: 2,
+  avatar: "https://d2sn08my3g92cp.cloudfront.net/avatar/user.png",
 };
 
 function getInitialUser(): User {
@@ -45,12 +51,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(getInitialUser);
   const router = useRouter();
 
-  const login = async (email: string): Promise<boolean> => {
+  const login = async (email: string, password?: string): Promise<boolean> => {
+    // If user signs in with the specified Kickresume test account or any account
+    const isKickresumeAccount = email.toLowerCase() === "sodopel885@juicehour.com";
     const loggedUser: User = {
-      id: "user-" + Math.random().toString(36).substring(2, 9),
-      name: email.split("@")[0] || "User",
+      id: isKickresumeAccount ? "user-kr-9648945" : "user-" + Math.random().toString(36).substring(2, 9),
+      name: isKickresumeAccount ? "sodopel885" : email.split("@")[0] || "User",
       email: email,
       plan: "premium",
+      aiCredits: 5,
+      avatar: "https://d2sn08my3g92cp.cloudfront.net/avatar/user.png",
     };
     setUser(loggedUser);
     localStorage.setItem("resumebuilder_auth_user", JSON.stringify(loggedUser));
@@ -63,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: name || email.split("@")[0],
       email: email,
       plan: "free",
+      aiCredits: 5,
     };
     setUser(newUser);
     localStorage.setItem("resumebuilder_auth_user", JSON.stringify(newUser));
@@ -93,9 +104,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const useAiCredit = (): boolean => {
+    if (!user) return false;
+    if (user.aiCredits <= 0) return false;
+    const updated: User = { ...user, aiCredits: user.aiCredits - 1 };
+    setUser(updated);
+    localStorage.setItem("resumebuilder_auth_user", JSON.stringify(updated));
+    return true;
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading: false, login, signup, updateProfile, logout, upgradeToPremium }}
+      value={{ user, loading: false, login, signup, updateProfile, logout, upgradeToPremium, useAiCredit }}
     >
       {children}
     </AuthContext.Provider>

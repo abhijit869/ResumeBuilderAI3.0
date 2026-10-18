@@ -105,6 +105,8 @@ export interface ResumeData {
   awards: Award[];
   sectionOrder: string[];
   customization?: ResumeCustomization;
+  atsScore?: number;
+  isPublished?: boolean;
   createdAt: string;
   updatedAt: string;
 }

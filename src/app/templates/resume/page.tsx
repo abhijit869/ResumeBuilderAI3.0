@@ -33,18 +33,21 @@ export default function ResumeTemplatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
       <Navbar />
 
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              Recruiter-Approved Resume Templates
+            <span className="text-xs font-bold uppercase tracking-wider text-[#ff5e59] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+              Tested by Recruiters
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mt-3">
+              Kickresume Designer Templates
             </h1>
-            <p className="mt-3 text-lg text-gray-600">
-              Tested with leading ATS software and approved by HR recruiters from Fortune 500 companies.
+            <p className="mt-2 text-sm sm:text-base text-gray-600">
+              Tested with leading ATS software and approved by HR recruiters from Google, Tesla, and Amazon.
             </p>
 
             {/* Category Filter Tabs */}
@@ -53,10 +56,10 @@ export default function ResumeTemplatesPage() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     selectedCategory === cat.id
-                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                      : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-100"
+                      ? "bg-[#ff5e59] text-white shadow-md shadow-orange-500/20"
+                      : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   {cat.name}
@@ -66,23 +69,23 @@ export default function ResumeTemplatesPage() {
           </div>
 
           {/* Template Grid */}
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredTemplates.map((template) => (
               <div
                 key={template.id}
-                className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col justify-between"
+                className="bg-white rounded-3xl border border-gray-200/80 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 group flex flex-col justify-between"
               >
                 {/* Visual Preview Card */}
-                <div className="relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 p-4 overflow-hidden border-b border-gray-100 flex flex-col items-center justify-center">
+                <div className="relative aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 p-4 overflow-hidden border-b border-gray-100 flex flex-col items-center justify-center">
                   {/* Miniature Resume Mockup */}
-                  <div className="w-full h-full bg-white rounded-lg shadow-md p-3 flex flex-col space-y-2 border border-gray-100 group-hover:scale-[1.02] transition-transform duration-300">
+                  <div className="w-full h-full bg-white rounded-xl shadow-md p-3 flex flex-col space-y-2 border border-gray-200/70 group-hover:scale-[1.03] transition-transform duration-300">
                     <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                      <div className="w-6 h-6 rounded-full bg-emerald-600/20 text-emerald-800 flex items-center justify-center text-[10px] font-bold">
+                      <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">
                         {template.name.charAt(0)}
                       </div>
                       <div className="space-y-1">
                         <div className="h-2 w-16 bg-gray-900 rounded"></div>
-                        <div className="h-1.5 w-10 bg-emerald-600 rounded"></div>
+                        <div className="h-1.5 w-10 bg-[#ff5e59] rounded"></div>
                       </div>
                     </div>
                     <div className="space-y-1.5 pt-1">
@@ -95,21 +98,24 @@ export default function ResumeTemplatesPage() {
                       <div className="h-1 w-full bg-gray-200 rounded"></div>
                       <div className="h-1 w-4/6 bg-gray-200 rounded"></div>
                     </div>
-                    <div className="space-y-1 pt-1 flex flex-wrap gap-1">
-                      <div className="h-2 w-6 bg-emerald-100 rounded"></div>
-                      <div className="h-2 w-8 bg-emerald-100 rounded"></div>
-                      <div className="h-2 w-7 bg-emerald-100 rounded"></div>
+                    <div className="space-y-1 pt-1 flex flex-wrap gap-1 mt-auto">
+                      <div className="h-2 w-8 bg-orange-100 rounded"></div>
+                      <div className="h-2 w-10 bg-indigo-100 rounded"></div>
                     </div>
                   </div>
 
                   {/* Badge */}
                   <div className="absolute top-3 right-3">
-                    {template.isPremium ? (
-                      <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shadow">
+                    {template.id === "hoth" ? (
+                      <span className="bg-[#ff5e59] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase shadow-xs">
+                        #1 CHOICE
+                      </span>
+                    ) : template.isPremium ? (
+                      <span className="bg-[#5345ff] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shadow-xs">
                         PRO
                       </span>
                     ) : (
-                      <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shadow">
+                      <span className="bg-[#00b5b8] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shadow-xs">
                         FREE
                       </span>
                     )}
@@ -119,7 +125,7 @@ export default function ResumeTemplatesPage() {
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                     <Button
                       onClick={() => handleUseTemplate(template.id)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg text-xs"
+                      className="bg-[#ff5e59] hover:bg-[#ee4e34] text-white shadow-lg text-xs font-bold rounded-xl"
                       size="sm"
                     >
                       Use Template
@@ -130,20 +136,20 @@ export default function ResumeTemplatesPage() {
                 {/* Card Info */}
                 <div className="p-5">
                   <div className="flex justify-between items-center mb-1">
-                    <h3 className="font-bold text-gray-900 text-lg">{template.name}</h3>
-                    <Badge variant="outline" className="capitalize text-xs">
+                    <h3 className="font-extrabold text-gray-900 text-base">{template.name}</h3>
+                    <Badge variant="outline" className="capitalize text-[10px] font-bold">
                       {template.category}
                     </Badge>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">
                     {template.description}
                   </p>
                   <Button
                     onClick={() => handleUseTemplate(template.id)}
                     variant="outline"
-                    className="w-full mt-4 text-xs font-semibold hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300"
+                    className="w-full mt-4 text-xs font-bold rounded-xl hover:bg-orange-50 hover:text-[#ff5e59] hover:border-[#ff5e59] transition-colors"
                   >
-                    Use This Template
+                    Customize This Template
                   </Button>
                 </div>
               </div>
