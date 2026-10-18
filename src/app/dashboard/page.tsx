@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,15 +14,11 @@ import {
   Copy,
   Trash2,
   Edit,
-  Download,
   CheckCircle2,
   TrendingUp,
   Award,
   Zap,
-  ExternalLink,
   RefreshCw,
-  Globe,
-  Compass,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useResumeStore } from "@/lib/store";
@@ -339,7 +335,7 @@ export default function DashboardOverviewPage() {
           </div>
           <h4 className="font-bold text-gray-900 text-sm">Action Verb Optimization</h4>
           <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-            Leading recruiters look for active verbs like "Spearheaded", "Engineered", and "Optimized" rather than passive duties.
+            Leading recruiters look for active verbs like &quot;Spearheaded&quot;, &quot;Engineered&quot;, and &quot;Optimized&quot; rather than passive duties.
           </p>
         </div>
 

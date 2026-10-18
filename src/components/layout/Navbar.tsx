@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, FileText, PenTool, Globe, Sparkles, BarChart3, Bot, Crown } from "lucide-react";
+import { Menu, X, ChevronDown, FileText, PenTool, Sparkles, BarChart3, ArrowRight } from "lucide-react";
 
 const navFeatures = [
   {
@@ -137,6 +137,7 @@ export default function Navbar() {
               className="btn-kr-primary px-4 py-2 text-xs font-bold rounded-lg shadow-xs cursor-pointer inline-flex items-center gap-1.5"
             >
               <span>My Dashboard</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 

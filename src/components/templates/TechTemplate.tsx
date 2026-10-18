@@ -40,7 +40,7 @@ export function TechTemplate({
           {/* Contact */}
           <div>
             <h2 className="text-[11px] font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1 mb-2.5">
-              // Contact Info
+              {"// Contact Info"}
             </h2>
             <div className="space-y-2 text-xs text-slate-300">
               {personalInfo.email && (
@@ -86,7 +86,7 @@ export function TechTemplate({
           {skills && skills.length > 0 && (
             <div>
               <h2 className="text-[11px] font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1 mb-2.5">
-                // Skills & Tech
+                {"// Skills & Tech"}
               </h2>
               <div className="flex flex-wrap gap-1.5">
                 {skills.map((skill) => (
@@ -105,7 +105,7 @@ export function TechTemplate({
           {education && education.length > 0 && (
             <div>
               <h2 className="text-[11px] font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1 mb-2.5">
-                // Education
+                {"// Education"}
               </h2>
               <div className="space-y-2 text-xs">
                 {education.map((edu) => (
@@ -126,7 +126,7 @@ export function TechTemplate({
           {languages && languages.length > 0 && (
             <div>
               <h2 className="text-[11px] font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1 mb-2.5">
-                // Languages
+                {"// Languages"}
               </h2>
               <div className="space-y-1 text-xs text-slate-300">
                 {languages.map((l) => (

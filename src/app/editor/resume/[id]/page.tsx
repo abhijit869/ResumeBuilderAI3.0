@@ -23,7 +23,6 @@ import {
   RefreshCw,
   Type,
   Maximize2,
-  FileCheck,
   Check,
 } from "lucide-react";
 import { useResumeStore } from "@/lib/store";
@@ -33,10 +32,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ProfessionalTemplate } from "@/components/templates/ProfessionalTemplate";
-import { ModernTemplate } from "@/components/templates/ModernTemplate";
-import { MinimalTemplate } from "@/components/templates/MinimalTemplate";
-import { ExecutiveTemplate } from "@/components/templates/ExecutiveTemplate";
 import { ResumeTemplateRenderer } from "@/components/templates/ResumeTemplateRenderer";
 import { downloadElementAsPdf } from "@/lib/pdf";
 
@@ -83,6 +78,13 @@ const FONT_SIZE_OPTIONS = [
   { id: "md", name: "Medium (1.0x)", desc: "Standard recommended size" },
   { id: "lg", name: "Large (1.08x)", desc: "High legibility" },
 ];
+
+function createUniqueId(prefix: string): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+  }
+  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 function ResumeEditorInner() {
   const params = useParams();
@@ -191,7 +193,7 @@ function ResumeEditorInner() {
   const handleAddExperience = () => {
     if (!resume) return;
     const newJob: WorkExperience = {
-      id: "we-" + Date.now(),
+      id: createUniqueId("we"),
       company: "Company Name",
       position: "Position Title",
       location: "City, Country",
@@ -207,7 +209,7 @@ function ResumeEditorInner() {
   const handleAddEducation = () => {
     if (!resume) return;
     const newEdu: Education = {
-      id: "edu-" + Date.now(),
+      id: createUniqueId("edu"),
       institution: "University / College",
       degree: "Bachelor of Science",
       field: "Computer Science",
@@ -223,7 +225,7 @@ function ResumeEditorInner() {
   const handleAddSkill = () => {
     if (!resume) return;
     const newSkill: Skill = {
-      id: "sk-" + Date.now(),
+      id: createUniqueId("sk"),
       name: "New Skill",
       level: "advanced",
       category: "Technical",
@@ -234,7 +236,7 @@ function ResumeEditorInner() {
   const handleAddProject = () => {
     if (!resume) return;
     const newProj: Project = {
-      id: "proj-" + Date.now(),
+      id: createUniqueId("proj"),
       name: "Portfolio / Tool Name",
       description: "Architected and delivered an end-to-end application solving user pain points.",
       url: "https://github.com",
@@ -247,7 +249,7 @@ function ResumeEditorInner() {
   const handleAddCertification = () => {
     if (!resume) return;
     const newCert: Certification = {
-      id: "cert-" + Date.now(),
+      id: createUniqueId("cert"),
       name: "Professional Certificate",
       issuer: "Issuing Organization",
       date: "2023",
@@ -258,7 +260,7 @@ function ResumeEditorInner() {
   const handleAddLanguage = () => {
     if (!resume) return;
     const newLang: Language = {
-      id: "lang-" + Date.now(),
+      id: createUniqueId("lang"),
       name: "English",
       proficiency: "fluent",
     };
@@ -515,7 +517,7 @@ function ResumeEditorInner() {
                   {FONT_OPTIONS.map((font) => (
                     <div
                       key={font.id}
-                      onClick={() => handleUpdateCustomization({ fontFamily: font.id as any })}
+                      onClick={() => handleUpdateCustomization({ fontFamily: font.id as ResumeCustomization['fontFamily'] })}
                       className={`p-3 rounded-2xl border cursor-pointer transition-all ${
                         currentFont === font.id
                           ? "border-emerald-600 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-600"
@@ -546,7 +548,7 @@ function ResumeEditorInner() {
                   {SPACING_OPTIONS.map((sp) => (
                     <div
                       key={sp.id}
-                      onClick={() => handleUpdateCustomization({ spacing: sp.id as any })}
+                      onClick={() => handleUpdateCustomization({ spacing: sp.id as ResumeCustomization['spacing'] })}
                       className={`p-3 rounded-2xl border cursor-pointer transition-all ${
                         currentSpacing === sp.id
                           ? "border-emerald-600 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-600"
@@ -575,7 +577,7 @@ function ResumeEditorInner() {
                     {FONT_SIZE_OPTIONS.map((f) => (
                       <button
                         key={f.id}
-                        onClick={() => handleUpdateCustomization({ fontSize: f.id as any })}
+                        onClick={() => handleUpdateCustomization({ fontSize: f.id as ResumeCustomization['fontSize'] })}
                         className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                           currentFontSize === f.id
                             ? "bg-white text-gray-900 shadow-sm"
@@ -599,7 +601,7 @@ function ResumeEditorInner() {
                     ].map((p) => (
                       <button
                         key={p.id}
-                        onClick={() => handleUpdateCustomization({ paperSize: p.id as any })}
+                        onClick={() => handleUpdateCustomization({ paperSize: p.id as ResumeCustomization['paperSize'] })}
                         className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                           currentPaper === p.id
                             ? "bg-white text-gray-900 shadow-sm"
@@ -1273,7 +1275,7 @@ function ResumeEditorInner() {
                       value={lang.proficiency}
                       onChange={(e) => {
                         const updated = [...resume.languages];
-                        updated[index].proficiency = e.target.value as any;
+                        updated[index].proficiency = e.target.value as Language['proficiency'];
                         handleUpdate({ languages: updated });
                       }}
                       className="h-8 text-xs bg-white border border-gray-300 rounded px-2"
