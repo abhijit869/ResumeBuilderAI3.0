@@ -51,6 +51,7 @@ export function AuthModalView({
     'google' | 'linkedin' | 'github' | null
   >(null);
   const [resetSent, setResetSent] = useState(false);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   const handleSocialAuth = async (
     provider: 'google' | 'linkedin' | 'github'
@@ -294,8 +295,65 @@ export function AuthModalView({
             </div>
           )}
 
-          {/* Error Message */}
-          {errorMsg && (
+          {/* Error Message & Unauthorized Domain Resolution */}
+          {errorMsg && errorMsg.includes('unauthorized-domain') ? (
+            <div
+              role="alert"
+              className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-900 text-xs space-y-3 shadow-xs"
+            >
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-bold text-amber-950 text-sm">
+                    Firebase Authorized Domain Required
+                  </h4>
+                  <p className="text-amber-800 leading-relaxed">
+                    Firebase blocks OAuth popups on new domains until they are added to your project settings. To enable Google/GitHub sign-in on this deployment:
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white/90 p-2.5 rounded-xl border border-amber-200 font-mono text-[11px] text-slate-800 flex items-center justify-between gap-2">
+                <span className="truncate select-all">
+                  {typeof window !== 'undefined' ? window.location.hostname : 'your-domain.vercel.app'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      navigator.clipboard.writeText(window.location.hostname);
+                      setCopiedDomain(true);
+                      setTimeout(() => setCopiedDomain(false), 2500);
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-semibold text-[10px] shrink-0 transition"
+                >
+                  {copiedDomain ? 'Copied!' : 'Copy Domain'}
+                </button>
+              </div>
+
+              <div className="text-[11px] text-amber-900 leading-relaxed space-y-1 bg-amber-100/60 p-2.5 rounded-xl border border-amber-200/60">
+                <p>1. Open <a href="https://console.firebase.google.com/project/gen-lang-client-0149483350/authentication/settings" target="_blank" rel="noopener noreferrer" className="font-semibold underline text-amber-950 hover:text-black">Firebase Console → Auth Settings</a></p>
+                <p>2. Scroll down to <strong>Authorized domains</strong> → <strong>Add domain</strong></p>
+                <p>3. Paste your domain and click <strong>Save</strong>.</p>
+              </div>
+
+              <div className="pt-1 flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('demo.candidate@resumegpt.io');
+                    setPassword('DemoPass2026!Secure');
+                    setErrorMsg(null);
+                  }}
+                  className="w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>Auto-fill Demo Credentials Below</span>
+                </button>
+              </div>
+            </div>
+          ) : errorMsg ? (
             <div
               role="alert"
               className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2"
@@ -303,7 +361,7 @@ export function AuthModalView({
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
-          )}
+          ) : null}
 
           {/* Reset Sent Notice */}
           {resetSent && (

@@ -335,9 +335,10 @@ export async function signInWithGoogle(): Promise<AppUserProfile> {
     ) {
       throw new Error('Google Sign-In was cancelled.');
     }
-    if (errorMsg.includes('account-exists-with-different-credential')) {
+    if (errorMsg.includes('unauthorized-domain')) {
+      const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
       throw new Error(
-        'An account already exists with the same email. Please log in with your original method.'
+        `auth/unauthorized-domain: ${host} is not an authorized domain in your Firebase project.`
       );
     }
     throw new Error(errorMsg);
@@ -364,6 +365,12 @@ export async function signInWithGithub(): Promise<AppUserProfile> {
     if (errorMsg.includes('account-exists-with-different-credential')) {
       throw new Error(
         'An account already exists with the same email. Please log in with your original method.'
+      );
+    }
+    if (errorMsg.includes('unauthorized-domain')) {
+      const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+      throw new Error(
+        `auth/unauthorized-domain: ${host} is not an authorized domain in your Firebase project.`
       );
     }
     if (
@@ -403,6 +410,12 @@ export async function signInWithLinkedIn(): Promise<AppUserProfile> {
       errorMsg.includes('cancelled-popup-request')
     ) {
       throw new Error('LinkedIn Sign-In was cancelled.');
+    }
+    if (errorMsg.includes('unauthorized-domain')) {
+      const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+      throw new Error(
+        `auth/unauthorized-domain: ${host} is not an authorized domain in your Firebase project.`
+      );
     }
     if (errorMsg.includes('account-exists-with-different-credential')) {
       throw new Error(
