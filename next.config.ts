@@ -24,19 +24,6 @@ function ensureDevManifests() {
       fs.mkdirSync(serverDir, {recursive: true});
     }
 
-    const chunksDir = path.join(serverDir, 'chunks');
-    if (fs.existsSync(chunksDir)) {
-      for (const file of fs.readdirSync(chunksDir)) {
-        if (file.endsWith('.js')) {
-          const src = path.join(chunksDir, file);
-          const dest = path.join(serverDir, file);
-          if (!fs.existsSync(dest)) {
-            fs.copyFileSync(src, dest);
-          }
-        }
-      }
-    }
-
     writeJsonIfMissing(path.join(distDir, 'routes-manifest.json'), {
       version: 3,
       pages404: true,
@@ -92,10 +79,45 @@ function ensureDevManifests() {
   }
 }
 
+function syncServerChunks() {
+  try {
+    const distDir = path.join(process.cwd(), '.next');
+    if (!fs.existsSync(path.join(distDir, 'package.json'))) {
+      return;
+    }
+    const serverDir = path.join(distDir, 'server');
+    const chunksDir = path.join(serverDir, 'chunks');
+    if (fs.existsSync(chunksDir)) {
+      for (const file of fs.readdirSync(chunksDir)) {
+        if (file.endsWith('.js')) {
+          const src = path.join(chunksDir, file);
+          const dest = path.join(serverDir, file);
+          const srcStat = fs.statSync(src);
+          if (srcStat.size > 0) {
+            const shouldCopy =
+              !fs.existsSync(dest) ||
+              fs.statSync(dest).size !== srcStat.size ||
+              srcStat.mtimeMs > fs.statSync(dest).mtimeMs;
+            if (shouldCopy) {
+              fs.copyFileSync(src, dest);
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
 let devManifestWatchdogStarted = false;
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
+  experimental: {
+    devtoolSegmentExplorer: false,
+  },
   env: {
     NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED:
       process.env.NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED || 'false',
@@ -122,10 +144,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
     if (dev) {
+      config.cache = false;
       ensureDevManifests();
       if (!devManifestWatchdogStarted) {
         devManifestWatchdogStarted = true;
-        const timer = setInterval(ensureDevManifests, 100);
+        const timer = setInterval(ensureDevManifests, 200);
         if (typeof timer.unref === 'function') {
           timer.unref();
         }
@@ -135,7 +158,7 @@ const nextConfig: NextConfig = {
         apply(compiler: {
           hooks: {
             beforeCompile: {tap: (name: string, fn: () => void) => void};
-            afterCompile: {tap: (name: string, fn: () => void) => void};
+            afterEmit: {tap: (name: string, fn: () => void) => void};
             done: {tap: (name: string, fn: () => void) => void};
           };
         }) {
@@ -143,14 +166,14 @@ const nextConfig: NextConfig = {
             'EnsureDevManifestsPlugin',
             ensureDevManifests
           );
-          compiler.hooks.afterCompile.tap(
-            'EnsureDevManifestsPlugin',
-            ensureDevManifests
-          );
-          compiler.hooks.done.tap(
-            'EnsureDevManifestsPlugin',
-            ensureDevManifests
-          );
+          compiler.hooks.afterEmit.tap('EnsureDevManifestsPlugin', () => {
+            ensureDevManifests();
+            syncServerChunks();
+          });
+          compiler.hooks.done.tap('EnsureDevManifestsPlugin', () => {
+            ensureDevManifests();
+            syncServerChunks();
+          });
         },
       });
     }
