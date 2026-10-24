@@ -2,83 +2,6 @@ import type {NextConfig} from 'next';
 import fs from 'fs';
 import path from 'path';
 
-function writeJsonIfMissing(filePath: string, data: unknown) {
-  try {
-    if (!fs.existsSync(filePath)) {
-      fs.mkdirSync(path.dirname(filePath), {recursive: true});
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    }
-  } catch {
-    // ignore concurrent write errors
-  }
-}
-
-function ensureDevManifests() {
-  try {
-    const distDir = path.join(process.cwd(), '.next');
-    if (!fs.existsSync(path.join(distDir, 'package.json'))) {
-      return;
-    }
-    const serverDir = path.join(distDir, 'server');
-    if (!fs.existsSync(serverDir)) {
-      fs.mkdirSync(serverDir, {recursive: true});
-    }
-
-    writeJsonIfMissing(path.join(distDir, 'routes-manifest.json'), {
-      version: 3,
-      pages404: true,
-      caseSensitive: false,
-      basePath: '',
-      redirects: [
-        {
-          source: '/:path+/',
-          destination: '/:path+',
-          internal: true,
-          statusCode: 308,
-          regex: '^(?:\\/((?:[^\\/]+?)(?:\\/(?:[^\\/]+?))*))\\/$',
-        },
-      ],
-      headers: [],
-      dynamicRoutes: [],
-      staticRoutes: [],
-      dataRoutes: [],
-      rsc: {
-        header: 'RSC',
-        varyHeader:
-          'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch',
-        prefetchHeader: 'Next-Router-Prefetch',
-        didPostponeHeader: 'x-nextjs-postponed',
-        contentTypeHeader: 'text/x-component',
-        suffix: '.rsc',
-        prefetchSuffix: '.prefetch.rsc',
-        prefetchSegmentHeader: 'Next-Router-Segment-Prefetch',
-        prefetchSegmentSuffix: '.segment.rsc',
-        prefetchSegmentDirSuffix: '.segments',
-      },
-      rewrites: {beforeFiles: [], afterFiles: [], fallback: []},
-    });
-
-    writeJsonIfMissing(path.join(distDir, 'prerender-manifest.json'), {
-      version: 4,
-      routes: {},
-      dynamicRoutes: {},
-      notFoundRoutes: [],
-      preview: {
-        previewModeId: 'b576a24ebd575248bf988754cc60aef8',
-        previewModeSigningKey:
-          '299dd3b3b6375ed3996fd28c56ff17f46ad9d56a201c63896d901b56053011d2',
-        previewModeEncryptionKey:
-          '670c851bebaa79017d8127fe38690fb9c8bceac188a888ddf2a34a299dea1260',
-      },
-    });
-
-    writeJsonIfMissing(path.join(serverDir, 'app-paths-manifest.json'), {});
-    writeJsonIfMissing(path.join(serverDir, 'pages-manifest.json'), {});
-  } catch {
-    // ignore
-  }
-}
-
 function syncServerChunks() {
   try {
     const distDir = path.join(process.cwd(), '.next');
@@ -138,8 +61,6 @@ function syncServerChunks() {
   }
 }
 
-let devManifestWatchdogStarted = false;
-
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
@@ -173,41 +94,20 @@ const nextConfig: NextConfig = {
   webpack: (config, {dev}) => {
     if (dev) {
       config.cache = false;
-      ensureDevManifests();
-      syncServerChunks();
-      if (!devManifestWatchdogStarted) {
-        devManifestWatchdogStarted = true;
-        const timer = setInterval(() => {
-          ensureDevManifests();
-          syncServerChunks();
-        }, 200);
-        if (typeof timer.unref === 'function') {
-          timer.unref();
-        }
-      }
     }
 
     config.plugins = config.plugins || [];
     config.plugins.push({
       apply(compiler: {
         hooks: {
-          beforeCompile: {tap: (name: string, fn: () => void) => void};
           afterEmit: {tap: (name: string, fn: () => void) => void};
           done: {tap: (name: string, fn: () => void) => void};
         };
       }) {
-        if (dev) {
-          compiler.hooks.beforeCompile.tap(
-            'EnsureDevManifestsPlugin',
-            ensureDevManifests
-          );
-        }
-        compiler.hooks.afterEmit.tap('EnsureDevManifestsPlugin', () => {
-          if (dev) ensureDevManifests();
+        compiler.hooks.afterEmit.tap('SyncServerChunksPlugin', () => {
           syncServerChunks();
         });
-        compiler.hooks.done.tap('EnsureDevManifestsPlugin', () => {
-          if (dev) ensureDevManifests();
+        compiler.hooks.done.tap('SyncServerChunksPlugin', () => {
           syncServerChunks();
         });
       },
@@ -225,5 +125,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-
