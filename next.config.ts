@@ -82,10 +82,10 @@ function ensureDevManifests() {
 function syncServerChunks() {
   try {
     const distDir = path.join(process.cwd(), '.next');
-    if (!fs.existsSync(path.join(distDir, 'package.json'))) {
+    const serverDir = path.join(distDir, 'server');
+    if (!fs.existsSync(serverDir)) {
       return;
     }
-    const serverDir = path.join(distDir, 'server');
     const chunksDir = path.join(serverDir, 'chunks');
     if (fs.existsSync(chunksDir)) {
       for (const file of fs.readdirSync(chunksDir)) {
@@ -99,10 +99,38 @@ function syncServerChunks() {
               fs.statSync(dest).size !== srcStat.size ||
               srcStat.mtimeMs > fs.statSync(dest).mtimeMs;
             if (shouldCopy) {
-              fs.copyFileSync(src, dest);
+              const tmp = `${dest}.tmp.${process.pid}`;
+              fs.copyFileSync(src, tmp);
+              fs.renameSync(tmp, dest);
             }
           }
         }
+      }
+    }
+
+    const runtimePath = path.join(serverDir, 'webpack-runtime.js');
+    if (fs.existsSync(runtimePath)) {
+      const content = fs.readFileSync(runtimePath, 'utf8');
+      const devTarget =
+        'installChunk(require("./" + __webpack_require__.u(chunkId)));';
+      const devReplacement =
+        'installChunk((function(p){try{return require("./"+p)}catch(e){return require("./chunks/"+p)}})(__webpack_require__.u(chunkId)));';
+      const prodTarget =
+        'installChunk(require("./chunks/" + __webpack_require__.u(chunkId)));';
+      const prodReplacement =
+        'installChunk((function(p){try{return require("./chunks/"+p)}catch(e){return require("./"+p)}})(__webpack_require__.u(chunkId)));';
+
+      let patched = content;
+      if (patched.includes(devTarget)) {
+        patched = patched.replace(devTarget, devReplacement);
+      }
+      if (patched.includes(prodTarget)) {
+        patched = patched.replace(prodTarget, prodReplacement);
+      }
+      if (patched !== content) {
+        const tmp = `${runtimePath}.tmp.${process.pid}`;
+        fs.writeFileSync(tmp, patched, 'utf8');
+        fs.renameSync(tmp, runtimePath);
       }
     }
   } catch {
@@ -146,37 +174,45 @@ const nextConfig: NextConfig = {
     if (dev) {
       config.cache = false;
       ensureDevManifests();
+      syncServerChunks();
       if (!devManifestWatchdogStarted) {
         devManifestWatchdogStarted = true;
-        const timer = setInterval(ensureDevManifests, 200);
+        const timer = setInterval(() => {
+          ensureDevManifests();
+          syncServerChunks();
+        }, 200);
         if (typeof timer.unref === 'function') {
           timer.unref();
         }
       }
-      config.plugins = config.plugins || [];
-      config.plugins.push({
-        apply(compiler: {
-          hooks: {
-            beforeCompile: {tap: (name: string, fn: () => void) => void};
-            afterEmit: {tap: (name: string, fn: () => void) => void};
-            done: {tap: (name: string, fn: () => void) => void};
-          };
-        }) {
+    }
+
+    config.plugins = config.plugins || [];
+    config.plugins.push({
+      apply(compiler: {
+        hooks: {
+          beforeCompile: {tap: (name: string, fn: () => void) => void};
+          afterEmit: {tap: (name: string, fn: () => void) => void};
+          done: {tap: (name: string, fn: () => void) => void};
+        };
+      }) {
+        if (dev) {
           compiler.hooks.beforeCompile.tap(
             'EnsureDevManifestsPlugin',
             ensureDevManifests
           );
-          compiler.hooks.afterEmit.tap('EnsureDevManifestsPlugin', () => {
-            ensureDevManifests();
-            syncServerChunks();
-          });
-          compiler.hooks.done.tap('EnsureDevManifestsPlugin', () => {
-            ensureDevManifests();
-            syncServerChunks();
-          });
-        },
-      });
-    }
+        }
+        compiler.hooks.afterEmit.tap('EnsureDevManifestsPlugin', () => {
+          if (dev) ensureDevManifests();
+          syncServerChunks();
+        });
+        compiler.hooks.done.tap('EnsureDevManifestsPlugin', () => {
+          if (dev) ensureDevManifests();
+          syncServerChunks();
+        });
+      },
+    });
+
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
     // Do not modify—file watching is disabled to prevent flickering during agent edits.
     if (dev && process.env.DISABLE_HMR === 'true') {
