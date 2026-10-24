@@ -5,3 +5,6 @@ coverage/
 *.log
 .env*
 !.env.example
+.aistudio/
+*.tmp*
+r3-generated-live-resume.png
