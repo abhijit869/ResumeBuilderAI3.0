@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({children}: {children: React.ReactNode}) {
   const safeFetchScript = `
     (function() {
@@ -68,6 +70,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         if (typeof window !== 'undefined') {
           ensureWritableFetchOn(window);
         }
+        if (typeof globalThis !== 'undefined') {
+          ensureWritableFetchOn(globalThis);
+        }
 
         Object.defineProperty = function(target, prop, descriptor) {
           if (
@@ -103,7 +108,23 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       window.addEventListener('error', function(ev) {
         if (
           (ev && ev.filename && ev.filename.indexOf('chrome-extension://') !== -1) ||
-          (ev && ev.message && ev.message.indexOf('Cannot set property fetch') !== -1)
+          (ev && ev.message && (
+            ev.message.indexOf('Cannot set property fetch') !== -1 ||
+            ev.message.indexOf('Minified React error #418') !== -1
+          ))
+        ) {
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(ev) {
+        var reason = ev && ev.reason;
+        var msg = reason && (reason.message || String(reason));
+        var stack = reason && reason.stack ? String(reason.stack) : '';
+        if (
+          stack.indexOf('chrome-extension://') !== -1 ||
+          (msg && msg.indexOf('Cannot set property fetch') !== -1)
         ) {
           ev.stopImmediatePropagation();
           ev.preventDefault();
@@ -114,8 +135,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{__html: safeFetchScript}} />
+      <head suppressHydrationWarning>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{__html: safeFetchScript}}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

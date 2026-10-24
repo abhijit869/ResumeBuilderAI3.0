@@ -3,15 +3,20 @@ import fs from 'fs';
 import path from 'path';
 
 function writeJsonIfMissing(filePath: string, data: unknown) {
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  try {
+    if (!fs.existsSync(filePath)) {
+      fs.mkdirSync(path.dirname(filePath), {recursive: true});
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    }
+  } catch {
+    // ignore concurrent write errors
   }
 }
 
 function ensureDevManifests() {
   try {
     const distDir = path.join(process.cwd(), '.next');
-    if (!fs.existsSync(distDir)) {
+    if (!fs.existsSync(path.join(distDir, 'package.json'))) {
       return;
     }
     const serverDir = path.join(distDir, 'server');
@@ -34,19 +39,36 @@ function ensureDevManifests() {
 
     writeJsonIfMissing(path.join(distDir, 'routes-manifest.json'), {
       version: 3,
+      pages404: true,
       caseSensitive: false,
       basePath: '',
-      rewrites: {beforeFiles: [], afterFiles: [], fallback: []},
       redirects: [
         {
           source: '/:path+/',
           destination: '/:path+',
-          permanent: true,
           internal: true,
+          statusCode: 308,
           regex: '^(?:\\/((?:[^\\/]+?)(?:\\/(?:[^\\/]+?))*))\\/$',
         },
       ],
       headers: [],
+      dynamicRoutes: [],
+      staticRoutes: [],
+      dataRoutes: [],
+      rsc: {
+        header: 'RSC',
+        varyHeader:
+          'RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch',
+        prefetchHeader: 'Next-Router-Prefetch',
+        didPostponeHeader: 'x-nextjs-postponed',
+        contentTypeHeader: 'text/x-component',
+        suffix: '.rsc',
+        prefetchSuffix: '.prefetch.rsc',
+        prefetchSegmentHeader: 'Next-Router-Segment-Prefetch',
+        prefetchSegmentSuffix: '.segment.rsc',
+        prefetchSegmentDirSuffix: '.segments',
+      },
+      rewrites: {beforeFiles: [], afterFiles: [], fallback: []},
     });
 
     writeJsonIfMissing(path.join(distDir, 'prerender-manifest.json'), {
@@ -103,7 +125,7 @@ const nextConfig: NextConfig = {
       ensureDevManifests();
       if (!devManifestWatchdogStarted) {
         devManifestWatchdogStarted = true;
-        const timer = setInterval(ensureDevManifests, 200);
+        const timer = setInterval(ensureDevManifests, 100);
         if (typeof timer.unref === 'function') {
           timer.unref();
         }
@@ -113,10 +135,15 @@ const nextConfig: NextConfig = {
         apply(compiler: {
           hooks: {
             beforeCompile: {tap: (name: string, fn: () => void) => void};
+            afterCompile: {tap: (name: string, fn: () => void) => void};
             done: {tap: (name: string, fn: () => void) => void};
           };
         }) {
           compiler.hooks.beforeCompile.tap(
+            'EnsureDevManifestsPlugin',
+            ensureDevManifests
+          );
+          compiler.hooks.afterCompile.tap(
             'EnsureDevManifestsPlugin',
             ensureDevManifests
           );
