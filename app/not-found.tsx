@@ -1,6 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-slate-900 flex items-center justify-center p-6">

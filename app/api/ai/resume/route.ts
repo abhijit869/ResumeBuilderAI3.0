@@ -18,6 +18,9 @@ import {
   runSecurityAuditReport,
 } from '@/lib/security-utils';
 
+export const dynamic = 'force-dynamic';
+
+
 function getAiClient(): GoogleGenAI | null {
   const key = process.env.GEMINI_API_KEY;
   if (!key || key === 'MY_GEMINI_API_KEY' || key.trim() === '') {
