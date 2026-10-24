@@ -59,3 +59,17 @@ npm run lint
 npm run build
 npm run start
 ```
+
+---
+
+## Authors & Contributors
+
+- **Abhijit Biswas** ([@abhijit869](https://github.com/abhijit869)) — Creator & Lead Maintainer
+- **ResumeBuilderAI Engineering & Community Contributors** — AI integration, ATS scoring algorithms, security architecture, and template design
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
