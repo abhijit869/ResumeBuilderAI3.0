@@ -1,0 +1,6 @@
+{
+  "name": "ResumeBuilderAi3.0",
+  "description": "AI-powered resume builder, live template studio, cover letter generator, and ATS optimization dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

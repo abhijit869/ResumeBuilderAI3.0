@@ -1,0 +1,173 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "providerId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "plan": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "email"]
+    },
+    "Resume": {
+      "title": "Resume",
+      "description": "User's customized resume document",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "templateId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "themeColor": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "fontFamily": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "atsScore": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "title"]
+    },
+    "CoverLetter": {
+      "title": "CoverLetter",
+      "description": "User's generated cover letter",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "companyName": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "roleTitle": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 12000
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId"]
+    },
+    "JobApplication": {
+      "title": "JobApplication",
+      "description": "User's tracked job application",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "company": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "role": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "stage": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "deadline": {
+          "type": "string",
+          "maxLength": 64
+        }
+      },
+      "required": ["id", "userId", "company", "role"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Private user account profile"
+    },
+    "/users/{userId}/resumes/{resumeId}": {
+      "schema": "Resume",
+      "description": "User's private resume documents"
+    },
+    "/users/{userId}/coverLetters/{clId}": {
+      "schema": "CoverLetter",
+      "description": "User's private cover letters"
+    },
+    "/users/{userId}/jobs/{jobId}": {
+      "schema": "JobApplication",
+      "description": "User's job application pipeline"
+    }
+  }
+}

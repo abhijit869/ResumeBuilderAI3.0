@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Safety Net (Default-Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Pillar 3: Path Variable Hardening & Primitive Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Pillar 2: Validation Blueprints (Anti-Update-Gap & Denial-of-Wallet Guards)
+    function isValidUser(data, userId) {
+      return data.id is string
+             && data.id == userId
+             && data.id.size() <= 128
+             && data.email is string
+             && data.email.size() <= 254
+             && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 120))
+             && (!('plan' in data) || (data.plan is string && data.plan.size() <= 64));
+    }
+
+    function isValidResume(data, userId, resumeId) {
+      return data.id is string
+             && data.id == resumeId
+             && data.id.size() <= 128
+             && data.userId is string
+             && data.userId == userId
+             && data.userId.size() <= 128
+             && data.title is string
+             && data.title.size() >= 1
+             && data.title.size() <= 200
+             && (!('templateId' in data) || (data.templateId is string && data.templateId.size() <= 64))
+             && (!('themeColor' in data) || (data.themeColor is string && data.themeColor.size() <= 32))
+             && (!('fontFamily' in data) || (data.fontFamily is string && data.fontFamily.size() <= 32));
+    }
+
+    function isValidCoverLetter(data, userId, clId) {
+      return data.id is string
+             && data.id == clId
+             && data.id.size() <= 128
+             && data.userId is string
+             && data.userId == userId
+             && data.userId.size() <= 128
+             && (!('title' in data) || (data.title is string && data.title.size() <= 200))
+             && (!('companyName' in data) || (data.companyName is string && data.companyName.size() <= 160))
+             && (!('roleTitle' in data) || (data.roleTitle is string && data.roleTitle.size() <= 160))
+             && (!('content' in data) || (data.content is string && data.content.size() <= 12000));
+    }
+
+    function isValidJobApplication(data, userId, jobId) {
+      return data.id is string
+             && data.id == jobId
+             && data.id.size() <= 128
+             && data.userId is string
+             && data.userId == userId
+             && data.userId.size() <= 128
+             && data.company is string
+             && data.company.size() >= 1
+             && data.company.size() <= 160
+             && data.role is string
+             && data.role.size() >= 1
+             && data.role.size() <= 160
+             && (!('stage' in data) || (data.stage is string && data.stage.size() <= 32));
+    }
+
+    // User Profile Rules (PII Isolated to Owner Only)
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false; // Disallow listing user directory
+      allow create: if isOwner(userId)
+                    && isValidId(userId)
+                    && isValidUser(incoming(), userId);
+      allow update: if isOwner(userId)
+                    && isValidId(userId)
+                    && isValidUser(incoming(), userId)
+                    && incoming().id == existing().id;
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      // Private User Resumes
+      match /resumes/{resumeId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(resumeId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId)
+                      && isValidId(userId)
+                      && isValidId(resumeId)
+                      && isValidResume(incoming(), userId, resumeId);
+        allow update: if isOwner(userId)
+                      && isValidId(userId)
+                      && isValidId(resumeId)
+                      && isValidResume(incoming(), userId, resumeId)
+                      && incoming().userId == existing().userId
+                      && incoming().id == existing().id;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(resumeId);
+      }
+
+      // Private User Cover Letters
+      match /coverLetters/{clId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(clId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId)
+                      && isValidId(userId)
+                      && isValidId(clId)
+                      && isValidCoverLetter(incoming(), userId, clId);
+        allow update: if isOwner(userId)
+                      && isValidId(userId)
+                      && isValidId(clId)
+                      && isValidCoverLetter(incoming(), userId, clId)
+                      && incoming().userId == existing().userId
+                      && incoming().id == existing().id;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(clId);
+      }
+
+      // Private User Job Applications
+      match /jobs/{jobId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(jobId);
+        allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+        allow create: if isOwner(userId)
+                      && isValidId(userId)
+                      && isValidId(jobId)
+                      && isValidJobApplication(incoming(), userId, jobId);
+        allow update: if isOwner(userId)
+                      && isValidId(userId)
+                      && isValidId(jobId)
+                      && isValidJobApplication(incoming(), userId, jobId)
+                      && incoming().userId == existing().userId
+                      && incoming().id == existing().id;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(jobId);
+      }
+    }
+  }
+}
