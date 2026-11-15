@@ -2,8 +2,8 @@
 
 ## Verified locally
 
-- 38 unit tests passed (resume scoring, parsing, exports, rewriting, fallback
-  authentication, security utilities, and server authentication regression tests).
+- 40 unit tests passed (resume scoring, parsing, exports, rewriting, authentication
+  failure handling, security utilities, and server authentication regression tests).
 - ESLint passed; production build passed, including TypeScript checking.
 - Render standalone bundle started on `0.0.0.0` using an injected port.
 - All 11 page/metadata route smoke checks passed.
@@ -17,10 +17,11 @@
 
 ## Integration findings and remaining checks
 
-- **Firebase:** the existing auth test received `auth/operation-not-allowed`
-  for email registration/sign-in and passed through local fallback. Enable real
-  providers and authorize the Render hostname before testing authenticated cloud
-  workflows. The fallback test does not prove real OAuth works.
+- **Firebase:** the live REST sign-in probe returned `PASSWORD_LOGIN_DISABLED`.
+  The authorized-domain list did not include a Render hostname. Removed the local
+  identity fallback and fabricated social profiles; failed sign-in/reset requests
+  now propagate errors. Enable providers and authorize the deployed hostname to
+  complete real authentication testing.
 - **Atlas:** the configured database returned degraded status, `connected: false`,
   after approximately five seconds. The error category was TLS connection rejected.
   Check Atlas network access, database credentials, and service connectivity. The
@@ -41,7 +42,7 @@ endpoint, reproducible test commands, and deployment instructions. Fixed MongoDB
 pool reuse in production, verified Firebase sessions before database requests,
 attached ID tokens from the client, rejected mismatched user IDs, and stopped
 reporting successful sync counts when database writes fail. Cloud operations now
-require real Firebase sessions; browser-only fallback identities remain local.
+require real Firebase sessions; browser-only sessions cannot authenticate.
 
 Follow [the deployment guide](render-deployment.md) for configuration and final
 acceptance checks. These results do not establish that every app feature works.

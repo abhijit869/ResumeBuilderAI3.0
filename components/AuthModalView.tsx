@@ -86,7 +86,7 @@ export function AuthModalView({
       const msg = err instanceof Error ? err.message : 'Social sign-in failed';
       if (msg.includes('network-request-failed')) {
         setErrorMsg(
-          'Network connection to authentication provider timed out. Switched to verified offline authentication.'
+          'Unable to reach the sign-in provider. Check your connection and try again.'
         );
       } else {
         setErrorMsg(msg);
@@ -162,7 +162,7 @@ export function AuthModalView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.uid,
-          action: mode === 'signup' ? 'account_created' : 'login',
+          action: mode === 'signup' ? 'signup' : 'login',
           provider: 'password',
           status: 'success',
         }),
@@ -189,7 +189,7 @@ export function AuthModalView({
         setErrorMsg('No account found with this email. Please sign up first.');
       } else if (msg.includes('network-request-failed')) {
         setErrorMsg(
-          'Network request to authentication server timed out. Offline authenticated profile activated.'
+          'Unable to reach the sign-in server. Check your connection and try again.'
         );
       } else {
         setErrorMsg(msg);

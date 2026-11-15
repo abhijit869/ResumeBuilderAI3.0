@@ -14,8 +14,6 @@ services:
         value: 0.0.0.0
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
-      - key: NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED
-        value: "true"
       - key: GEMINI_API_KEY
         sync: false
       - key: MONGODB_URI

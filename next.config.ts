@@ -68,8 +68,6 @@ const nextConfig: NextConfig = {
     devtoolSegmentExplorer: false,
   },
   env: {
-    NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED:
-      process.env.NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED || 'false',
     DISABLE_HMR: process.env.DISABLE_HMR || 'true',
   },
   eslint: {

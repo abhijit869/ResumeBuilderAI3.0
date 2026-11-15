@@ -14,7 +14,7 @@ An enterprise-grade AI Resume Studio, multi-layer ATS Score Checker, Job Descrip
 - **Server-Side Gemini AI Bullet Rewriter & Tailoring (`/api/ai/resume`)**
   - Rewrites weak experience bullets into high-impact XYZ-formula statements (`Accomplished [X] as measured by [Y], by doing [Z]`) with deterministic local fallback.
 - **Enterprise Security & Hardened Architecture**
-  - Server-side rate limiting, prototype-pollution-safe sanitization, strict URL protocol validation (`https:` / `http:` / `mailto:`), OWASP security headers, PBKDF2-SHA256 local credential fallback, and least-privilege Firestore Security Rules (`firestore.rules`).
+  - Server-side rate limiting, prototype-pollution-safe sanitization, strict URL protocol validation (`https:` / `http:` / `mailto:`), OWASP security headers, Firebase-verified authentication, and least-privilege Firestore Security Rules (`firestore.rules`).
 - **Multi-Format Export & Live Shareable Portfolio**
   - Export to A4 Print/PDF, ATS-clean Plain Text (`.txt`), JSON backup (`.json`), or publish a live shareable portfolio link.
 

@@ -28,9 +28,9 @@ changing them. If the browser API key is HTTP-referrer restricted, set
 the Identity Toolkit API enabled. Tokens are verified through Firebase's
 `accounts:lookup` endpoint before MongoDB requests are allowed.
 
-Render's Blueprint enables Firebase email auth, but it cannot enable the provider
-in your Firebase console. Local fallback accounts do not establish Firebase
-sessions and cannot access cloud data; their data stays on that browser/device.
+Enable Firebase email auth in your Firebase console. Sign-in requires a real
+Firebase session; failed provider requests do not create local or demo identities.
+Previously saved local documents are not deleted by this change.
 
 For a custom domain, set `APP_URL=https://your-domain` and rebuild. Otherwise,
 robots/sitemap use Render's automatic `RENDER_EXTERNAL_URL`. Do not copy a local
@@ -51,8 +51,7 @@ Gemini is configured correctly.
 In a browser, verify a real Firebase sign-in, create and edit a resume, reload it,
 sign in from another browser to check cloud persistence, export PDF/text/JSON,
 generate a cover letter and AI rewrite, and open a published portfolio while
-signed out. Check mobile layout and the browser console. Local fallback success
-does not establish that external integrations are working.
+signed out. Check mobile layout and the browser console. A successful page response does not establish that authentication works.
 
 Free instances can sleep when idle; filesystem writes do not provide durable user
 storage. Keep persistent records in Atlas/Firestore. No Render account resources
