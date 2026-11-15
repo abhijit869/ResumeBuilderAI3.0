@@ -7,4 +7,5 @@ coverage/
 !.env.example
 .aistudio/
 *.tmp*
+*.tsbuildinfo
 r3-generated-live-resume.png

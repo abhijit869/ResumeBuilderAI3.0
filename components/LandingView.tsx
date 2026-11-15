@@ -37,6 +37,17 @@ import {
   calculateAtsScore,
 } from '@/lib/resume-engine';
 import { ResumeCanvasPreview } from './ResumeCanvasPreview';
+import { AiWritingShowcase } from './marketing/AiWritingShowcase';
+import { CoverLetterShowcase } from './marketing/CoverLetterShowcase';
+import { AtsDemoSection } from './marketing/AtsDemoSection';
+import { LinkedInWorkflowSection } from './marketing/LinkedInWorkflowSection';
+import { TailoringDemoSection } from './marketing/TailoringDemoSection';
+import { JobTrackerInterviewSection } from './marketing/JobTrackerInterviewSection';
+import { PortfolioShowcaseSection } from './marketing/PortfolioShowcaseSection';
+import { FeedbackSection } from './marketing/FeedbackSection';
+import { PricingSection } from './marketing/PricingSection';
+import { FaqSection } from './marketing/FaqSection';
+import { FooterSection } from './marketing/FooterSection';
 
 interface LandingViewProps {
   heroResume: ResumeDocument;
@@ -1055,6 +1066,79 @@ export function LandingView({
           })}
         </div>
       </section>
+
+      {/* 5. AI Resume Writing Showcase */}
+      <AiWritingShowcase
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('editor'))}
+      />
+
+      {/* 6. Cohesive Cover Letter Generation Showcase */}
+      <CoverLetterShowcase
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('cover-letters'))}
+      />
+
+      {/* 7. Explainable Heuristic ATS Checker Demonstration */}
+      <AtsDemoSection
+        isDark={isDark}
+        onCtaClick={() =>
+          requireAuth(() =>
+            onOpenAtsScoreGenerator
+              ? onOpenAtsScoreGenerator()
+              : onOpenDashboard('ats-checker')
+          )
+        }
+      />
+
+      {/* 8. LinkedIn Import Workflow Explanation */}
+      <LinkedInWorkflowSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(onOpenLinkedInImport)}
+      />
+
+      {/* 9. Job-Specific Resume Tailoring Demonstration */}
+      <TailoringDemoSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('ats-checker'))}
+      />
+
+      {/* 10. Job Tracking Pipeline & Interview Preparation Features */}
+      <JobTrackerInterviewSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('career-map'))}
+      />
+
+      {/* 11 & 12. Personal Portfolio Website & Video Pitch Showcase */}
+      <PortfolioShowcaseSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('career-map'))}
+      />
+
+      {/* 13. Genuine Verified Candidate Feedback Section */}
+      <FeedbackSection isDark={isDark} />
+
+      {/* 14. Transparent Pricing Section Connected to Entitlements */}
+      <PricingSection
+        isDark={isDark}
+        onSelectPlan={(_planId) => {
+          if (!user) {
+            onOpenAuth('signup');
+          } else {
+            onOpenDashboard('overview');
+          }
+        }}
+      />
+
+      {/* 15. Interactive FAQ Accordion */}
+      <FaqSection isDark={isDark} />
+
+      {/* 16. Comprehensive Footer with Identity & Legal Links */}
+      <FooterSection
+        isDark={isDark}
+        onNavigateTab={(tab) => requireAuth(() => onOpenDashboard(tab as any))}
+        onOpenAuth={onOpenAuth}
+      />
 
       {/* Full-Size Template Preview Modal */}
       {fullPreviewTemplateId && (

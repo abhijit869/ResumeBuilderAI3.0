@@ -97,6 +97,15 @@ import {
   type BulletRewriteTone,
   type BulletSuggestionItem,
 } from '@/lib/ai-bullet-rewriter';
+import { DashboardNavRail } from './dashboard/DashboardNavRail';
+import { DashboardOverviewTab } from './dashboard/DashboardOverviewTab';
+import { MyDocumentsTab } from './dashboard/MyDocumentsTab';
+import { CoverLettersTab } from './dashboard/CoverLettersTab';
+import { JobTrackerTab } from './dashboard/JobTrackerTab';
+import { InterviewPrepTab } from './dashboard/InterviewPrepTab';
+import { PortfoliosTab } from './dashboard/PortfoliosTab';
+import { MediaLibraryTab } from './dashboard/MediaLibraryTab';
+import { SettingsTab } from './dashboard/SettingsTab';
 
 export type DashboardTab =
   | 'overview'
@@ -106,7 +115,11 @@ export type DashboardTab =
   | 'ats-checker'
   | 'career-map'
   | 'templates'
-  | 'rea-blueprint';
+  | 'rea-blueprint'
+  | 'interview-prep'
+  | 'portfolios'
+  | 'media-library'
+  | 'settings';
 
 interface DashboardViewProps {
   user: { name: string; email: string; plan: string };
@@ -1419,781 +1432,70 @@ export function DashboardView({
 
       {/* Main Workspace Layout: Left Sidebar + Right Active View */}
       <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
-        {/* Left Navigation Sidebar (Zero Horizontal Scrollbar: Grid on Mobile/Tablet, Vertical Rail on Desktop) */}
-        <aside
-          aria-label="Workspace Sections"
-          className={`lg:w-64 border-b lg:border-b-0 lg:border-r p-3 sm:p-4 shrink-0 transition-colors ${
-            isDark
-              ? 'bg-slate-900 border-slate-800'
-              : 'bg-white border-slate-200/80'
-          }`}
-        >
-          <div className="hidden lg:block text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold px-2 mb-2">
-            Workspace Navigation
-          </div>
-          <div className="flex overflow-x-auto lg:flex-col gap-1.5 scrollbar-none pb-1 lg:pb-0 snap-x overscroll-x-contain">
-            {[
-              {
-                id: 'overview' as DashboardTab,
-                label: 'Dashboard Overview',
-                sub: 'Home',
-                icon: LayoutDashboard,
-              },
-              {
-                id: 'resumes' as DashboardTab,
-                label: 'My Documents',
-                sub: `${resumes.length + coverLetters.length} Docs`,
-                icon: FileText,
-              },
-              {
-                id: 'editor' as DashboardTab,
-                label: 'AI Resume Editor',
-                sub: '12 Secs',
-                icon: PenTool,
-              },
-              {
-                id: 'ats-checker' as DashboardTab,
-                label: 'Resume Check',
-                sub: `${activeResume.atsScore}%`,
-                icon: ShieldCheck,
-              },
-              {
-                id: 'cover-letters' as DashboardTab,
-                label: 'AI Cover Letters',
-                sub: `${coverLetters.length}`,
-                icon: Mail,
-              },
-              {
-                id: 'career-map' as DashboardTab,
-                label: 'Job Tracker & AI Suite',
-                sub: `${jobApplications.length} Jobs`,
-                icon: Compass,
-              },
-              {
-                id: 'templates' as DashboardTab,
-                label: 'Template Gallery',
-                sub: '12 Tpls',
-                icon: LayoutGrid,
-              },
-              {
-                id: 'rea-blueprint' as DashboardTab,
-                label: 'REA & Asset Matrix',
-                sub: 'v6.7',
-                icon: Cpu,
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onChangeTab(item.id)}
-                  className={`px-3 py-2.5 rounded-xl text-left flex items-center justify-between gap-2 transition shrink-0 snap-start whitespace-nowrap min-h-[44px] ${
-                    isActive
-                      ? 'bg-[#FF5A4E] text-white font-semibold shadow-2xs'
-                      : isDark
-                      ? 'text-slate-300 hover:bg-slate-800 font-medium'
-                      : 'text-slate-700 hover:bg-slate-100 font-medium'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Icon
-                      className={`w-4 h-4 shrink-0 ${
-                        isActive ? 'text-white' : 'text-slate-500'
-                      }`}
-                    />
-                    <span className="text-xs truncate">{item.label}</span>
-                  </div>
-                  <span
-                    className={`hidden xl:inline text-[10px] font-mono px-1.5 py-0.5 rounded whitespace-nowrap shrink-0 ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : isDark
-                        ? 'bg-slate-800 text-slate-400'
-                        : 'bg-slate-100 text-slate-500'
-                    }`}
-                  >
-                    {item.sub}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Desktop Sidebar Active Resume Status Card */}
-          <div
-            className={`hidden lg:block mt-6 p-3.5 rounded-xl border space-y-2.5 ${
-              isDark
-                ? 'bg-slate-950/70 border-slate-800 text-slate-200'
-                : 'bg-slate-50 border-slate-200/80 text-slate-800'
-            }`}
-          >
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-mono uppercase text-slate-500 font-bold">
-                Readiness
-              </span>
-              <span className="font-mono font-extrabold text-emerald-600 tabular-nums">
-                {activeResume.atsScore}/100
-              </span>
-            </div>
-            <div className="text-xs font-bold truncate">{activeResume.title}</div>
-            <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full"
-                style={{ width: `${Math.min(100, activeResume.atsScore)}%` }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 pt-1">
-              <button
-                type="button"
-                onClick={() => onChangeTab('editor')}
-                className="px-2.5 py-1.5 rounded-lg bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-[11px] font-semibold text-center transition"
-              >
-                Edit Studio
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDownloadPdf(activeResume)}
-                className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold text-center transition"
-              >
-                Save PDF
-              </button>
-            </div>
-          </div>
-        </aside>
+        {/* Modular Left Navigation Rail */}
+        <DashboardNavRail
+          activeTab={activeTab}
+          onChangeTab={onChangeTab}
+          isDark={isDark}
+          resumeCount={resumes.length}
+          coverLetterCount={coverLetters.length}
+          jobCount={jobApplications.length}
+          activeResumeAtsScore={activeResume.atsScore || 85}
+          activeResumeTitle={activeResume.title}
+        />
 
         {/* Main View Area */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 w-full text-slate-900">
-          {/* VIEW 1: DASHBOARD OVERVIEW (/dashboard/) */}
+          {/* VIEW 1: DASHBOARD OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* Greeting & Readiness Header */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-6 shadow-2xs">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#FF5A4E] font-bold">
-                    <span>ResumeBuilderAi 3.0 Workspace · /dashboard/</span>
-                  </div>
-                  <h1 className="font-serif text-2xl sm:text-3xl text-slate-900">
-                    Welcome back, {user.name.split(' ')[0]}! Ready to land your next
-                    role?
-                  </h1>
-                  <p className="text-sm text-slate-600 max-w-2xl">
-                    Your active resume{' '}
-                    <span className="font-semibold text-slate-900">
-                      {activeResume.title}
-                    </span>{' '}
-                    is {completion.percentage}% complete with a Heuristic Readiness
-                    Score of{' '}
-                    <span className="font-bold text-emerald-700 tabular-nums">
-                      {activeResume.atsScore}/100
-                    </span>
-                    .
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => onChangeTab('editor')}
-                    className="px-4 py-2.5 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 shadow-xs transition"
-                  >
-                    <PenTool className="w-4 h-4" />
-                    <span>Continue Editing Resume</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadPdf(activeResume)}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 shadow-xs transition"
-                  >
-                    <Printer className="w-4 h-4" />
-                    <span>Download as PDF</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onOpenLinkedInImport}
-                    className="px-4 py-2.5 rounded-xl bg-[#0077B5] hover:bg-[#006097] text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 shadow-xs transition"
-                  >
-                    <FileUp className="w-4 h-4" />
-                    <span>Build from LinkedIn</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOpenAtsScoreGenerator?.()}
-                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 shadow-xs transition"
-                  >
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>ATS Score Generator</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onChangeTab('ats-checker')}
-                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition"
-                  >
-                    <Cpu className="w-4 h-4 text-[#FF5A4E]" />
-                    <span>Job URL &amp; ML/DL Optimizer</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Direct Job URL Matcher, Top MNCs & Internship-Ready Accelerator on Overview */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[11px] font-mono uppercase tracking-wider text-[#FF5A4E] font-bold">
-                      Job URL Fetcher · Target Top MNCs · Internship-Ready Accelerator · ML/DL Neural Engine
-                    </div>
-                    <h2 className="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">
-                      Match Any Job URL or Auto-Optimize for Tier-1 MNCs &amp; Internships
-                    </h2>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleAutoOptimizeResume({
-                          internshipReadyMode: !internshipReadyMode,
-                        })
-                      }
-                      className={`px-3 py-2 rounded-xl border text-xs font-bold inline-flex items-center gap-1.5 transition ${
-                        internshipReadyMode
-                          ? 'bg-amber-600 text-white border-amber-600'
-                          : 'bg-white text-slate-800 border-slate-200 hover:border-amber-400'
-                      }`}
-                    >
-                      <GraduationCap className="w-3.5 h-3.5" />
-                      <span>
-                        {internshipReadyMode
-                          ? 'Internship-Ready Mode: ON'
-                          : 'Make Resume Internship-Ready'}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleAutoOptimizeResume({
-                          mncId: selectedMncId,
-                          internshipReadyMode,
-                        })
-                      }
-                      className="px-3.5 py-2 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs transition"
-                    >
-                      <Wand2 className="w-3.5 h-3.5" />
-                      <span>
-                        Auto-Optimize for{' '}
-                        {TOP_MNC_BENCHMARKS.find((m) => m.id === selectedMncId)
-                          ?.name || 'Google'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2.5">
-                  <input
-                    type="url"
-                    aria-label="Overview Job Posting URL"
-                    value={jobUrlInput}
-                    onChange={(e) => setJobUrlInput(e.target.value)}
-                    placeholder="https://careers.google.com/jobs/results/142890-staff-software-engineer-ai-infrastructure"
-                    className="flex-1 rounded-xl border border-slate-300 bg-slate-50/70 px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#FF5A4E]"
-                  />
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await handleFetchJobUrlAndMatch(jobUrlInput);
-                      onChangeTab('ats-checker');
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shrink-0 transition"
-                  >
-                    <Globe className="w-3.5 h-3.5 text-[#FF5A4E]" />
-                    <span>Fetch Job URL &amp; Inspect ML/DL Match</span>
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] font-bold text-slate-500 mr-1">
-                    Top MNC Targets:
-                  </span>
-                  {TOP_MNC_BENCHMARKS.map((mnc) => {
-                    const isSelected = selectedMncId === mnc.id;
-                    return (
-                      <button
-                        key={mnc.id}
-                        type="button"
-                        onClick={() => handleSelectMncBenchmark(mnc.id)}
-                        className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold transition ${
-                          isSelected
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-400'
-                        }`}
-                      >
-                        {mnc.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Quick Create Action Tiles */}
-              <div>
-                <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-3">
-                  Quick Create &amp; Grounded AI Tools
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <button
-                    type="button"
-                    onClick={onOpenLinkedInImport}
-                    className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#0077B5] text-left group transition shadow-2xs"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-[#0077B5]/10 text-[#0077B5] flex items-center justify-center mb-3 group-hover:scale-105 transition">
-                      <FileUp className="w-5 h-5" />
-                    </div>
-                    <div className="font-bold text-sm text-slate-900">
-                      Build from LinkedIn
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Import PDF/Export with source verification &amp; diff review
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAiGeneratorModal(true)}
-                    className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#FF5A4E] text-left group transition shadow-2xs"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center mb-3 group-hover:scale-105 transition">
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div className="font-bold text-sm text-slate-900">
-                      AI Resume Draft
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Generate a role-specific starter draft in seconds
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onChangeTab('cover-letters')}
-                    className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#FF5A4E] text-left group transition shadow-2xs"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center mb-3 group-hover:scale-105 transition">
-                      <Mail className="w-5 h-5" />
-                    </div>
-                    <div className="font-bold text-sm text-slate-900">
-                      Matching Cover Letter
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Syncs header palette &amp; typography with your resume
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onChangeTab('career-map')}
-                    className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#FF5A4E] text-left group transition shadow-2xs"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center mb-3 group-hover:scale-105 transition">
-                      <Compass className="w-5 h-5" />
-                    </div>
-                    <div className="font-bold text-sm text-slate-900">
-                      Job Tracker &amp; AI Suite
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Track applications, bios, translations &amp; share links
-                    </p>
-                  </button>
-                </div>
-              </div>
-
-              {/* Recent Resumes Preview Row */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2
-                    className={`font-serif text-2xl ${
-                      isDark ? 'text-white' : 'text-slate-900'
-                    }`}
-                  >
-                    Master Profile &amp; Role-Specific Resume Versions ({resumes.length})
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => onChangeTab('resumes')}
-                    className="text-xs font-semibold text-[#FF5A4E] hover:underline inline-flex items-center gap-1"
-                  >
-                    <span>View All in `/dashboard/resumes/`</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {resumes.map((resDoc) => {
-                    const pal =
-                      THEME_COLORS[resDoc.themeColor] || THEME_COLORS.green;
-                    return (
-                      <div
-                        key={resDoc.id}
-                        className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs flex flex-col justify-between"
-                      >
-                        <div>
-                          <div
-                            onClick={() => {
-                              onSelectResume(resDoc.id);
-                              onChangeTab('editor');
-                            }}
-                            style={{ backgroundColor: pal.headerBg }}
-                            className="p-5 cursor-pointer border-b border-slate-100 transition hover:opacity-95"
-                          >
-                            <div className="flex items-center justify-between mb-3 text-[11px] font-medium text-slate-800">
-                              <span>{resDoc.templateId}</span>
-                              <span className="font-mono font-bold tabular-nums">
-                                Score {resDoc.atsScore}/100
-                              </span>
-                            </div>
-                            <div className="bg-white rounded-xl p-3.5 shadow-2xs">
-                              <div className="font-bold text-sm text-slate-900 truncate">
-                                {resDoc.personalInfo.fullName}
-                              </div>
-                              <div className="text-[11px] text-slate-600 truncate">
-                                {resDoc.personalInfo.jobTitle}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-4">
-                            <div className="font-bold text-sm text-slate-900 truncate">
-                              {resDoc.title}
-                            </div>
-                            <div className="text-xs text-slate-500 mt-0.5">
-                              Edited {resDoc.updatedAt} · {resDoc.pageSize || 'A4'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="px-4 pb-4 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onSelectResume(resDoc.id);
-                              onChangeTab('editor');
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-[#FF5A4E] text-white text-xs font-semibold transition"
-                          >
-                            Edit Resume
-                          </button>
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const copy = cloneResumeDocument(resDoc);
-                                onCreateResume(copy);
-                                showNotice(`Duplicated "${resDoc.title}"`);
-                              }}
-                              aria-label={`Duplicate ${resDoc.title}`}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadPdf(resDoc)}
-                              aria-label={`Download ${resDoc.title} as PDF`}
-                              title="Download as PDF"
-                              className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold inline-flex items-center gap-1 transition"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>PDF</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadMarkdown(resDoc)}
-                              aria-label={`Export ${resDoc.title}`}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <DashboardOverviewTab
+              user={user}
+              resumes={resumes}
+              coverLetters={coverLetters}
+              jobApplications={jobApplications}
+              activeResume={activeResume}
+              onSelectResume={onSelectResume}
+              onOpenEditor={() => onChangeTab('editor')}
+              onOpenCoverLetters={() => onChangeTab('cover-letters')}
+              onOpenAtsChecker={() => onChangeTab('ats-checker')}
+              onOpenLinkedInImport={onOpenLinkedInImport}
+              onOpenJobTracker={() => onChangeTab('career-map')}
+              onCreateNewResume={() => {
+                const cloned = cloneResumeDocument(
+                  activeResume,
+                  `Role-Tailored Resume #${resumes.length + 1}`
+                );
+                onCreateResume(cloned);
+                showNotice(`Created "${cloned.title}"`);
+              }}
+              isDark={isDark}
+            />
           )}
 
-          {/* VIEW 2: MY DOCUMENTS (/dashboard/resumes/) */}
+          {/* VIEW 2: MY DOCUMENTS HUB */}
           {activeTab === 'resumes' && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/90">
-                <div>
-                  <div className="text-xs font-mono font-bold text-[#FF5A4E] uppercase">
-                    ResumeBuilderAi 3.0 · /dashboard/resumes/
-                  </div>
-                  <h1 className="font-serif text-3xl text-slate-900 mt-1">
-                    My Documents ({resumes.length + coverLetters.length})
-                  </h1>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={onOpenLinkedInImport}
-                    className="px-4 py-2.5 rounded-xl bg-[#0077B5] hover:bg-[#006097] text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
-                  >
-                    <FileUp className="w-4 h-4" />
-                    <span>Build from LinkedIn</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const created = cloneResumeDocument(
-                        activeResume,
-                        `Role-Specific Resume #${resumes.length + 1}`
-                      );
-                      onCreateResume(created);
-                      showNotice(`Created "${created.title}"`);
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Duplicate Version</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAiGeneratorModal(true)}
-                    className="px-4 py-2.5 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>Generate with AI</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Filter & Search Bar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  {(
-                    [
-                      {
-                        id: 'all',
-                        label: `All (${resumes.length + coverLetters.length})`,
-                      },
-                      { id: 'resumes', label: `Resumes (${resumes.length})` },
-                      {
-                        id: 'cover-letters',
-                        label: `Cover Letters (${coverLetters.length})`,
-                      },
-                    ] as const
-                  ).map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setDocFilter(tab.id)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition ${
-                        docFilter === tab.id
-                          ? 'bg-[#FF5A4E] text-white'
-                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="relative w-full sm:w-72">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    aria-label="Search documents"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search resumes or roles..."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#FF5A4E]"
-                  />
-                </div>
-              </div>
-
-              {/* Resumes Grid */}
-              {(docFilter === 'all' || docFilter === 'resumes') && (
-                <div className="space-y-3">
-                  <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                    Resumes ({filteredResumes.length})
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredResumes.map((doc) => {
-                      const pal =
-                        THEME_COLORS[doc.themeColor] || THEME_COLORS.green;
-                      return (
-                        <div
-                          key={doc.id}
-                          className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs flex flex-col justify-between"
-                        >
-                          <div>
-                            <div
-                              style={{ backgroundColor: pal.headerBg }}
-                              className="p-5 border-b border-slate-100"
-                            >
-                              <div className="flex items-center justify-between mb-3 text-[11px] font-medium text-slate-800">
-                                <span>
-                                  {doc.templateId} · {doc.pageSize || 'A4'}
-                                </span>
-                                <span className="font-mono font-bold tabular-nums">
-                                  Check {doc.atsScore}/100
-                                </span>
-                              </div>
-                              <div className="bg-white rounded-xl p-4 shadow-2xs space-y-1">
-                                <div className="font-bold text-base text-slate-900">
-                                  {doc.personalInfo.fullName}
-                                </div>
-                                <div className="text-xs font-medium text-slate-600">
-                                  {doc.personalInfo.jobTitle}
-                                </div>
-                                <p className="text-[11px] text-slate-500 line-clamp-2 pt-1">
-                                  {doc.personalInfo.summary}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="p-4">
-                              <h3 className="font-bold text-sm text-slate-900">
-                                {doc.title}
-                              </h3>
-                              <p className="text-xs text-slate-500 mt-0.5">
-                                {doc.updatedAt} · {doc.experience.length} roles ·{' '}
-                                {doc.skills.length} skills
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="px-4 pb-4 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  onSelectResume(doc.id);
-                                  onChangeTab('editor');
-                                }}
-                                className="px-3 py-1.5 rounded-lg bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold transition"
-                              >
-                                Open in Studio
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  onSelectResume(doc.id);
-                                  onOpenAtsScoreGenerator?.();
-                                }}
-                                className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition inline-flex items-center gap-1"
-                                title="Run ATS Score Generator & Match Optimizer"
-                              >
-                                <Sparkles className="w-3 h-3 text-[#FF5A4E]" />
-                                <span>ATS Match</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDownloadPdf(doc)}
-                                className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold text-emerald-800 transition inline-flex items-center gap-1"
-                                title="Download resume as PDF with print styles"
-                              >
-                                <Printer className="w-3 h-3" />
-                                <span>Download as PDF</span>
-                              </button>
-                            </div>
-
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const cloned = cloneResumeDocument(doc);
-                                  onCreateResume(cloned);
-                                  showNotice(`Duplicated "${doc.title}"`);
-                                }}
-                                aria-label={`Duplicate ${doc.title}`}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                              >
-                                <Copy className="w-4 h-4" />
-                              </button>
-                              {resumes.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    onDeleteResume(doc.id);
-                                    showNotice(`Deleted "${doc.title}"`);
-                                  }}
-                                  aria-label={`Delete ${doc.title}`}
-                                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Cover Letters Grid */}
-              {(docFilter === 'all' || docFilter === 'cover-letters') && (
-                <div className="space-y-3 pt-4">
-                  <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                    Cover Letters ({filteredCoverLetters.length})
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {filteredCoverLetters.map((cl) => (
-                      <div
-                        key={cl.id}
-                        className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col justify-between shadow-2xs"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-2 text-xs text-slate-500">
-                            <span>Cover Letter · {cl.templateId}</span>
-                            <span>{cl.updatedAt}</span>
-                          </div>
-                          <h3 className="font-bold text-base text-slate-900">
-                            {cl.title}
-                          </h3>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            Target: {cl.companyName} · {cl.roleTitle}
-                          </p>
-                          <p className="text-xs text-slate-600 mt-3 line-clamp-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            {cl.content}
-                          </p>
-                        </div>
-
-                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setClCompany(cl.companyName);
-                              setClRole(cl.roleTitle);
-                              setClDraftContent(cl.content);
-                              onChangeTab('cover-letters');
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-[#FF5A4E] text-white text-xs font-semibold transition"
-                          >
-                            Edit Cover Letter
-                          </button>
-                          {coverLetters.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => onDeleteCoverLetter(cl.id)}
-                              aria-label={`Delete cover letter ${cl.title}`}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <MyDocumentsTab
+              resumes={resumes}
+              activeResumeId={activeResumeId}
+              onSelectResume={onSelectResume}
+              onOpenEditor={() => onChangeTab('editor')}
+              onCreateResume={(res) => {
+                onCreateResume(res);
+                showNotice(`Created "${res.title}"`);
+              }}
+              onDeleteResume={(id) => {
+                onDeleteResume(id);
+                showNotice('Resume removed');
+              }}
+              onUpdateResume={(res) => {
+                onUpdateResume(res);
+                showNotice(`Updated "${res.title}"`);
+              }}
+              onOpenLinkedInImport={onOpenLinkedInImport}
+              onOpenAiGenerator={() => setShowAiGeneratorModal(true)}
+              onDownloadPdf={handleDownloadPdf}
+              isDark={isDark}
+            />
           )}
 
           {/* VIEW 3: COMPLETE 12-SECTION RESUME STUDIO EDITOR */}
@@ -4197,522 +3499,63 @@ export function DashboardView({
           )}
 
           {/* VIEW 5: MATCHING COVER LETTER STUDIO */}
+          {/* VIEW 4: COVER LETTERS STUDIO */}
           {activeTab === 'cover-letters' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
-                <div>
-                  <span className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                    Matching Cover Letter Studio
-                  </span>
-                  <h1 className="font-serif text-2xl text-slate-900 mt-1">
-                    Generate a Matched Cover Letter
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Automatically shares the header palette and typography of{' '}
-                    <strong>{activeResume.title}</strong> ({activeResume.templateId}
-                    ).
-                  </p>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="cl-company"
-                    className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1"
-                  >
-                    Target Company
-                  </label>
-                  <input
-                    id="cl-company"
-                    type="text"
-                    value={clCompany}
-                    onChange={(e) => setClCompany(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="cl-role"
-                    className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1"
-                  >
-                    Target Role Title
-                  </label>
-                  <input
-                    id="cl-role"
-                    type="text"
-                    value={clRole}
-                    onChange={(e) => setClRole(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-slate-900"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="cl-tone"
-                    className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1"
-                  >
-                    Editorial Tone
-                  </label>
-                  <select
-                    id="cl-tone"
-                    value={clTone}
-                    onChange={(e) => setClTone(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-medium text-slate-800"
-                  >
-                    <option value="Confident & Executive">
-                      Confident &amp; Executive
-                    </option>
-                    <option value="Technical & Metrics-Driven">
-                      Technical &amp; Metrics-Driven
-                    </option>
-                    <option value="Warm & Collaborative">
-                      Warm &amp; Collaborative
-                    </option>
-                  </select>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={aiBusy === 'cover-letter'}
-                  onClick={handleGenerateCoverLetter}
-                  className="w-full py-3 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>
-                    {aiBusy === 'cover-letter'
-                      ? 'Drafting with AI...'
-                      : 'Generate Grounded Cover Letter'}
-                  </span>
-                </button>
-              </div>
-
-              {/* Right Matching Cover Letter Paper Preview */}
-              <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
-                {/* Synchronized Resume Header Design */}
-                <div
-                  style={{
-                    backgroundColor: activePalette.headerBg,
-                    color: activePalette.headerText,
-                  }}
-                  className="p-6 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4"
-                >
-                  <div>
-                    <div className="font-bold text-xl">
-                      {activeResume.personalInfo.fullName}
-                    </div>
-                    <div className="text-xs opacity-85">
-                      {activeResume.personalInfo.jobTitle} · Application for{' '}
-                      {clRole} at {clCompany}
-                    </div>
-                  </div>
-                  <div className="text-right text-xs font-mono opacity-85">
-                    <div>{activeResume.personalInfo.email}</div>
-                    <div>{activeResume.personalInfo.phone}</div>
-                  </div>
-                </div>
-
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">
-                      Matched to template: <strong>{activeResume.templateId}</strong>
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSaveCoverLetter}
-                        className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-[#FF5A4E] text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Save to My Documents</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => window.print()}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1"
-                      >
-                        <Printer className="w-3.5 h-3.5" />
-                        <span>Print PDF</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <textarea
-                    rows={15}
-                    aria-label="Cover letter content"
-                    value={clDraftContent}
-                    onChange={(e) => setClDraftContent(e.target.value)}
-                    className="w-full p-5 rounded-xl bg-[#FAF9F6] border border-slate-200 text-xs sm:text-sm leading-relaxed text-slate-800 font-serif"
-                  />
-                </div>
-              </div>
-            </div>
+            <CoverLettersTab
+              coverLetters={coverLetters}
+              activeResume={activeResume}
+              onCreateCoverLetter={(cl) => {
+                onCreateCoverLetter(cl);
+                showNotice(`Created cover letter for "${cl.companyName}"`);
+              }}
+              onDeleteCoverLetter={(id) => {
+                onDeleteCoverLetter(id);
+                showNotice('Cover letter removed');
+              }}
+              isDark={isDark}
+            />
           )}
 
-          {/* VIEW 6: JOB APPLICATION TRACKER, AI CAREER WRITING SUITE, SHARE LINKS & PRIVACY */}
+          {/* VIEW 5: JOB APPLICATION TRACKER & PIPELINE */}
           {activeTab === 'career-map' && (
-            <div className="space-y-8">
-              {/* Section A: Job Application Tracker */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                      Job Application Tracker
-                    </span>
-                    <h1 className="font-serif text-2xl sm:text-3xl text-slate-900 mt-1">
-                      Track Applications &amp; Linked Resume Versions ({jobApplications.length})
-                    </h1>
-                  </div>
-                </div>
+            <JobTrackerTab
+              applications={jobApplications}
+              resumes={resumes}
+              onUpdateApplications={onUpdateJobApplications}
+              isDark={isDark}
+            />
+          )}
 
-                {/* Add Job Form */}
-                <form
-                  onSubmit={handleAddJobApplication}
-                  className="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200"
-                >
-                  <input
-                    type="text"
-                    aria-label="Company name"
-                    value={newJobCompany}
-                    onChange={(e) => setNewJobCompany(e.target.value)}
-                    placeholder="Company (e.g., Anthropic)"
-                    className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs"
-                  />
-                  <input
-                    type="text"
-                    aria-label="Role title"
-                    value={newJobRole}
-                    onChange={(e) => setNewJobRole(e.target.value)}
-                    placeholder="Target Role Title"
-                    className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs"
-                  />
-                  <select
-                    aria-label="Application stage"
-                    value={newJobStage}
-                    onChange={(e) =>
-                      setNewJobStage(
-                        e.target.value as JobApplicationItem['stage']
-                      )
-                    }
-                    className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold"
-                  >
-                    <option value="Saved">Stage: Saved</option>
-                    <option value="Applied">Stage: Applied</option>
-                    <option value="Interviewing">Stage: Interviewing</option>
-                    <option value="Offer">Stage: Offer</option>
-                    <option value="Archived">Stage: Archived</option>
-                  </select>
-                  <input
-                    type="date"
-                    aria-label="Application deadline"
-                    value={newJobDeadline}
-                    onChange={(e) => setNewJobDeadline(e.target.value)}
-                    className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded-lg bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold"
-                  >
-                    + Add Application
-                  </button>
-                </form>
+          {/* VIEW 6: INTERVIEW PREPARATION (STAR METHOD) */}
+          {activeTab === 'interview-prep' && (
+            <InterviewPrepTab activeResume={activeResume} isDark={isDark} />
+          )}
 
-                {/* Applications Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 uppercase text-[11px]">
-                        <th className="py-2.5 pr-4">Company &amp; Role</th>
-                        <th className="py-2.5 px-4">Stage</th>
-                        <th className="py-2.5 px-4">Linked Resume Version</th>
-                        <th className="py-2.5 px-4">Deadline</th>
-                        <th className="py-2.5 pl-4">Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200/70">
-                      {jobApplications.map((app) => {
-                        const linkedDoc =
-                          resumes.find((r) => r.id === app.linkedResumeId) ||
-                          resumes[0];
-                        return (
-                          <tr key={app.id}>
-                            <td className="py-3 pr-4">
-                              <div className="font-bold text-slate-900">
-                                {app.company}
-                              </div>
-                              <div className="text-slate-600">{app.role}</div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <select
-                                aria-label={`Stage for ${app.company}`}
-                                value={app.stage}
-                                onChange={(e) => {
-                                  const next = jobApplications.map((j) =>
-                                    j.id === app.id
-                                      ? {
-                                          ...j,
-                                          stage: e.target
-                                            .value as JobApplicationItem['stage'],
-                                        }
-                                      : j
-                                  );
-                                  onUpdateJobApplications(next);
-                                }}
-                                className="px-2.5 py-1 rounded border border-slate-300 bg-white text-xs font-semibold"
-                              >
-                                <option value="Saved">Saved</option>
-                                <option value="Applied">Applied</option>
-                                <option value="Interviewing">Interviewing</option>
-                                <option value="Offer">Offer</option>
-                                <option value="Archived">Archived</option>
-                              </select>
-                            </td>
-                            <td className="py-3 px-4 font-medium text-slate-800">
-                              {linkedDoc.title}
-                            </td>
-                            <td className="py-3 px-4 font-mono tabular-nums text-slate-600">
-                              {app.deadline}
-                            </td>
-                            <td className="py-3 pl-4 text-slate-600">
-                              {app.notes}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+          {/* VIEW 7: PERSONAL PORTFOLIO WEBSITE */}
+          {activeTab === 'portfolios' && (
+            <PortfoliosTab activeResume={activeResume} isDark={isDark} />
+          )}
 
-              {/* Section B: Grounded AI Career Writing Suite (Bio, LinkedIn About, Resignation, Translation, Career Gap) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
-                  <div className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                    Grounded AI Career Writing Tools
-                  </div>
-                  <h2 className="font-serif text-2xl text-slate-900">
-                    Bio, LinkedIn, Translation &amp; Career Gaps
-                  </h2>
-                  <p className="text-xs text-slate-600">
-                    All outputs are strictly grounded in{' '}
-                    <strong>{activeResume.personalInfo.fullName}</strong>&apos;s
-                    verified resume facts without inventing employers or metrics.
-                  </p>
+          {/* VIEW 8: MEDIA & INTRO STUDIO */}
+          {activeTab === 'media-library' && (
+            <MediaLibraryTab
+              activeResume={activeResume}
+              onUpdateResume={onUpdateResume}
+              isDark={isDark}
+            />
+          )}
 
-                  <div>
-                    <label
-                      htmlFor="career-tool-select"
-                      className="block text-xs font-bold uppercase text-slate-500 mb-1"
-                    >
-                      Select Writing Tool
-                    </label>
-                    <select
-                      id="career-tool-select"
-                      value={careerSuiteTool}
-                      onChange={(e) =>
-                        setCareerSuiteTool(
-                          e.target.value as typeof careerSuiteTool
-                        )
-                      }
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs font-semibold"
-                    >
-                      <option value="bio">Executive Professional Bio</option>
-                      <option value="linkedin_about">
-                        LinkedIn Headline &amp; About Draft
-                      </option>
-                      <option value="resignation">
-                        Polite Resignation Letter Draft
-                      </option>
-                      <option value="translate">
-                        Resume Translation (Preserves Names &amp; Dates)
-                      </option>
-                      <option value="career_gap">
-                        Honest Career-Gap Explanation Options
-                      </option>
-                    </select>
-                  </div>
-
-                  {careerSuiteTool === 'translate' && (
-                    <div>
-                      <label
-                        htmlFor="target-lang-input"
-                        className="block text-xs font-bold uppercase text-slate-500 mb-1"
-                      >
-                        Target Output Language
-                      </label>
-                      <input
-                        id="target-lang-input"
-                        type="text"
-                        value={targetLanguage}
-                        onChange={(e) => setTargetLanguage(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
-                      />
-                    </div>
-                  )}
-
-                  {careerSuiteTool === 'career_gap' && (
-                    <div>
-                      <label
-                        htmlFor="gap-context-input"
-                        className="block text-xs font-bold uppercase text-slate-500 mb-1"
-                      >
-                        Factual Reason for Career Gap
-                      </label>
-                      <input
-                        id="gap-context-input"
-                        type="text"
-                        value={gapContext}
-                        onChange={(e) => setGapContext(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs"
-                      />
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    disabled={aiBusy === 'career-suite'}
-                    onClick={handleRunCareerSuiteTool}
-                    className="w-full py-2.5 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold flex items-center justify-center gap-2 transition"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span>
-                      {aiBusy === 'career-suite'
-                        ? 'Generating Draft...'
-                        : 'Generate Grounded Draft'}
-                    </span>
-                  </button>
-                </div>
-
-                <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
-                  <div className="text-xs font-bold uppercase text-slate-500">
-                    Generated Output &amp; Tailored Interview Prep
-                  </div>
-                  <textarea
-                    rows={8}
-                    aria-label="Grounded AI career tool output"
-                    value={
-                      careerSuiteOutput ||
-                      `Click "Generate Grounded Draft" on the left to create a Professional Bio, LinkedIn About section, Resignation Letter, Translated Summary, or Career-Gap explanation for ${activeResume.personalInfo.fullName}.`
-                    }
-                    onChange={(e) => setCareerSuiteOutput(e.target.value)}
-                    className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs leading-relaxed text-slate-800"
-                  />
-
-                  <div className="space-y-2 pt-2">
-                    <div className="text-xs font-bold uppercase text-slate-500">
-                      Role-Specific Behavioral Interview Questions
-                    </div>
-                    {interviewPrepList.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1"
-                      >
-                        <div className="font-bold text-slate-900">
-                          Q{idx + 1}: {item.question}
-                        </div>
-                        <p className="text-slate-600">{item.tailoredAnswer}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Section C: Revocable Share Links, Portfolio Page & Account Privacy Controls */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <div className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                      Privacy-Conscious Sharing &amp; Account Data Controls
-                    </div>
-                    <h2 className="font-serif text-2xl text-slate-900 mt-1">
-                      Revocable Portfolio Links &amp; Data Export
-                    </h2>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleCreateShareLink}
-                      className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold inline-flex items-center gap-1.5"
-                    >
-                      <Link2 className="w-3.5 h-3.5" />
-                      <span>Create Shareable Portfolio Link</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDownloadJson(activeResume)}
-                      className="px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700"
-                    >
-                      Export All Account Data (.JSON)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onDeleteAllUserData}
-                      className="px-3.5 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold"
-                    >
-                      Reset / Delete Imported Data
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {shareLinks.map((lnk) => (
-                    <div
-                      key={lnk.id}
-                      className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Globe className="w-4 h-4 text-[#FF5A4E]" />
-                        <div>
-                          <div className="font-bold text-slate-900">
-                            {lnk.resumeTitle} —{' '}
-                            <span className="font-mono text-[#FF5A4E]">
-                              https://resumebuilderai.studio/p/{lnk.token}
-                            </span>
-                          </div>
-                          <div className="text-[11px] text-slate-500">
-                            Status: {lnk.revoked ? 'Revoked' : 'Active'} ·{' '}
-                            {lnk.expiresAt} · Search Indexing:{' '}
-                            {lnk.allowIndexing ? 'Allowed' : 'No-Index (Private)'}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = shareLinks.map((s) =>
-                              s.id === lnk.id
-                                ? { ...s, allowIndexing: !s.allowIndexing }
-                                : s
-                            );
-                            onUpdateShareLinks(next);
-                          }}
-                          className="px-2.5 py-1 rounded border border-slate-300 bg-white text-[11px] font-semibold"
-                        >
-                          Toggle Indexing
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = shareLinks.map((s) =>
-                              s.id === lnk.id ? { ...s, revoked: !s.revoked } : s
-                            );
-                            onUpdateShareLinks(next);
-                            showNotice(
-                              lnk.revoked
-                                ? 'Reactivated share link.'
-                                : 'Revoked share link.'
-                            );
-                          }}
-                          className="px-2.5 py-1 rounded bg-red-50 text-red-700 border border-red-200 text-[11px] font-semibold"
-                        >
-                          {lnk.revoked ? 'Restore Link' : 'Revoke Link'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+          {/* VIEW 9: WORKSPACE & SECURITY SETTINGS */}
+          {activeTab === 'settings' && (
+            <SettingsTab
+              user={user}
+              resumes={resumes}
+              coverLetters={coverLetters}
+              jobApplications={jobApplications}
+              onDeleteAllUserData={onDeleteAllUserData}
+              onSignOut={onSignOut}
+              isDark={isDark}
+            />
           )}
 
           {/* VIEW 7: SEARCHABLE 18-TEMPLATE GALLERY + WEB ATS TEMPLATE FETCHER */}
