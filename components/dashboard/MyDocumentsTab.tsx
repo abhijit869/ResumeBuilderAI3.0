@@ -595,7 +595,7 @@ export function MyDocumentsTab({
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
               Are you sure you want to permanently delete{' '}
               <span className="font-bold text-slate-900 dark:text-white">
-                "{deletingDoc.title}"
+                &quot;{deletingDoc.title}&quot;
               </span>
               ? This action will remove the document from your Firestore cloud storage and cannot be undone.
             </p>

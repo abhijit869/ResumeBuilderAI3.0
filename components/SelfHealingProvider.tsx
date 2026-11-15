@@ -67,7 +67,9 @@ export function SelfHealingProvider({
   }, [uiTheme, selfHealingActive]);
 
   useEffect(() => {
-    runAudit();
+    const frameId = requestAnimationFrame(() => {
+      runAudit();
+    });
 
     // Listen for resize / orientation change
     let resizeTimer: NodeJS.Timeout;
@@ -87,6 +89,7 @@ export function SelfHealingProvider({
     contrastQuery.addEventListener('change', handleContrastChange);
 
     return () => {
+      cancelAnimationFrame(frameId);
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);

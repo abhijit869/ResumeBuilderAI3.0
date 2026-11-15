@@ -6,9 +6,12 @@ import {
   logMongoAuditEvent,
 } from '@/lib/services/mongodb-service';
 import { isMongoConfigured } from '@/lib/mongodb';
+import { sanitizeUntrustedPromptInput } from '@/lib/security-utils';
 import { ResumeDocument, CoverLetterDocument } from '@/lib/resume-engine';
 
 export const dynamic = 'force-dynamic';
+
+const MAX_BATCH_ITEMS = 50;
 
 export async function POST(req: NextRequest) {
   if (!isMongoConfigured()) {
@@ -19,13 +22,22 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
-    const { userId, userProfile, resumes, coverLetters } = body as {
-      userId: string;
-      userProfile?: { email: string; displayName?: string; photoURL?: string; providerId?: string };
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON request payload.' },
+        { status: 400 }
+      );
+    }
+
+    const { userId: rawUserId, userProfile, resumes, coverLetters } = body as {
+      userId?: string;
+      userProfile?: { email?: string; displayName?: string; photoURL?: string; providerId?: string };
       resumes?: ResumeDocument[];
       coverLetters?: CoverLetterDocument[];
     };
+
+    const userId = sanitizeUntrustedPromptInput(rawUserId, 128);
 
     if (!userId) {
       return NextResponse.json(
@@ -39,30 +51,40 @@ export async function POST(req: NextRequest) {
 
     // 1. Sync User Profile if provided
     if (userProfile && userProfile.email) {
+      const sanitizedEmail = sanitizeUntrustedPromptInput(userProfile.email, 254).toLowerCase();
+      const sanitizedName = sanitizeUntrustedPromptInput(userProfile.displayName || 'Candidate', 100);
+      const sanitizedPhoto = userProfile.photoURL ? sanitizeUntrustedPromptInput(userProfile.photoURL, 1024) : undefined;
+      const validProviders = ['google.com', 'password', 'github.com', 'demo'];
+      const providerId = validProviders.includes(userProfile.providerId || '')
+        ? (userProfile.providerId as 'google.com' | 'password' | 'github.com' | 'demo')
+        : 'password';
+
       await upsertMongoUser({
         _id: userId,
-        email: userProfile.email,
-        displayName: userProfile.displayName || 'Candidate',
-        photoURL: userProfile.photoURL,
-        providerId: (userProfile.providerId as any) || 'password',
+        email: sanitizedEmail,
+        displayName: sanitizedName,
+        photoURL: sanitizedPhoto,
+        providerId,
         lastLoginAt: new Date(),
       });
     }
 
-    // 2. Sync Resumes
+    // 2. Sync Resumes (bounded batch)
     if (Array.isArray(resumes) && resumes.length > 0) {
-      for (const res of resumes) {
-        if (res && res.id) {
+      const boundedResumes = resumes.slice(0, MAX_BATCH_ITEMS);
+      for (const res of boundedResumes) {
+        if (res && res.id && typeof res.id === 'string') {
           await saveMongoResume(res, userId);
           savedResumesCount++;
         }
       }
     }
 
-    // 3. Sync Cover Letters
+    // 3. Sync Cover Letters (bounded batch)
     if (Array.isArray(coverLetters) && coverLetters.length > 0) {
-      for (const cl of coverLetters) {
-        if (cl && cl.id) {
+      const boundedCoverLetters = coverLetters.slice(0, MAX_BATCH_ITEMS);
+      for (const cl of boundedCoverLetters) {
+        if (cl && cl.id && typeof cl.id === 'string') {
           await saveMongoCoverLetter(cl, userId);
           savedCoverLettersCount++;
         }
@@ -70,11 +92,15 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Log Audit Event
+    const rawIp = req.headers.get('x-forwarded-for') || 'local';
+    const ipHash = sanitizeUntrustedPromptInput(rawIp.split(',')[0].trim(), 64);
+    const userAgent = sanitizeUntrustedPromptInput(req.headers.get('user-agent') || 'unknown', 256);
+
     await logMongoAuditEvent({
       userId,
       action: 'data_exported',
-      ipHash: req.headers.get('x-forwarded-for') || 'local',
-      userAgent: req.headers.get('user-agent') || 'unknown',
+      ipHash,
+      userAgent,
       metadata: {
         savedResumesCount,
         savedCoverLettersCount,
@@ -92,7 +118,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('MongoDB sync error:', err);
     return NextResponse.json(
-      { success: false, error: err instanceof Error ? err.message : String(err) },
+      { success: false, error: 'Database sync failed.' },
       { status: 500 }
     );
   }

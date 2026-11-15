@@ -201,7 +201,7 @@ export function AtsCheckerAdvancedTab({
           <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
             Evaluates 13 key ATS screening dimensions based strictly on actual document data.
             <span className="block mt-1 text-[11px] text-amber-700 dark:text-amber-400 font-medium">
-              * Independent diagnostic disclaimer: This tool provides transparent heuristic analysis and does not claim or guarantee passing any employer's proprietary ATS filter.
+              * Independent diagnostic disclaimer: This tool provides transparent heuristic analysis and does not claim or guarantee passing any employer&apos;s proprietary ATS filter.
             </span>
           </p>
         </div>

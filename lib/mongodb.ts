@@ -24,7 +24,6 @@ let client: MongoClient | null = null;
 let clientPromise: Promise<MongoClient> | null = null;
 
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 

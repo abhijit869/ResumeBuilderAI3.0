@@ -874,8 +874,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: false, error: 'Unsupported action' }, { status: 400 });
   } catch (err: unknown) {
+    console.error('AI resume route error:', err);
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : String(err) },
+      { ok: false, error: 'An unexpected error occurred while processing your request.' },
       { status: 500 }
     );
   }
