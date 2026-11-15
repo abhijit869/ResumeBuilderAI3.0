@@ -40,23 +40,34 @@ export function FaqSection({ isDark }: FaqSectionProps) {
       a: 'Yes. You can toggle between A4 (210 × 297 mm, standard in Europe, UK, Asia, and Latin America) and US Letter (8.5 × 11 in, standard in the United States and Canada) with automatic page-break recomputation.',
     },
     {
-      q: 'Can I cancel or switch my subscription at any time?',
-      a: 'Yes. You can upgrade, downgrade, or cancel your plan at any time with one click. When you cancel, you retain access through the end of your billing cycle and your documents remain safely stored in your account.',
+      q: 'Is ResumeBuilderAI 3.0 really 100% free with no hidden paywalls?',
+      a: 'Yes. ResumeBuilderAI 3.0 is a 100% free career studio. You have full access to all 18 ATS-compliant templates, unlimited resumes, cover letters, personal portfolio publishing, and AI writing tools with zero subscriptions, paywalls, or credit card requirements.',
     },
   ];
 
   return (
-    <section id="faq-section" className={`py-20 px-4 sm:px-8 max-w-4xl mx-auto border-t ${isDark ? 'border-slate-800' : 'border-slate-200/80'}`}>
-      <div className="text-center mb-12">
+    <section
+      id="faq-section"
+      className={`py-16 px-4 sm:px-8 max-w-4xl mx-auto rounded-3xl border transition-colors my-12 ${
+        isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/90 shadow-xs'
+      }`}
+    >
+      <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono font-semibold mb-3">
-          <HelpCircle className="w-3.5 h-3.5" />
+          <HelpCircle className="w-3.5 h-3.5 text-[#FF5A4E]" />
           <span>Frequently Asked Questions</span>
         </div>
-        <h2 className={`font-serif text-3xl sm:text-4xl tracking-tight mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <h2
+          className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3"
+          style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
+        >
           Everything you need to know about ResumeBuilderAI 3.0.
         </h2>
-        <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-          Have more questions? Our engineering and support team is always available to help.
+        <p
+          className="text-xs sm:text-sm max-w-xl mx-auto"
+          style={{ color: isDark ? '#94A3B8' : '#475569' }}
+        >
+          Frequently asked questions about our 100% free AI career studio, ATS algorithms, and security guarantees.
         </p>
       </div>
 
@@ -66,30 +77,34 @@ export function FaqSection({ isDark }: FaqSectionProps) {
           return (
             <div
               key={i}
-              className={`rounded-2xl border transition overflow-hidden ${
-                isOpen
-                  ? isDark
-                    ? 'border-slate-700 bg-slate-900'
-                    : 'border-slate-300 bg-white shadow-2xs'
-                  : isDark
-                  ? 'border-slate-800/80 bg-slate-900/40 hover:bg-slate-900'
-                  : 'border-slate-200/90 bg-white hover:bg-slate-50'
+              className={`rounded-2xl border transition-all overflow-hidden ${
+                isDark
+                  ? isOpen
+                    ? 'border-[#FF5A4E]/40 bg-slate-800/90'
+                    : 'border-slate-800 bg-slate-800/40 hover:bg-slate-800/70'
+                  : isOpen
+                  ? 'border-[#FF5A4E]/30 bg-slate-50/90 shadow-xs'
+                  : 'border-slate-200 bg-slate-50/40 hover:bg-slate-50'
               }`}
             >
               <button
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : i)}
-                className="w-full p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-slate-900 dark:text-white"
+                className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base focus:outline-none"
+                style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
               >
                 <span>{faq.q}</span>
                 <ChevronDown
-                  className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
-                    isOpen ? 'rotate-180 text-[#FF5A4E]' : ''
+                  className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
+                    isOpen ? 'rotate-180 text-[#FF5A4E]' : 'text-slate-400'
                   }`}
                 />
               </button>
               {isOpen && (
-                <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60">
+                <div
+                  className="px-4 sm:px-5 pb-5 pt-1 text-xs sm:text-sm leading-relaxed border-t border-slate-100 dark:border-slate-700/60"
+                  style={{ color: isDark ? '#CBD5E1' : '#334155' }}
+                >
                   {faq.a}
                 </div>
               )}

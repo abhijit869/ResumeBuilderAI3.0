@@ -98,11 +98,17 @@ export function DashboardHeader({
               />
             </div>
             <div className="text-left">
-              <div className="font-serif font-bold text-sm tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
+              <div
+                className="font-serif font-bold text-sm tracking-tight flex items-center gap-1.5 leading-none"
+                style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
+              >
                 <span>ResumeBuilderAi</span>
                 <span className="text-[#FF5A4E]">3.0</span>
               </div>
-              <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-wider">
+              <div
+                className="text-[10px] font-mono mt-1 uppercase tracking-wider font-semibold"
+                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+              >
                 Career Studio
               </div>
             </div>

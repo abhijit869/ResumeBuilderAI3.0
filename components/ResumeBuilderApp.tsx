@@ -234,6 +234,17 @@ export function ResumeBuilderApp({
     }
   };
 
+  // Synchronize document.documentElement.classList with uiTheme so dark: variants activate
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (uiTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [uiTheme]);
+
   const persistResumes = (next: ResumeDocument[]) => {
     setResumes(next);
     if (user && !user.isAnonymous) {

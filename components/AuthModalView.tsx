@@ -290,7 +290,7 @@ export function AuthModalView({
             <div className="flex items-center gap-2.5 pb-1">
               <Image
                 src="/assets/aistudio/image_663e4373.png"
-                alt="ResumeGPT AI Logo"
+                alt="ResumeBuilderAi 3.0 Logo"
                 width={40}
                 height={40}
                 referrerPolicy="no-referrer"

@@ -21,6 +21,7 @@ import { ResumeDocument, CoverLetterDocument, JobApplicationItem } from '@/lib/r
 import { DashboardWelcome } from './DashboardWelcome';
 import { CareerIntelligencePanel } from './CareerIntelligencePanel';
 import { QuickCreateSection } from './QuickCreateSection';
+import { FaqSection } from '../marketing/FaqSection';
 
 interface DashboardOverviewTabProps {
   user: { name: string; email: string; plan: string };
@@ -219,6 +220,9 @@ export function DashboardOverviewTab({
           </div>
         </div>
       </div>
+
+      {/* 6. Dashboard FAQ & Feature Guide */}
+      <FaqSection isDark={isDark} />
     </div>
   );
 }

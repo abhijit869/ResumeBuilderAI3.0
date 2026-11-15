@@ -2757,12 +2757,12 @@ export function DashboardView({
           {/* VIEW 7: SEARCHABLE 18-TEMPLATE GALLERY + WEB ATS TEMPLATE FETCHER */}
           {activeTab === 'templates' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
                     18 Original Code-Rendered ATS Templates · 7 Categories
                   </span>
-                  <h1 className="font-serif text-3xl text-slate-900 mt-1">
+                  <h1 className="font-serif text-3xl text-slate-900 dark:text-white mt-1">
                     Switch Active Resume Template or Fetch Web ATS Styles
                   </h1>
                 </div>
@@ -2921,14 +2921,14 @@ export function DashboardView({
                   return (
                     <div
                       key={tpl.id}
-                      className={`bg-white rounded-2xl border overflow-hidden shadow-2xs flex flex-col justify-between ${
+                      className={`bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden shadow-2xs flex flex-col justify-between ${
                         isCurrent
                           ? 'border-2 border-[#FF5A4E]'
-                          : 'border-slate-200/90'
+                          : 'border-slate-200/90 dark:border-slate-800'
                       }`}
                     >
                       <div>
-                        <div className="bg-slate-100 p-3 border-b border-slate-200 h-52 overflow-hidden relative">
+                        <div className="bg-slate-100 dark:bg-slate-800 p-3 border-b border-slate-200 dark:border-slate-700 h-52 overflow-hidden relative">
                           <div className="origin-top-left scale-[0.38] w-[260%] pointer-events-none select-none">
                             <ResumeCanvasPreview
                               resume={{
@@ -2947,14 +2947,14 @@ export function DashboardView({
                         </div>
                         <div className="p-5">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-base text-slate-900">
+                            <h3 className="font-bold text-base text-slate-900 dark:text-white">
                               {tpl.name}
                             </h3>
-                            <span className="text-[11px] font-mono text-slate-500">
+                            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                               {tpl.category}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-600 mt-1">
+                          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                             {tpl.description}
                           </p>
                         </div>
@@ -3036,16 +3036,16 @@ export function DashboardView({
               </div>
 
               {/* Interactive Security, Vulnerability, White-Box, Black-Box & Utility Audit Panel */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase text-emerald-700">
+                    <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase text-emerald-700 dark:text-emerald-400">
                       <ShieldCheck className="w-4 h-4" />
                       <span>
                         Zero-Backdoor &amp; Vulnerability Verification ({securityAudit.passedChecks}/{securityAudit.totalChecks} Passed)
                       </span>
                     </div>
-                    <h2 className="font-bold text-lg text-slate-900 mt-0.5">
+                    <h2 className="font-bold text-lg text-slate-900 dark:text-white mt-0.5">
                       White-Box, Black-Box, Utility, Vulnerability &amp; Security Layer Tests
                     </h2>
                   </div>
@@ -3091,14 +3091,14 @@ export function DashboardView({
               </div>
 
               {/* Feature Matrix Table */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
-                <h2 className="font-bold text-base text-slate-900">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 space-y-4">
+                <h2 className="font-bold text-base text-slate-900 dark:text-white">
                   Feature Matrix (Observed Publicly vs. Proposed Additions vs. Auth-Gated)
                 </h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 uppercase text-[11px]">
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase text-[11px]">
                         <th className="py-2.5 pr-4">Category</th>
                         <th className="py-2.5 px-4">Feature</th>
                         <th className="py-2.5 px-4">Reference Classification</th>
@@ -3106,22 +3106,22 @@ export function DashboardView({
                         <th className="py-2.5 pl-4">Verification Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200/70">
+                    <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800">
                       {FEATURE_MATRIX.map((row) => (
                         <tr key={row.id}>
-                          <td className="py-3 pr-4 font-semibold text-slate-700">
+                          <td className="py-3 pr-4 font-semibold text-slate-700 dark:text-slate-300">
                             {row.category}
                           </td>
-                          <td className="py-3 px-4 font-bold text-slate-900">
+                          <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">
                             {row.feature}
                           </td>
-                          <td className="py-3 px-4 font-mono text-[11px] text-slate-600">
+                          <td className="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-400">
                             {row.referenceStatus}
                           </td>
-                          <td className="py-3 px-4 font-semibold text-emerald-700">
+                          <td className="py-3 px-4 font-semibold text-emerald-700 dark:text-emerald-400">
                             {row.implementationStatus}
                           </td>
-                          <td className="py-3 pl-4 text-slate-600">
+                          <td className="py-3 pl-4 text-slate-600 dark:text-slate-300">
                             {row.verificationNotes}
                           </td>
                         </tr>
@@ -3132,8 +3132,8 @@ export function DashboardView({
               </div>
 
               {/* Asset License Manifest Table */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4">
-                <h2 className="font-bold text-base text-slate-900">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 space-y-4">
+                <h2 className="font-bold text-base text-slate-900 dark:text-white">
                   Asset &amp; Font License Manifest
                 </h2>
                 <div className="overflow-x-auto">
@@ -3180,9 +3180,9 @@ export function DashboardView({
           role="dialog"
           aria-modal="true"
           aria-labelledby="ai-gen-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200">
+          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#FF5A4E] text-white flex items-center justify-center">
@@ -3190,7 +3190,7 @@ export function DashboardView({
                 </div>
                 <h2
                   id="ai-gen-modal-title"
-                  className="font-bold text-base text-slate-900"
+                  className="font-bold text-base text-slate-900 dark:text-white"
                 >
                   AI Resume Draft Generator
                 </h2>
@@ -3198,7 +3198,7 @@ export function DashboardView({
               <button
                 type="button"
                 onClick={() => setShowAiGeneratorModal(false)}
-                className="text-xs text-slate-500 hover:text-slate-900 font-semibold"
+                className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold"
               >
                 Close
               </button>

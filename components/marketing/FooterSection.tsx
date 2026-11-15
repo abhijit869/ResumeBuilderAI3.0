@@ -128,10 +128,10 @@ export function FooterSection({ isDark, onNavigateTab, onOpenAuth }: FooterSecti
               </li>
               <li>
                 <a
-                  href="#pricing-section"
+                  href="#faq-section"
                   className="hover:text-[#FF5A4E] transition text-left block"
                 >
-                  Plans &amp; Pricing
+                  100% Free Access
                 </a>
               </li>
               <li>

@@ -45,7 +45,6 @@ import { TailoringDemoSection } from './marketing/TailoringDemoSection';
 import { JobTrackerInterviewSection } from './marketing/JobTrackerInterviewSection';
 import { PortfolioShowcaseSection } from './marketing/PortfolioShowcaseSection';
 import { FeedbackSection } from './marketing/FeedbackSection';
-import { PricingSection } from './marketing/PricingSection';
 import { FaqSection } from './marketing/FaqSection';
 import { FooterSection } from './marketing/FooterSection';
 
@@ -184,7 +183,7 @@ export function LandingView({
           >
             <Image
               src="/assets/aistudio/image_663e4373.png"
-              alt="ResumeGPT AI Logo"
+              alt="ResumeBuilderAi 3.0 Logo"
               width={40}
               height={40}
               referrerPolicy="no-referrer"
@@ -192,13 +191,15 @@ export function LandingView({
             />
             <div>
               <div
-                className={`font-extrabold text-base sm:text-lg tracking-tight leading-none ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}
+                className="font-extrabold text-base sm:text-lg tracking-tight leading-none"
+                style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
               >
                 ResumeBuilderAi <span className="text-[#FF5A4E]">3.0</span>
               </div>
-              <div className="text-[11px] font-medium text-slate-500 mt-0.5">
+              <div
+                className="text-[11px] font-medium mt-0.5"
+                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+              >
                 AI Resume &amp; Career Studio
               </div>
             </div>
@@ -1118,19 +1119,8 @@ export function LandingView({
       {/* 13. Genuine Verified Candidate Feedback Section */}
       <FeedbackSection isDark={isDark} />
 
-      {/* 14. Transparent Pricing Section Connected to Entitlements */}
-      <PricingSection
-        isDark={isDark}
-        onSelectPlan={(_planId) => {
-          if (!user) {
-            onOpenAuth('signup');
-          } else {
-            onOpenDashboard('overview');
-          }
-        }}
-      />
-
-      {/* 15. Interactive FAQ Accordion */}
+      {/* 14. Interactive FAQ Accordion */}
+      <FaqSection isDark={isDark} />
       <FaqSection isDark={isDark} />
 
       {/* 16. Comprehensive Footer with Identity & Legal Links */}
