@@ -122,7 +122,7 @@ export function QuickCreateSection({
           >
             Studio Tool Suite
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-700 dark:text-slate-200 mt-0.5">
             Quickly launch specialized career acceleration tools.
           </p>
         </div>

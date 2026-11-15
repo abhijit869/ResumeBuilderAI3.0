@@ -43,7 +43,7 @@ export function QuickCreateCard({
           </div>
 
           {badge && (
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
               {badge}
             </span>
           )}
@@ -57,12 +57,12 @@ export function QuickCreateCard({
           {title}
         </h3>
 
-        <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed line-clamp-2">
+        <p className="text-xs text-slate-700 dark:text-slate-200 mt-1.5 leading-relaxed line-clamp-2">
           {description}
         </p>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 group-hover:text-[#FF5A4E] transition-colors">
+      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-[#FF5A4E] transition-colors">
         <span>Launch Tool</span>
         <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
       </div>

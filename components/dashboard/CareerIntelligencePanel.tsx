@@ -104,7 +104,7 @@ export function CareerIntelligencePanel({
           >
             Job Description & MNC Benchmark Analysis
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 mt-0.5">
             Evaluate your active resume against real job requirements or Fortune 500 benchmarks.
           </p>
         </div>
@@ -114,7 +114,7 @@ export function CareerIntelligencePanel({
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-slate-500 dark:text-slate-300 absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={jobInput}
@@ -123,7 +123,7 @@ export function CareerIntelligencePanel({
               className={`w-full pl-10 pr-4 py-3 rounded-2xl text-xs sm:text-sm border focus:outline-none focus:border-[#FF5A4E] transition ${
                 isDark
                   ? 'bg-slate-800/80 border-slate-700 text-white placeholder-slate-500'
-                  : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                  : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-500'
               }`}
             />
           </div>
@@ -153,7 +153,7 @@ export function CareerIntelligencePanel({
           <div className="flex flex-wrap items-center gap-3 text-xs">
             {/* Target Role input */}
             <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 font-medium">Role:</span>
+              <span className="text-slate-600 dark:text-slate-300 font-semibold">Role:</span>
               <input
                 type="text"
                 value={targetRole}
@@ -185,7 +185,7 @@ export function CareerIntelligencePanel({
           <button
             type="button"
             onClick={() => setShowMncBenchmarks(!showMncBenchmarks)}
-            className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 inline-flex items-center gap-1"
+            className="text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1"
           >
             <span>Top MNC Benchmarks ({TOP_MNC_BENCHMARKS.length})</span>
             {showMncBenchmarks ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}

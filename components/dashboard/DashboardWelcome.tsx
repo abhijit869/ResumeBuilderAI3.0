@@ -75,7 +75,7 @@ export function DashboardWelcome({
             Welcome back, {firstName}
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
             Active document:{' '}
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               {activeResume.title}

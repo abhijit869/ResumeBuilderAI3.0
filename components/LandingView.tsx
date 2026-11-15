@@ -37,6 +37,7 @@ import {
   calculateAtsScore,
 } from '@/lib/resume-engine';
 import { ResumeCanvasPreview } from './ResumeCanvasPreview';
+import { WorkflowAnimationShowcase } from './marketing/WorkflowAnimationShowcase';
 import { AiWritingShowcase } from './marketing/AiWritingShowcase';
 import { CoverLetterShowcase } from './marketing/CoverLetterShowcase';
 import { AtsDemoSection } from './marketing/AtsDemoSection';
@@ -935,6 +936,12 @@ export function LandingView({
           )}
         </div>
       </section>
+
+      {/* 3-Stage Animated Workflow Showcase: Build -> Optimize -> Prepare */}
+      <WorkflowAnimationShowcase
+        isDark={isDark}
+        onNavigateTab={(tab) => requireAuth(() => onOpenDashboard(tab))}
+      />
 
       {/* Searchable 12-Template Showcase Section (Live Code-Rendered Previews) */}
       <section

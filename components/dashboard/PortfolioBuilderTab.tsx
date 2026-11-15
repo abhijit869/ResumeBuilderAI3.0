@@ -276,7 +276,7 @@ export function PortfolioBuilderTab({ activeResume, isDark }: PortfolioBuilderTa
             {includeVideo && (
               <div className="space-y-3 pt-1">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     Video Share URL (YouTube, Loom, Vimeo, MP4)
                   </label>
                   <input
@@ -285,11 +285,11 @@ export function PortfolioBuilderTab({ activeResume, isDark }: PortfolioBuilderTa
                     onChange={(e) => setVideoUrl(e.target.value)}
                     placeholder="https://..."
                     className={`w-full px-3 py-2 rounded-xl border text-xs ${
-                      isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                      isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
                     }`}
                   />
                 </div>
-                <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900 text-[11px] text-purple-700 dark:text-purple-300 leading-relaxed">
+                <div className="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-300 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200 leading-relaxed">
                   * Note: For PDF exports, video items are represented by a high-resolution poster frame and a verifiable QR code to prevent broken media embedding.
                 </div>
               </div>

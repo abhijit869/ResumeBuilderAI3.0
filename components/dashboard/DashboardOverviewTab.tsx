@@ -111,7 +111,7 @@ export function DashboardOverviewTab({
             <h3 className={`font-serif text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
               Recently Edited Documents
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+            <p className="text-xs text-slate-700 dark:text-slate-200 mt-0.5">
               Active documents synchronized to your workspace.
             </p>
           </div>
@@ -152,12 +152,12 @@ export function DashboardOverviewTab({
                   <h4 className="font-serif font-bold text-sm text-slate-900 dark:text-white truncate">
                     {r.title}
                   </h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 truncate">
+                    <p className="text-xs text-slate-700 dark:text-slate-200 mt-1 truncate">
                     {r.personalInfo.fullName} · {r.personalInfo.jobTitle}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-300">
                   <span>{r.updatedAt}</span>
                   <span className="font-semibold text-[#FF5A4E]">Select</span>
                 </div>
@@ -194,7 +194,7 @@ export function DashboardOverviewTab({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
-            <div className="text-[11px] font-mono text-slate-400 uppercase">Total Saved</div>
+            <div className="text-[11px] font-mono text-slate-600 dark:text-slate-300 uppercase">Total Saved</div>
             <div className="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">
               {jobApplications.length}
             </div>
