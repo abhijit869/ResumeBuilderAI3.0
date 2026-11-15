@@ -170,54 +170,69 @@ export async function upsertMongoUser(
   user: Partial<MongoUserRecord> & { _id: string; email: string }
 ): Promise<MongoUserRecord | null> {
   if (!isMongoConfigured()) return null;
-  const db = await getMongoDb();
-  const now = new Date();
+  try {
+    const db = await getMongoDb();
+    const now = new Date();
 
-  const updateDoc = {
-    $set: {
-      ...user,
-      updatedAt: now,
-    },
-    $setOnInsert: {
-      createdAt: now,
-      role: 'user' as const,
-      tier: 'free_community' as const,
-      settings: {
-        theme: 'system' as const,
-        autoSave: true,
-        emailNotifications: false,
-        defaultTemplateId: 'coral-modern',
+    const updateDoc = {
+      $set: {
+        ...user,
+        updatedAt: now,
       },
-    },
-  };
+      $setOnInsert: {
+        createdAt: now,
+        role: 'user' as const,
+        tier: 'free_community' as const,
+        settings: {
+          theme: 'system' as const,
+          autoSave: true,
+          emailNotifications: false,
+          defaultTemplateId: 'coral-modern',
+        },
+      },
+    };
 
-  await db
-    .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
-    .updateOne({ _id: user._id }, updateDoc, { upsert: true });
+    await db
+      .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
+      .updateOne({ _id: user._id }, updateDoc, { upsert: true });
 
-  return db
-    .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
-    .findOne({ _id: user._id });
+    return db
+      .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
+      .findOne({ _id: user._id });
+  } catch (err) {
+    console.warn('[MongoDB Service] upsertMongoUser unavailable:', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 export async function findMongoUserById(
   userId: string
 ): Promise<MongoUserRecord | null> {
   if (!isMongoConfigured()) return null;
-  const db = await getMongoDb();
-  return db
-    .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
-    .findOne({ _id: userId });
+  try {
+    const db = await getMongoDb();
+    return db
+      .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
+      .findOne({ _id: userId });
+  } catch (err) {
+    console.warn('[MongoDB Service] findMongoUserById unavailable:', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 export async function findMongoUserByEmail(
   email: string
 ): Promise<MongoUserRecord | null> {
   if (!isMongoConfigured()) return null;
-  const db = await getMongoDb();
-  return db
-    .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
-    .findOne({ email: email.toLowerCase() });
+  try {
+    const db = await getMongoDb();
+    return db
+      .collection<MongoUserRecord>(MONGO_COLLECTIONS.USERS)
+      .findOne({ email: email.toLowerCase() });
+  } catch (err) {
+    console.warn('[MongoDB Service] findMongoUserByEmail unavailable:', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 /**
@@ -228,65 +243,75 @@ export async function saveMongoResume(
   userId: string
 ): Promise<MongoResumeRecord | null> {
   if (!isMongoConfigured()) return null;
-  const db = await getMongoDb();
-  const now = new Date();
+  try {
+    const db = await getMongoDb();
+    const now = new Date();
 
-  const record: MongoResumeRecord = {
-    _id: resume.id,
-    userId,
-    title: resume.title || 'Untitled Resume',
-    templateId: resume.templateId || 'coral-modern',
-    data: resume,
-    targetCompany: undefined,
-    targetRole: resume.targetRoleTag,
-    atsScore: resume.atsScore,
-    isArchived: false,
-    version: 1,
-    createdAt: now,
-    updatedAt: now,
-  };
+    const record: MongoResumeRecord = {
+      _id: resume.id,
+      userId,
+      title: resume.title || 'Untitled Resume',
+      templateId: resume.templateId || 'coral-modern',
+      data: resume,
+      targetCompany: undefined,
+      targetRole: resume.targetRoleTag,
+      atsScore: resume.atsScore,
+      isArchived: false,
+      version: 1,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-  await db
-    .collection<MongoResumeRecord>(MONGO_COLLECTIONS.RESUMES)
-    .updateOne(
-      { _id: resume.id, userId },
-      {
-        $set: {
-          title: record.title,
-          templateId: record.templateId,
-          data: record.data,
-          targetCompany: record.targetCompany,
-          targetRole: record.targetRole,
-          atsScore: record.atsScore,
-          updatedAt: now,
+    await db
+      .collection<MongoResumeRecord>(MONGO_COLLECTIONS.RESUMES)
+      .updateOne(
+        { _id: resume.id, userId },
+        {
+          $set: {
+            title: record.title,
+            templateId: record.templateId,
+            data: record.data,
+            targetCompany: record.targetCompany,
+            targetRole: record.targetRole,
+            atsScore: record.atsScore,
+            updatedAt: now,
+          },
+          $inc: { version: 1 },
+          $setOnInsert: {
+            _id: record._id,
+            userId,
+            createdAt: now,
+            isArchived: false,
+          },
         },
-        $inc: { version: 1 },
-        $setOnInsert: {
-          _id: record._id,
-          userId,
-          createdAt: now,
-          isArchived: false,
-        },
-      },
-      { upsert: true }
-    );
+        { upsert: true }
+      );
 
-  return record;
+    return record;
+  } catch (err) {
+    console.warn('[MongoDB Service] saveMongoResume unavailable:', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 export async function getMongoResumesByUserId(
   userId: string
 ): Promise<ResumeDocument[]> {
   if (!isMongoConfigured()) return [];
-  const db = await getMongoDb();
+  try {
+    const db = await getMongoDb();
 
-  const records = await db
-    .collection<MongoResumeRecord>(MONGO_COLLECTIONS.RESUMES)
-    .find({ userId, isArchived: { $ne: true } })
-    .sort({ updatedAt: -1 })
-    .toArray();
+    const records = await db
+      .collection<MongoResumeRecord>(MONGO_COLLECTIONS.RESUMES)
+      .find({ userId, isArchived: { $ne: true } })
+      .sort({ updatedAt: -1 })
+      .toArray();
 
-  return records.map((r) => r.data);
+    return records.map((r) => r.data);
+  } catch (err) {
+    console.warn('[MongoDB Service] getMongoResumesByUserId unavailable:', err instanceof Error ? err.message : err);
+    return [];
+  }
 }
 
 export async function deleteMongoResume(
@@ -294,11 +319,16 @@ export async function deleteMongoResume(
   userId: string
 ): Promise<boolean> {
   if (!isMongoConfigured()) return false;
-  const db = await getMongoDb();
-  const res = await db
-    .collection<MongoResumeRecord>(MONGO_COLLECTIONS.RESUMES)
-    .deleteOne({ _id: resumeId, userId });
-  return (res.deletedCount || 0) > 0;
+  try {
+    const db = await getMongoDb();
+    const res = await db
+      .collection<MongoResumeRecord>(MONGO_COLLECTIONS.RESUMES)
+      .deleteOne({ _id: resumeId, userId });
+    return (res.deletedCount || 0) > 0;
+  } catch (err) {
+    console.warn('[MongoDB Service] deleteMongoResume unavailable:', err instanceof Error ? err.message : err);
+    return false;
+  }
 }
 
 /**
@@ -309,45 +339,55 @@ export async function saveMongoCoverLetter(
   userId: string
 ): Promise<boolean> {
   if (!isMongoConfigured()) return false;
-  const db = await getMongoDb();
-  const now = new Date();
+  try {
+    const db = await getMongoDb();
+    const now = new Date();
 
-  await db
-    .collection<MongoCoverLetterRecord>(MONGO_COLLECTIONS.COVER_LETTERS)
-    .updateOne(
-      { _id: cl.id, userId },
-      {
-        $set: {
-          linkedResumeId: cl.linkedResumeId,
-          title: cl.title,
-          data: cl,
-          updatedAt: now,
+    await db
+      .collection<MongoCoverLetterRecord>(MONGO_COLLECTIONS.COVER_LETTERS)
+      .updateOne(
+        { _id: cl.id, userId },
+        {
+          $set: {
+            linkedResumeId: cl.linkedResumeId,
+            title: cl.title,
+            data: cl,
+            updatedAt: now,
+          },
+          $setOnInsert: {
+            _id: cl.id,
+            userId,
+            createdAt: now,
+          },
         },
-        $setOnInsert: {
-          _id: cl.id,
-          userId,
-          createdAt: now,
-        },
-      },
-      { upsert: true }
-    );
+        { upsert: true }
+      );
 
-  return true;
+    return true;
+  } catch (err) {
+    console.warn('[MongoDB Service] saveMongoCoverLetter unavailable:', err instanceof Error ? err.message : err);
+    return false;
+  }
 }
 
 export async function getMongoCoverLettersByUserId(
   userId: string
 ): Promise<CoverLetterDocument[]> {
   if (!isMongoConfigured()) return [];
-  const db = await getMongoDb();
+  try {
+    const db = await getMongoDb();
 
-  const records = await db
-    .collection<MongoCoverLetterRecord>(MONGO_COLLECTIONS.COVER_LETTERS)
-    .find({ userId })
-    .sort({ updatedAt: -1 })
-    .toArray();
+    const records = await db
+      .collection<MongoCoverLetterRecord>(MONGO_COLLECTIONS.COVER_LETTERS)
+      .find({ userId })
+      .sort({ updatedAt: -1 })
+      .toArray();
 
-  return records.map((r) => r.data);
+    return records.map((r) => r.data);
+  } catch (err) {
+    console.warn('[MongoDB Service] getMongoCoverLettersByUserId unavailable:', err instanceof Error ? err.message : err);
+    return [];
+  }
 }
 
 /**
@@ -357,36 +397,46 @@ export async function saveMongoPortfolio(
   portfolio: Partial<MongoPortfolioRecord> & { _id: string; userId: string; slug: string }
 ): Promise<boolean> {
   if (!isMongoConfigured()) return false;
-  const db = await getMongoDb();
-  const now = new Date();
+  try {
+    const db = await getMongoDb();
+    const now = new Date();
 
-  await db
-    .collection<MongoPortfolioRecord>(MONGO_COLLECTIONS.PORTFOLIOS)
-    .updateOne(
-      { _id: portfolio._id, userId: portfolio.userId },
-      {
-        $set: {
-          ...portfolio,
-          updatedAt: now,
+    await db
+      .collection<MongoPortfolioRecord>(MONGO_COLLECTIONS.PORTFOLIOS)
+      .updateOne(
+        { _id: portfolio._id, userId: portfolio.userId },
+        {
+          $set: {
+            ...portfolio,
+            updatedAt: now,
+          },
+          $setOnInsert: {
+            createdAt: now,
+          },
         },
-        $setOnInsert: {
-          createdAt: now,
-        },
-      },
-      { upsert: true }
-    );
+        { upsert: true }
+      );
 
-  return true;
+    return true;
+  } catch (err) {
+    console.warn('[MongoDB Service] saveMongoPortfolio unavailable:', err instanceof Error ? err.message : err);
+    return false;
+  }
 }
 
 export async function getMongoPortfolioBySlug(
   slug: string
 ): Promise<MongoPortfolioRecord | null> {
   if (!isMongoConfigured()) return null;
-  const db = await getMongoDb();
-  return db
-    .collection<MongoPortfolioRecord>(MONGO_COLLECTIONS.PORTFOLIOS)
-    .findOne({ slug, isPublished: true });
+  try {
+    const db = await getMongoDb();
+    return db
+      .collection<MongoPortfolioRecord>(MONGO_COLLECTIONS.PORTFOLIOS)
+      .findOne({ slug, isPublished: true });
+  } catch (err) {
+    console.warn('[MongoDB Service] getMongoPortfolioBySlug unavailable:', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 /**

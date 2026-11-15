@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7-day session TTL
 
     // Record session tracking
-    await logMongoAuthRecord({
+    const recorded = await logMongoAuthRecord({
       userId,
       sessionId,
       ipAddress,
@@ -82,9 +82,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ recorded: true });
+    return NextResponse.json({ recorded });
   } catch (err) {
     console.error('Failed to record auth event in MongoDB:', err);
-    return NextResponse.json({ recorded: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ recorded: false, error: 'Database tracking unavailable' }, { status: 200 });
   }
 }
