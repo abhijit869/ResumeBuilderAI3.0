@@ -56,8 +56,20 @@ const UNTRUSTED_DATA_SYSTEM_GUARD =
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { ok: false, error: 'Invalid or empty JSON request body.' },
+        { status: 400 }
+      );
+    }
     const { action } = body;
+    if (!action || typeof action !== 'string') {
+      return NextResponse.json(
+        { ok: false, error: 'Missing or invalid action parameter.' },
+        { status: 400 }
+      );
+    }
     const ai = getAiClient();
     const aiConfigured = Boolean(ai);
 

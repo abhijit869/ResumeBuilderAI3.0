@@ -28,8 +28,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ recorded: false, error: 'Invalid JSON payload' }, { status: 400 });
     }
 
-    const rawUserId = String(body.userId || '').trim();
-    const rawAction = String(body.action || '').trim().toLowerCase();
+    if (typeof body.userId !== 'string' || typeof body.action !== 'string') {
+      return NextResponse.json(
+        { recorded: false, error: 'userId and action must be valid strings' },
+        { status: 400 }
+      );
+    }
+
+    const rawUserId = body.userId.trim();
+    const rawAction = body.action.trim().toLowerCase();
 
     if (!rawUserId || !rawAction) {
       return NextResponse.json({ recorded: false, error: 'Missing userId or action' }, { status: 400 });

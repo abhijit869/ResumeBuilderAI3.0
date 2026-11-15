@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      connected: true,
       data: {
         userId,
         userProfile,
@@ -51,11 +52,22 @@ export async function GET(req: NextRequest) {
         coverLetters,
       },
     });
-  } catch (err) {
-    console.error('MongoDB sync fetch error:', err);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message.split('\n')[0] : String(err);
+    console.warn('[MongoDB Sync] Upstream database read unavailable:', msg);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch synced data from MongoDB.' },
-      { status: 500 }
+      {
+        success: true,
+        connected: false,
+        data: {
+          userId,
+          userProfile: null,
+          resumes: [],
+          coverLetters: [],
+        },
+        notice: 'Cloud database is currently connecting or pending network access.',
+      },
+      { status: 200 }
     );
   }
 }
@@ -162,11 +174,20 @@ export async function POST(req: NextRequest) {
         coverLetters: savedCoverLettersCount,
       },
     });
-  } catch (err) {
-    console.error('MongoDB sync error:', err);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message.split('\n')[0] : String(err);
+    console.warn('[MongoDB Sync] Upstream database write unavailable:', msg);
     return NextResponse.json(
-      { success: false, error: 'Database sync failed.' },
-      { status: 500 }
+      {
+        success: false,
+        connected: false,
+        synced: {
+          resumes: 0,
+          coverLetters: 0,
+        },
+        error: 'Cloud database cluster is currently unreachable. Changes remain cached locally.',
+      },
+      { status: 200 }
     );
   }
 }

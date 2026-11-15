@@ -17,6 +17,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { ResumeDocument } from '@/lib/resume-engine';
+import { escapeHtml } from '@/lib/security-utils';
 
 interface CoverPageDesignerProps {
   activeResume: ResumeDocument;
@@ -43,11 +44,18 @@ export function CoverPageDesigner({ activeResume, isDark }: CoverPageDesignerPro
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    const safeFullName = escapeHtml(activeResume.personalInfo.fullName);
+    const safeJobTitle = escapeHtml(activeResume.personalInfo.jobTitle);
+    const safeIntro = escapeHtml(introStatement);
+    const safeEmail = escapeHtml(activeResume.personalInfo.email);
+    const safePhone = escapeHtml(activeResume.personalInfo.phone);
+    const safeLocation = escapeHtml(activeResume.personalInfo.location);
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${activeResume.personalInfo.fullName} - Executive Cover Sheet</title>
+          <title>${safeFullName} - Executive Cover Sheet</title>
           <style>
             @page { size: A4 portrait; margin: 0; }
             body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; padding: 60px 48px; box-sizing: border-box; background: ${presetTheme === 'slate' ? '#f8fafc' : '#0f172a'}; color: ${presetTheme === 'slate' ? '#0f172a' : '#ffffff'}; }
@@ -61,14 +69,14 @@ export function CoverPageDesigner({ activeResume, isDark }: CoverPageDesignerPro
         <body>
           <div>
             <div class="badge">Executive Dossier & Application</div>
-            <div class="name">${activeResume.personalInfo.fullName}</div>
-            <div class="title">${activeResume.personalInfo.jobTitle}</div>
-            <div class="intro">${introStatement}</div>
+            <div class="name">${safeFullName}</div>
+            <div class="title">${safeJobTitle}</div>
+            <div class="intro">${safeIntro}</div>
           </div>
           <div class="footer">
-            <span>${activeResume.personalInfo.email}</span>
-            <span>${activeResume.personalInfo.phone}</span>
-            <span>${activeResume.personalInfo.location}</span>
+            <span>${safeEmail}</span>
+            <span>${safePhone}</span>
+            <span>${safeLocation}</span>
           </div>
         </body>
       </html>

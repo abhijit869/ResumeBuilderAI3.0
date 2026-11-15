@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { CoverLetterDocument, ResumeDocument } from '@/lib/resume-engine';
+import { escapeHtml } from '@/lib/security-utils';
 
 interface CoverLettersTabProps {
   coverLetters: CoverLetterDocument[];
@@ -136,11 +137,21 @@ export function CoverLettersTab({
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    const safeTitle = escapeHtml(selectedCl.title);
+    const safeFullName = escapeHtml(activeResume.personalInfo.fullName);
+    const safeJobTitle = escapeHtml(activeResume.personalInfo.jobTitle);
+    const safeEmail = escapeHtml(activeResume.personalInfo.email);
+    const safePhone = escapeHtml(activeResume.personalInfo.phone);
+    const safeLocation = escapeHtml(activeResume.personalInfo.location);
+    const safeCompany = escapeHtml(selectedCl.companyName);
+    const safeRole = escapeHtml(selectedCl.roleTitle);
+    const safeContent = escapeHtml(activeDraft || selectedCl.content);
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${selectedCl.title} - Cover Letter</title>
+          <title>${safeTitle} - Cover Letter</title>
           <style>
             @page { size: A4 portrait; margin: 25mm 20mm 20mm 20mm; }
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.6; font-size: 11pt; }
@@ -154,18 +165,18 @@ export function CoverLettersTab({
         </head>
         <body>
           <div class="header">
-            <div class="name">${activeResume.personalInfo.fullName}</div>
+            <div class="name">${safeFullName}</div>
             <div class="contact">
-              ${activeResume.personalInfo.jobTitle} • ${activeResume.personalInfo.email} • ${activeResume.personalInfo.phone} • ${activeResume.personalInfo.location}
+              ${safeJobTitle} • ${safeEmail} • ${safePhone} • ${safeLocation}
             </div>
           </div>
           <div class="date">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
           <div class="recipient">
             Hiring Manager & Talent Acquisition Team<br />
-            <strong>${selectedCl.companyName}</strong><br />
-            Position: ${selectedCl.roleTitle}
+            <strong>${safeCompany}</strong><br />
+            Position: ${safeRole}
           </div>
-          <div class="content">${activeDraft || selectedCl.content}</div>
+          <div class="content">${safeContent}</div>
         </body>
       </html>
     `);
