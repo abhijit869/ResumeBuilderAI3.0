@@ -97,29 +97,22 @@ import {
   type BulletRewriteTone,
   type BulletSuggestionItem,
 } from '@/lib/ai-bullet-rewriter';
-import { DashboardNavRail } from './dashboard/DashboardNavRail';
+import { DashboardHeader } from './dashboard/DashboardHeader';
+import { DashboardSidebar, type DashboardNavTab } from './dashboard/DashboardSidebar';
 import { DashboardOverviewTab } from './dashboard/DashboardOverviewTab';
 import { MyDocumentsTab } from './dashboard/MyDocumentsTab';
 import { CoverLettersTab } from './dashboard/CoverLettersTab';
 import { JobTrackerTab } from './dashboard/JobTrackerTab';
+import { JobBoardTab } from './dashboard/JobBoardTab';
 import { InterviewPrepTab } from './dashboard/InterviewPrepTab';
-import { PortfoliosTab } from './dashboard/PortfoliosTab';
+import { CareerMapTab } from './dashboard/CareerMapTab';
+import { PortfolioBuilderTab } from './dashboard/PortfolioBuilderTab';
+import { CoverPageDesigner } from './dashboard/CoverPageDesigner';
 import { MediaLibraryTab } from './dashboard/MediaLibraryTab';
 import { SettingsTab } from './dashboard/SettingsTab';
+import { AtsCheckerAdvancedTab } from './dashboard/AtsCheckerAdvancedTab';
 
-export type DashboardTab =
-  | 'overview'
-  | 'resumes'
-  | 'editor'
-  | 'cover-letters'
-  | 'ats-checker'
-  | 'career-map'
-  | 'templates'
-  | 'rea-blueprint'
-  | 'interview-prep'
-  | 'portfolios'
-  | 'media-library'
-  | 'settings';
+export type DashboardTab = DashboardNavTab;
 
 interface DashboardViewProps {
   user: { name: string; email: string; plan: string };
@@ -1185,239 +1178,26 @@ export function DashboardView({
           isDark ? 'bg-slate-950 text-slate-100' : 'bg-[#FAF9F6] text-slate-900'
         }`}
       >
-      {/* Top Workspace Bar (Balanced 3-Zone Header Matching Home Page Architecture) */}
-      <header
-        className={`sticky top-0 z-30 backdrop-blur-md border-b transition-colors ${
-          isDark
-            ? 'bg-slate-900/95 border-slate-800'
-            : 'bg-white/95 border-slate-200/80'
-        }`}
-      >
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
-          {/* Left Zone: Brand Logo + Active Resume Selector */}
-          <div className="flex items-center gap-2.5 min-w-0 shrink-0">
-            <button
-              type="button"
-              onClick={onBackToLanding}
-              className="flex items-center gap-2 text-left group shrink-0"
-            >
-              <Image
-                src="/assets/aistudio/image_663e4373.png"
-                alt="ResumeGPT AI Logo"
-                width={36}
-                height={36}
-                referrerPolicy="no-referrer"
-                className="w-9 h-9 rounded-xl object-cover shadow-xs border border-slate-200/70 shrink-0"
-              />
-              <div className="whitespace-nowrap">
-                <div
-                  className={`font-extrabold text-sm sm:text-base tracking-tight leading-none ${
-                    isDark ? 'text-white' : 'text-slate-900'
-                  }`}
-                >
-                  ResumeBuilderAi <span className="text-[#FF5A4E]">3.0</span>
-                </div>
-                <div className="text-[10px] font-mono text-slate-500 mt-0.5">
-                  /dashboard{activeTab === 'resumes' ? '/resumes/' : '/'}
-                </div>
-              </div>
-            </button>
-
-            <div
-              className={`hidden md:flex items-center gap-1.5 pl-2.5 border-l text-xs ${
-                isDark
-                  ? 'border-slate-800 text-slate-400'
-                  : 'border-slate-200 text-slate-500'
-              }`}
-            >
-              <span className="font-medium whitespace-nowrap hidden 2xl:inline">
-                Active:
-              </span>
-              <select
-                aria-label="Active Resume Selector"
-                value={activeResume.id}
-                onChange={(e) => onSelectResume(e.target.value)}
-                className={`font-semibold rounded-lg px-2 py-1.5 border text-xs max-w-[140px] 2xl:max-w-[200px] truncate focus:outline-none focus:border-[#FF5A4E] ${
-                  isDark
-                    ? 'bg-slate-800 text-white border-slate-700'
-                    : 'bg-slate-100 text-slate-900 border-slate-200'
-                }`}
-              >
-                {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Center Zone: Cleanly Aligned Primary Workspace Actions (Desktop xl+) */}
-          <div className="hidden xl:flex items-center justify-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={onOpenLinkedInImport}
-              aria-label="Build from LinkedIn"
-              className="px-2.5 py-1.5 rounded-lg bg-[#0077B5] hover:bg-[#006097] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition whitespace-nowrap"
-            >
-              <FileUp className="w-3.5 h-3.5" />
-              <span>LinkedIn Import</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onOpenAtsScoreGenerator?.()}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition whitespace-nowrap"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>ATS Score Check</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDownloadPdf(activeResume)}
-              aria-label="Download as PDF"
-              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition whitespace-nowrap"
-              title="Download current resume as PDF with print styles preserved"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Download as PDF</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowAiGeneratorModal(true)}
-              className="px-2.5 py-1.5 rounded-lg bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition whitespace-nowrap"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Create</span>
-            </button>
-          </div>
-
-          {/* Right Zone: Theme Toggle, Home Link & User Profile */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={onToggleUiTheme}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} interface theme`}
-              className={`p-2 rounded-lg border text-xs transition ${
-                isDark
-                  ? 'border-slate-700 bg-slate-800 text-amber-300 hover:bg-slate-700'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            <button
-              type="button"
-              onClick={onBackToLanding}
-              className={`px-2.5 py-1.5 rounded-lg border text-xs font-semibold inline-flex items-center gap-1 transition whitespace-nowrap ${
-                isDark
-                  ? 'border-slate-700 text-slate-200 hover:bg-slate-800'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Home</span>
-            </button>
-
-            <div
-              className={`flex items-center gap-1.5 pl-2 border-l ${
-                isDark ? 'border-slate-800' : 'border-slate-200'
-              }`}
-            >
-              <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center shrink-0">
-                {user.name.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="hidden sm:block text-left leading-tight max-w-[90px] 2xl:max-w-[140px]">
-                <div
-                  className={`text-xs font-bold truncate ${
-                    isDark ? 'text-white' : 'text-slate-900'
-                  }`}
-                >
-                  {user.name.split(' ')[0]}
-                </div>
-                <div className="hidden 2xl:block text-[10px] text-slate-500 truncate">
-                  {user.email}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onSignOut}
-                aria-label="Sign out of workspace"
-                title="Sign Out"
-                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 transition shrink-0"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Secondary Wrap-Friendly Action Bar for < xl Viewports (Zero Horizontal Scrollbar) */}
-        <div
-          className={`xl:hidden border-t px-4 py-2 flex flex-wrap items-center justify-between gap-2 ${
-            isDark
-              ? 'border-slate-800 bg-slate-900/90'
-              : 'border-slate-200/70 bg-slate-50/90'
-          }`}
-        >
-          <div className="flex md:hidden items-center gap-1.5 text-xs">
-            <span className="text-slate-500 font-medium">Resume:</span>
-            <select
-              aria-label="Mobile Active Resume Selector"
-              value={activeResume.id}
-              onChange={(e) => onSelectResume(e.target.value)}
-              className="font-semibold text-slate-900 bg-white rounded-md px-2 py-1 border border-slate-200 text-xs max-w-[160px] truncate"
-            >
-              {resumes.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5 ml-auto">
-            <button
-              type="button"
-              onClick={onOpenLinkedInImport}
-              className="px-2.5 py-1.5 rounded-lg bg-[#0077B5] hover:bg-[#006097] text-white text-xs font-semibold inline-flex items-center gap-1 transition whitespace-nowrap"
-            >
-              <FileUp className="w-3.5 h-3.5" />
-              <span>LinkedIn Import</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onOpenAtsScoreGenerator?.()}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1 transition whitespace-nowrap"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>ATS Score Generator</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDownloadPdf(activeResume)}
-              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1 transition whitespace-nowrap"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Download as PDF</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowAiGeneratorModal(true)}
-              className="px-2.5 py-1.5 rounded-lg bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold inline-flex items-center gap-1 transition whitespace-nowrap"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Create</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Redesigned Balanced 3-Zone Header */}
+      <DashboardHeader
+        user={user}
+        uiTheme={uiTheme}
+        onToggleUiTheme={onToggleUiTheme}
+        resumes={resumes}
+        activeResumeId={activeResumeId}
+        onSelectResume={onSelectResume}
+        onCreateResume={() => {
+          const cloned = cloneResumeDocument(
+            activeResume,
+            `Role-Tailored Resume #${resumes.length + 1}`
+          );
+          onCreateResume(cloned);
+          showNotice(`Created "${cloned.title}"`);
+        }}
+        onOpenSettings={() => onChangeTab('settings')}
+        onSignOut={onSignOut}
+        onBackToLanding={onBackToLanding}
+      />
 
       {/* Optional Toast / Status Banner */}
       {statusBanner && (
@@ -1431,9 +1211,9 @@ export function DashboardView({
       )}
 
       {/* Main Workspace Layout: Left Sidebar + Right Active View */}
-      <div className="flex-1 flex flex-col lg:flex-row max-w-[1600px] w-full mx-auto">
-        {/* Modular Left Navigation Rail */}
-        <DashboardNavRail
+      <div className="flex-1 flex flex-col lg:flex-row max-w-[1680px] w-full mx-auto">
+        {/* Modular Left Categorized Sidebar */}
+        <DashboardSidebar
           activeTab={activeTab}
           onChangeTab={onChangeTab}
           isDark={isDark}
@@ -1455,11 +1235,16 @@ export function DashboardView({
               jobApplications={jobApplications}
               activeResume={activeResume}
               onSelectResume={onSelectResume}
+              onUpdateResume={onUpdateResume}
               onOpenEditor={() => onChangeTab('editor')}
               onOpenCoverLetters={() => onChangeTab('cover-letters')}
               onOpenAtsChecker={() => onChangeTab('ats-checker')}
               onOpenLinkedInImport={onOpenLinkedInImport}
+              onOpenAiGenerator={() => setShowAiGeneratorModal(true)}
               onOpenJobTracker={() => onChangeTab('career-map')}
+              onOpenTemplates={() => onChangeTab('templates')}
+              onOpenPortfolios={() => onChangeTab('portfolios')}
+              onOpenInterviewPrep={() => onChangeTab('interview-prep')}
               onCreateNewResume={() => {
                 const cloned = cloneResumeDocument(
                   activeResume,
@@ -1468,6 +1253,7 @@ export function DashboardView({
                 onCreateResume(cloned);
                 showNotice(`Created "${cloned.title}"`);
               }}
+              onDownloadPdf={() => handleDownloadPdf(activeResume)}
               isDark={isDark}
             />
           )}
@@ -2870,674 +2656,84 @@ export function DashboardView({
             </div>
           )}
 
-          {/* VIEW 4: JOB URL FETCHER, TOP MNC & INTERNSHIP HUB, AND ML/DL NEURAL DIAGNOSTIC ENGINE */}
-          {activeTab === 'ats-checker' && (
-            <div className="space-y-6">
-              {/* Top Header Card */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="space-y-1.5">
-                  <span className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                    Job URL Matcher · Top MNC &amp; Internship Accelerator · ML/DL Neural Engine
-                  </span>
-                  <h1 className="font-serif text-2xl sm:text-3xl text-slate-900">
-                    Readiness, Job URL Match &amp; Auto-Optimizer for{' '}
-                    {activeResume.personalInfo.fullName}
-                  </h1>
-                  <p className="text-xs text-slate-500 max-w-2xl">
-                    {atsReport.heuristicDisclaimer}
-                  </p>
-                </div>
+          {/* VIEW: ADVANCED ATS CHECKER & 13-POINT ANALYSIS */}
+          {activeTab === "ats-checker" && (
+            <AtsCheckerAdvancedTab
+              resumes={resumes}
+              activeResume={activeResume}
+              onSelectResume={onSelectResume}
+              onOpenEditorSection={(sec) => {
+                setEditorSection(sec as any);
+                onChangeTab("editor");
+              }}
+              isDark={isDark}
+            />
+          )}
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="text-center px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      TF-IDF + BM25 ML
-                    </div>
-                    <div className="text-2xl font-extrabold text-slate-900 tabular-nums">
-                      {mlDlReport.ensembleShortlistProbability}%
-                    </div>
-                  </div>
-                  <div className="text-center px-4 py-2.5 rounded-xl bg-sky-50 border border-sky-200">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-sky-800">
-                      3-Layer Deep MLP
-                    </div>
-                    <div className="text-2xl font-extrabold text-sky-950 tabular-nums">
-                      {mlDlReport.deepMlpScore}%
-                    </div>
-                  </div>
-                  <div className="text-center px-5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                      Heuristic Score
-                    </div>
-                    <div className="text-2xl font-extrabold text-emerald-900 tabular-nums">
-                      {atsReport.overallScore}
-                      <span className="text-xs font-normal">/100</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Job URL Fetcher + Target Top MNCs + Internship-Ready Hub */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-5">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-                  <div>
-                    <div className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                      1. Fetch Job URL &amp; Select Target Top MNC or Internship Track
-                    </div>
-                    <h2 className="font-bold text-lg text-slate-900 mt-0.5">
-                      Paste Any Job Posting URL or Select a Tier-1 MNC / Internship Benchmark
-                    </h2>
-                  </div>
-
-                  {/* Internship-Ready Mode Switch + 1-Click Auto-Optimize CTA */}
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextIntern = !internshipReadyMode;
-                        handleSelectMncBenchmark(selectedMncId, nextIntern);
-                      }}
-                      className={`px-3.5 py-2 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition ${
-                        internshipReadyMode
-                          ? 'bg-amber-500 border-amber-600 text-white'
-                          : 'bg-slate-50 border-slate-300 text-slate-800 hover:bg-slate-100'
-                      }`}
-                    >
-                      <GraduationCap className="w-4 h-4" />
-                      <span>
-                        {internshipReadyMode
-                          ? 'Internship-Ready Mode: ON'
-                          : 'Enable Internship-Ready Mode'}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => onOpenAtsScoreGenerator?.(selectedJdText)}
-                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#FF5A4E] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      <span>Launch ATS Score Generator &amp; Matcher</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleAutoOptimizeResume()}
-                      className="px-4 py-2 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs transition"
-                    >
-                      <Wand2 className="w-4 h-4" />
-                      <span>
-                        Auto-Optimize Resume for {extractedJob.company.split(' ')[0]}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Job URL Input Bar */}
-                <div className="flex flex-col sm:flex-row gap-2.5">
-                  <input
-                    type="url"
-                    aria-label="Job Posting URL to fetch and match"
-                    value={jobUrlInput}
-                    onChange={(e) => setJobUrlInput(e.target.value)}
-                    placeholder="https://careers.google.com/jobs/results/... or https://www.linkedin.com/jobs/view/..."
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#FF5A4E]"
-                  />
-                  <button
-                    type="button"
-                    disabled={aiBusy === 'job-url'}
-                    onClick={() => handleFetchJobUrlAndMatch()}
-                    className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center justify-center gap-2 shrink-0 transition"
-                  >
-                    <Globe className="w-4 h-4 text-[#FF5A4E]" />
-                    <span>
-                      {aiBusy === 'job-url'
-                        ? 'Fetching Job URL...'
-                        : 'Fetch Job URL & Match Profile'}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Target Top MNCs Selector Pills */}
-                <div className="space-y-2">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    Target Top MNCs &amp; Global Campus Benchmarks (Click to Load Hiring Rubric):
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {TOP_MNC_BENCHMARKS.map((mnc) => {
-                      const active = selectedMncId === mnc.id;
-                      return (
-                        <button
-                          key={mnc.id}
-                          type="button"
-                          onClick={() => handleSelectMncBenchmark(mnc.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                            active
-                              ? 'bg-slate-900 text-white border-slate-900'
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                          }`}
-                        >
-                          {mnc.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Extracted Job URL Summary & MNC Rubric Card */}
-                {(() => {
-                  const currentMnc =
-                    TOP_MNC_BENCHMARKS.find((b) => b.id === selectedMncId) ||
-                    TOP_MNC_BENCHMARKS[0];
-                  return (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-                      <div className="lg:col-span-7 space-y-1.5">
-                        <div className="text-[11px] font-mono uppercase text-slate-500">
-                          Extracted Job Posting · {extractedJob.company} ·{' '}
-                          {extractedJob.seniority}
-                        </div>
-                        <div className="font-bold text-sm text-slate-900">
-                          {extractedJob.roleTitle} ({extractedJob.location})
-                        </div>
-                        <p className="text-slate-600 leading-relaxed">
-                          <strong>MNC Hiring Bar Focus:</strong>{' '}
-                          {currentMnc.hiringBarFocus}
-                        </p>
-                        <p className="text-slate-700">
-                          <strong>{currentMnc.bulletFormulaName}:</strong>{' '}
-                          <span className="font-mono text-[11px]">
-                            {currentMnc.bulletFormulaTemplate}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="lg:col-span-5 flex flex-col justify-between gap-3 border-t lg:border-t-0 lg:border-l border-slate-200 pt-3 lg:pt-0 lg:pl-4">
-                        <div>
-                          <div className="text-[11px] font-bold uppercase text-slate-500 mb-1">
-                            Extracted Required Skills ({extractedJob.requiredSkills.length})
-                          </div>
-                          <div className="text-slate-800 font-medium leading-relaxed">
-                            {extractedJob.requiredSkills.join(' · ')}
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAutoOptimizeResume({
-                                mncId: selectedMncId,
-                                internshipReadyMode: false,
-                              })
-                            }
-                            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-[#FF5A4E] text-white font-semibold transition"
-                          >
-                            Optimize for {currentMnc.name.split(' ')[0]} Full-Time
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleAutoOptimizeResume({
-                                mncId: selectedMncId,
-                                internshipReadyMode: true,
-                              })
-                            }
-                            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold transition"
-                          >
-                            Optimize for {currentMnc.name.split(' ')[0]} Internship
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Applied Auto-Optimization Confirmation Banner */}
-                {lastAutoOptimizeResult && (
-                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 space-y-2 text-xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="font-bold text-emerald-950 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                        <span>
-                          Auto-Optimized Resume for{' '}
-                          {lastAutoOptimizeResult.tailoredForCompany} (
-                          {lastAutoOptimizeResult.tailoredForRole}) — Readiness
-                          jumped from {lastAutoOptimizeResult.beforeScore}% &rarr;{' '}
-                          {lastAutoOptimizeResult.afterScore}%!
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onChangeTab('editor')}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-800 text-white font-semibold"
-                      >
-                        Open Optimized Resume in Editor &rarr;
-                      </button>
-                    </div>
-                    <ul className="list-disc pl-5 text-emerald-900 space-y-0.5">
-                      {lastAutoOptimizeResult.appliedChanges.map((chg, i) => (
-                        <li key={i}>{chg}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* ML & DL Neural Algorithm Telemetry Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Column: Classical ML (TF-IDF Cosine, Okapi BM25, Random Forest + Logistic Regression) */}
-                <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/90 p-6 space-y-5">
-                  <div>
-                    <div className="text-xs font-mono font-bold uppercase text-[#FF5A4E]">
-                      Classical Machine Learning (ML) Scoring Pipeline
-                    </div>
-                    <h2 className="font-bold text-lg text-slate-900 mt-0.5">
-                      TF-IDF Cosine Similarity, Okapi BM25 &amp; Random Forest Ensemble
-                    </h2>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-[10px] font-bold uppercase text-slate-500">
-                        TF-IDF Cosine
-                      </div>
-                      <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-0.5">
-                        {mlDlReport.tfidfCosineSimilarity}%
-                      </div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-[10px] font-bold uppercase text-slate-500">
-                        Okapi BM25
-                      </div>
-                      <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-0.5">
-                        {mlDlReport.bm25Score}%
-                      </div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-[10px] font-bold uppercase text-slate-500">
-                        RF + Logistic Prob
-                      </div>
-                      <div className="text-xl font-extrabold text-emerald-800 tabular-nums mt-0.5">
-                        {mlDlReport.ensembleShortlistProbability}%
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    <div className="font-bold text-slate-700">
-                      Top Weighted TF-IDF &amp; BM25 Shared Terms:
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-800 leading-relaxed">
-                      {mlDlReport.topTfidfTerms
-                        .map((t) => `${t.term} (${t.weight})`)
-                        .join(' · ') || 'Run analysis to compute term weights'}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    <div className="font-bold text-slate-700">
-                      8-Dimensional ML Feature Vector &amp; Random Forest Tree Votes (
-                      {mlDlReport.randomForestTreeVotes.map((v) => `${v}%`).join(' / ')}
-                      ):
-                    </div>
-                    <div className="space-y-1.5">
-                      {mlDlReport.featureVector.map((feat) => (
-                        <div
-                          key={feat.name}
-                          className="flex items-center justify-between gap-2 text-xs bg-slate-50 px-3 py-1.5 rounded border border-slate-200/70"
-                        >
-                          <span className="font-medium text-slate-800">
-                            {feat.name}
-                          </span>
-                          <span className="font-mono font-bold text-slate-900 tabular-nums">
-                            {Math.round(feat.normalizedValue * 100)}% (w=
-                            {feat.importanceWeight})
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column: Deep Learning (3-Layer MLP Forward Pass + Transformer Self-Attention) */}
-                <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/90 p-6 space-y-5">
-                  <div>
-                    <div className="text-xs font-mono font-bold uppercase text-sky-700">
-                      Deep Learning (DL) Neural Architecture
-                    </div>
-                    <h2 className="font-bold text-lg text-slate-900 mt-0.5">
-                      3-Layer MLP (GELU + ReLU + Softmax) &amp; Self-Attention Scorer
-                    </h2>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                    <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
-                      <div className="text-[10px] font-bold uppercase text-sky-800">
-                        Top MNC Ready
-                      </div>
-                      <div className="text-lg font-extrabold text-sky-950 tabular-nums">
-                        {mlDlReport.mlpClassProbabilities.topMncReady}%
-                      </div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                      <div className="text-[10px] font-bold uppercase text-amber-800">
-                        Internship Ready
-                      </div>
-                      <div className="text-lg font-extrabold text-amber-950 tabular-nums">
-                        {mlDlReport.mlpClassProbabilities.internshipReady}%
-                      </div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                      <div className="text-[10px] font-bold uppercase text-emerald-800">
-                        Senior IC Ready
-                      </div>
-                      <div className="text-lg font-extrabold text-emerald-950 tabular-nums">
-                        {mlDlReport.mlpClassProbabilities.seniorSpecialistReady}%
-                      </div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-[10px] font-bold uppercase text-slate-600">
-                        MNC Readiness
-                      </div>
-                      <div className="text-lg font-extrabold text-slate-900 tabular-nums">
-                        {mlDlReport.mncReadinessScore}%
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Neural Layer Activations Readout */}
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[11px] font-mono">
-                    <div className="font-bold text-slate-700">
-                      MLP Hidden Layer 1 (GELU Activations):
-                    </div>
-                    <div className="text-slate-600">
-                      [{mlDlReport.mlpLayerActivations.hiddenLayer1Gelu.join(', ')}]
-                    </div>
-                    <div className="font-bold text-slate-700 pt-1">
-                      MLP Hidden Layer 2 (ReLU Activations):
-                    </div>
-                    <div className="text-slate-600">
-                      [{mlDlReport.mlpLayerActivations.hiddenLayer2Relu.join(', ')}]
-                    </div>
-                  </div>
-
-                  {/* Transformer Self-Attention Bullet Analysis */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-bold text-slate-800">
-                      Transformer Scaled Dot-Product Self-Attention Bullet Analysis:
-                    </div>
-                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                      {mlDlReport.bulletAttentionAnalyses.slice(0, 3).map((ba) => (
-                        <div
-                          key={ba.bulletIndex}
-                          className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-bold text-slate-900">
-                              {ba.role} ({ba.company})
-                            </span>
-                            <span className="font-mono font-bold text-emerald-800 tabular-nums">
-                              Attention: {ba.attentionScore}/100 ·{' '}
-                              {ba.xyzCompliant ? 'X-Y-Z Pass' : 'Needs X-Y-Z Upgrade'}
-                            </span>
-                          </div>
-                          <p className="text-slate-600 text-[11px]">
-                            {ba.originalBullet}
-                          </p>
-                          <div className="text-[10px] font-mono text-slate-500">
-                            Attention Heads: Verb={ba.attentionWeights.actionVerb} ·
-                            Metric={ba.attentionWeights.quantifiedMetric} · Tech=
-                            {ba.attentionWeights.techSpecificity} · Outcome=
-                            {ba.attentionWeights.outcomeClarity}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Job Description Input */}
-                <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 space-y-4">
-                  <div className="space-y-1.5">
-                    <label
-                      htmlFor="ats-jd-textarea"
-                      className="block text-xs font-extrabold uppercase tracking-wider text-slate-600"
-                    >
-                      Target Job Description (Fetched from URL or Custom)
-                    </label>
-                    <select
-                      aria-label="Load preset job description"
-                      onChange={(e) => {
-                        const found = PRESET_JOB_DESCRIPTIONS.find(
-                          (j) => j.id === e.target.value
-                        );
-                        if (found) setSelectedJdText(found.description);
-                      }}
-                      className="w-full text-xs bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 font-medium text-slate-800"
-                    >
-                      {PRESET_JOB_DESCRIPTIONS.map((jd) => (
-                        <option key={jd.id} value={jd.id}>
-                          Preset: {jd.title} ({jd.company})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <textarea
-                    id="ats-jd-textarea"
-                    rows={8}
-                    value={selectedJdText}
-                    onChange={(e) => setSelectedJdText(e.target.value)}
-                    placeholder="Paste target job description here..."
-                    className="w-full p-3 rounded-xl border border-slate-300 text-xs leading-relaxed text-slate-800"
-                  />
-
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      disabled={aiBusy === 'ats'}
-                      onClick={handleRunAtsAudit}
-                      className="w-full py-3 rounded-xl bg-[#FF5A4E] hover:bg-[#e8483c] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition"
-                    >
-                      <RefreshCw
-                        className={`w-4 h-4 ${
-                          aiBusy === 'ats' ? 'animate-spin' : ''
-                        }`}
-                      />
-                      <span>
-                        {aiBusy === 'ats'
-                          ? 'Scanning Resume...'
-                          : 'Run In-Page Diagnostic & ML Check'}
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => onOpenAtsScoreGenerator?.(selectedJdText)}
-                      className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs"
-                    >
-                      <Sparkles className="w-4 h-4 text-amber-300" />
-                      <span>Open Full ATS Score Generator &amp; Match Optimizer</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Right Audit Findings & Before/After Tailoring */}
-                <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-6 space-y-6">
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                    {(
-                      [
-                        { label: 'Impact', val: atsReport.sectionScores.impact },
-                        {
-                          label: 'Keywords',
-                          val: atsReport.sectionScores.keywords,
-                        },
-                        {
-                          label: 'Formatting',
-                          val: atsReport.sectionScores.formatting,
-                        },
-                        {
-                          label: 'Readability',
-                          val: atsReport.sectionScores.readability,
-                        },
-                        {
-                          label: 'Dates',
-                          val: atsReport.sectionScores.dateConsistency,
-                        },
-                      ] as const
-                    ).map((s) => (
-                      <div
-                        key={s.label}
-                        className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-center"
-                      >
-                        <div className="text-[10px] font-bold uppercase text-slate-500">
-                          {s.label}
-                        </div>
-                        <div className="text-lg font-extrabold text-slate-900 tabular-nums mt-0.5">
-                          {s.val}%
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Matched & Missing Keywords */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200">
-                      <div className="text-xs font-bold text-emerald-900 mb-2">
-                        Matched Keywords ({atsReport.matchedKeywords.length})
-                      </div>
-                      <div className="text-xs text-emerald-900 leading-relaxed">
-                        {atsReport.matchedKeywords.join(' · ') || 'None detected'}
-                      </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
-                      <div className="text-xs font-bold text-amber-900 mb-2">
-                        Missing Benchmark Keywords ({atsReport.missingKeywords.length})
-                      </div>
-                      <div className="text-xs text-amber-900 leading-relaxed">
-                        {atsReport.missingKeywords.length === 0
-                          ? 'All benchmark keywords covered!'
-                          : atsReport.missingKeywords.join(' · ')}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actionable ML/DL Suggestions */}
-                  <div className="space-y-2.5">
-                    <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                      Actionable ML/DL &amp; MNC Optimization Suggestions
-                    </div>
-                    {mlDlReport.actionableSuggestions.map((sug) => (
-                      <div
-                        key={sug.id}
-                        className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start justify-between gap-3"
-                      >
-                        <div className="space-y-1">
-                          <div className="text-xs font-bold text-slate-900">
-                            {sug.category} · {sug.title}
-                          </div>
-                          <p className="text-xs text-slate-600">{sug.suggestion}</p>
-                        </div>
-                        {sug.autoFixAvailable && (
-                          <button
-                            type="button"
-                            onClick={() => handleAutoOptimizeResume()}
-                            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-[#FF5A4E] text-white text-[11px] font-semibold shrink-0 transition"
-                          >
-                            Auto-Fix
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Before / After Tailoring Preview */}
-                  <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-slate-200 space-y-3">
-                    <div className="text-xs font-bold uppercase tracking-wider text-[#FF5A4E]">
-                      Job-Description Tailoring — Before / After Comparison
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 rounded-xl bg-white border border-slate-200">
-                        <div className="text-[10px] font-mono uppercase text-slate-500 mb-1">
-                          Current Summary (Before)
-                        </div>
-                        <p className="text-slate-700">
-                          {activeResume.personalInfo.summary}
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200">
-                        <div className="text-[10px] font-mono uppercase text-emerald-800 mb-1">
-                          Tailored Summary (After)
-                        </div>
-                        <p className="text-slate-900 font-medium">
-                          {atsReport.tailoredSummary}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[11px] text-slate-500">
-                        Applies tailored summary, X-Y-Z bullet upgrades, and missing benchmark skills.
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleApplyAtsTailoringToResume}
-                        className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#FF5A4E] text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
-                      >
-                        <Wand2 className="w-3.5 h-3.5" />
-                        <span>
-                          {atsAppliedNotice
-                            ? 'Auto-Optimization Applied ✓'
-                            : 'Accept & Auto-Optimize Resume'}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* VIEW: JOB DISCOVERY BOARD & PIPELINE TRACKER */}
+          {activeTab === "career-map" && (
+            <div className="space-y-8">
+              <JobBoardTab
+                applications={jobApplications}
+                resumes={resumes}
+                onAddApplication={(app) => {
+                  onUpdateJobApplications([app, ...jobApplications]);
+                  showNotice("Added job to pipeline");
+                }}
+                onOpenTailoringForJob={(desc, comp, role) => {
+                  setSelectedJdText(desc);
+                  onChangeTab("ats-checker");
+                }}
+                isDark={isDark}
+              />
+              <JobTrackerTab
+                applications={jobApplications}
+                resumes={resumes}
+                onUpdateApplications={onUpdateJobApplications}
+                isDark={isDark}
+              />
             </div>
           )}
 
-          {/* VIEW 5: MATCHING COVER LETTER STUDIO */}
-          {/* VIEW 4: COVER LETTERS STUDIO */}
-          {activeTab === 'cover-letters' && (
+          {/* VIEW: COVER LETTERS STUDIO */}
+          {activeTab === "cover-letters" && (
             <CoverLettersTab
               coverLetters={coverLetters}
               activeResume={activeResume}
               onCreateCoverLetter={(cl) => {
                 onCreateCoverLetter(cl);
-                showNotice(`Created cover letter for "${cl.companyName}"`);
+                showNotice("Created cover letter for " + cl.companyName);
               }}
               onDeleteCoverLetter={(id) => {
                 onDeleteCoverLetter(id);
-                showNotice('Cover letter removed');
+                showNotice("Cover letter removed");
               }}
               isDark={isDark}
             />
           )}
 
-          {/* VIEW 5: JOB APPLICATION TRACKER & PIPELINE */}
-          {activeTab === 'career-map' && (
-            <JobTrackerTab
-              applications={jobApplications}
-              resumes={resumes}
-              onUpdateApplications={onUpdateJobApplications}
-              isDark={isDark}
-            />
-          )}
-
-          {/* VIEW 6: INTERVIEW PREPARATION (STAR METHOD) */}
-          {activeTab === 'interview-prep' && (
+          {/* VIEW: INTERVIEW PREPARATION (STAR METHOD) */}
+          {activeTab === "interview-prep" && (
             <InterviewPrepTab activeResume={activeResume} isDark={isDark} />
           )}
 
-          {/* VIEW 7: PERSONAL PORTFOLIO WEBSITE */}
-          {activeTab === 'portfolios' && (
-            <PortfoliosTab activeResume={activeResume} isDark={isDark} />
+          {/* VIEW: CAREER MAP & TRAJECTORY PLANNER */}
+          {activeTab === "career-planner" && (
+            <CareerMapTab activeResume={activeResume} isDark={isDark} />
           )}
 
-          {/* VIEW 8: MEDIA & INTRO STUDIO */}
-          {activeTab === 'media-library' && (
+          {/* VIEW: PERSONAL PORTFOLIO WEBSITE */}
+          {activeTab === "portfolios" && (
+            <PortfolioBuilderTab activeResume={activeResume} isDark={isDark} />
+          )}
+
+          {/* VIEW: VISUAL COVER PAGE DESIGNER */}
+          {activeTab === "cover-page" && (
+            <CoverPageDesigner activeResume={activeResume} isDark={isDark} />
+          )}
+
+          {/* VIEW: MEDIA & ASSET STUDIO */}
+          {activeTab === "media-library" && (
             <MediaLibraryTab
               activeResume={activeResume}
               onUpdateResume={onUpdateResume}
@@ -3545,8 +2741,8 @@ export function DashboardView({
             />
           )}
 
-          {/* VIEW 9: WORKSPACE & SECURITY SETTINGS */}
-          {activeTab === 'settings' && (
+          {/* VIEW: WORKSPACE & SECURITY SETTINGS */}
+          {activeTab === "settings" && (
             <SettingsTab
               user={user}
               resumes={resumes}
