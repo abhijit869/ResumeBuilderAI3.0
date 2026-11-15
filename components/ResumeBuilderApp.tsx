@@ -35,6 +35,7 @@ import { AuthModalView } from './AuthModalView';
 import { DashboardView, DashboardTab } from './DashboardView';
 import { LinkedInImportModal } from './LinkedInImportModal';
 import { AtsScoreGeneratorModal } from './AtsScoreGeneratorModal';
+import { SelfHealingProvider } from './SelfHealingProvider';
 
 interface ResumeBuilderAppProps {
   initialMode?: 'landing' | 'dashboard';
@@ -463,7 +464,7 @@ export function ResumeBuilderApp({
     viewMode === 'dashboard' && user !== null && !user.isAnonymous;
 
   return (
-    <>
+    <SelfHealingProvider uiTheme={uiTheme}>
       {!isDashboardViewActive ? (
         <LandingView
           heroResume={demoHeroResume}
@@ -569,6 +570,6 @@ export function ResumeBuilderApp({
           }}
         />
       )}
-    </>
+    </SelfHealingProvider>
   );
 }

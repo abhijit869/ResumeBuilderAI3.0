@@ -78,6 +78,58 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Self-Healing Fluid Typography & Contrast Tokens */
+:root {
+  --adaptive-font-scale: 1;
+  --adaptive-text-primary: #0F172A;
+  --adaptive-text-secondary: #334155;
+  --adaptive-text-muted: #64748B;
+  --adaptive-border-crisp: rgba(226, 232, 240, 0.95);
+  --adaptive-touch-min: 40px;
+}
+
+.dark {
+  --adaptive-text-primary: #F8FAFC;
+  --adaptive-text-secondary: #CBD5E1;
+  --adaptive-text-muted: #64748B;
+  --adaptive-border-crisp: #1F2937;
+}
+
+/* Device-specific auto-scaled typography */
+[data-device-type="mobile"] {
+  font-size: 14.5px;
+}
+[data-device-type="tablet"] {
+  font-size: 15px;
+}
+[data-device-type="laptop"] {
+  font-size: 15.5px;
+}
+[data-device-type="desktop"] {
+  font-size: 16px;
+}
+[data-device-type="ultrawide"] {
+  font-size: 16.5px;
+}
+
+/* High contrast mode auto-heal */
+[data-contrast-mode="high"] {
+  --text-primary: #000000;
+  --text-secondary: #0F172A;
+  --border-subtle: #64748B;
+}
+.dark[data-contrast-mode="high"] {
+  --text-primary: #FFFFFF;
+  --text-secondary: #F1F5F9;
+  --border-subtle: #475569;
+}
+
+/* Anti-blur subpixel rendering for high DPI displays */
+[data-dpr="high"] {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
