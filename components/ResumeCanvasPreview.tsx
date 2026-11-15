@@ -451,10 +451,11 @@ export function ResumeCanvasPreview({
       : undefined;
 
   return (
-    <div
-      style={zoomStyle}
-      className={`mx-auto ${pageDimensionClass} transition-transform print:!w-full print:!max-w-none print:!transform-none print:!scale-100`}
-    >
+    <div className="w-full max-w-full overflow-x-auto overscroll-x-contain py-1 print:!overflow-visible print:!p-0 scrollbar-thin">
+      <div
+        style={zoomStyle}
+        className={`mx-auto ${pageDimensionClass} transition-transform print:!w-full print:!max-w-none print:!transform-none print:!scale-100`}
+      >
       {/* Layout Family A: Banner Two-Column & Pill Grid (green-executive, metro-professional, coral-modern, amber-creative) */}
       {(tplMeta.layoutStyle === 'banner-two-col' ||
         tplMeta.layoutStyle === 'pill-grid') && (
@@ -825,6 +826,7 @@ export function ResumeCanvasPreview({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

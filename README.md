@@ -23,14 +23,14 @@ An enterprise-grade AI Resume Studio, multi-layer ATS Score Checker, Job Descrip
 ## Quick Start
 
 ### 1. Prerequisites
-- **Node.js** `>= 20.x`
+- **Node.js** `24.x` (see `.node-version`)
 - **npm** `>= 10.x`
 
 ### 2. Installation
 ```bash
 git clone https://github.com/abhijit869/ResumeBuilderAI3.0.git
 cd ResumeBuilderAI3.0
-npm install
+npm ci
 cp .env.example .env.local
 ```
 
@@ -49,8 +49,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 5. Run Tests & Production Build
 ```bash
-# Run unit, utility, white-box & security tests (21 test suites)
-npx --yes tsx --test lib/ai-bullet-rewriter.test.ts lib/resume-engine.test.ts lib/security-utils.test.ts
+# Run unit and regression tests
+npm test
 
 # Lint codebase
 npm run lint
@@ -73,3 +73,8 @@ npm run start
 
 This project is licensed under the MIT License.
 
+
+## Deploy to Render
+
+See [the Render deployment guide](docs/render-deployment.md) for the Blueprint,
+required secrets, Firebase configuration, and post-deployment checks.

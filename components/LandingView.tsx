@@ -37,6 +37,17 @@ import {
   calculateAtsScore,
 } from '@/lib/resume-engine';
 import { ResumeCanvasPreview } from './ResumeCanvasPreview';
+import { WorkflowAnimationShowcase } from './marketing/WorkflowAnimationShowcase';
+import { AiWritingShowcase } from './marketing/AiWritingShowcase';
+import { CoverLetterShowcase } from './marketing/CoverLetterShowcase';
+import { AtsDemoSection } from './marketing/AtsDemoSection';
+import { LinkedInWorkflowSection } from './marketing/LinkedInWorkflowSection';
+import { TailoringDemoSection } from './marketing/TailoringDemoSection';
+import { JobTrackerInterviewSection } from './marketing/JobTrackerInterviewSection';
+import { PortfolioShowcaseSection } from './marketing/PortfolioShowcaseSection';
+import { FeedbackSection } from './marketing/FeedbackSection';
+import { FaqSection } from './marketing/FaqSection';
+import { FooterSection } from './marketing/FooterSection';
 
 interface LandingViewProps {
   heroResume: ResumeDocument;
@@ -158,10 +169,10 @@ export function LandingView({
     >
       {/* Top Navigation Bar (Balanced 3-Zone Header + Zero-Scrollbar Responsive Row) */}
       <header
-        className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
+        className={`sticky top-0 z-40 border-b transition-colors shadow-2xs ${
           isDark
-            ? 'bg-slate-950/95 border-slate-800'
-            : 'bg-white/95 border-slate-200/80'
+            ? 'bg-slate-950 border-slate-800'
+            : 'bg-white border-slate-200'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-18 flex items-center justify-between gap-4">
@@ -173,7 +184,7 @@ export function LandingView({
           >
             <Image
               src="/assets/aistudio/image_663e4373.png"
-              alt="ResumeGPT AI Logo"
+              alt="ResumeBuilderAi 3.0 Logo"
               width={40}
               height={40}
               referrerPolicy="no-referrer"
@@ -181,13 +192,15 @@ export function LandingView({
             />
             <div>
               <div
-                className={`font-extrabold text-base sm:text-lg tracking-tight leading-none ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}
+                className="font-extrabold text-base sm:text-lg tracking-tight leading-none"
+                style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
               >
                 ResumeBuilderAi <span className="text-[#FF5A4E]">3.0</span>
               </div>
-              <div className="text-[11px] font-medium text-slate-500 mt-0.5">
+              <div
+                className="text-[11px] font-medium mt-0.5"
+                style={{ color: isDark ? '#94A3B8' : '#64748B' }}
+              >
                 AI Resume &amp; Career Studio
               </div>
             </div>
@@ -924,6 +937,12 @@ export function LandingView({
         </div>
       </section>
 
+      {/* 3-Stage Animated Workflow Showcase: Build -> Optimize -> Prepare */}
+      <WorkflowAnimationShowcase
+        isDark={isDark}
+        onNavigateTab={(tab) => requireAuth(() => onOpenDashboard(tab))}
+      />
+
       {/* Searchable 12-Template Showcase Section (Live Code-Rendered Previews) */}
       <section
         id="templates-showcase-section"
@@ -1055,6 +1074,67 @@ export function LandingView({
           })}
         </div>
       </section>
+
+      {/* 5. AI Resume Writing Showcase */}
+      <AiWritingShowcase
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('editor'))}
+      />
+
+      {/* 6. Cohesive Cover Letter Generation Showcase */}
+      <CoverLetterShowcase
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('cover-letters'))}
+      />
+
+      {/* 7. Explainable Heuristic ATS Checker Demonstration */}
+      <AtsDemoSection
+        isDark={isDark}
+        onCtaClick={() =>
+          requireAuth(() =>
+            onOpenAtsScoreGenerator
+              ? onOpenAtsScoreGenerator()
+              : onOpenDashboard('ats-checker')
+          )
+        }
+      />
+
+      {/* 8. LinkedIn Import Workflow Explanation */}
+      <LinkedInWorkflowSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(onOpenLinkedInImport)}
+      />
+
+      {/* 9. Job-Specific Resume Tailoring Demonstration */}
+      <TailoringDemoSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('ats-checker'))}
+      />
+
+      {/* 10. Job Tracking Pipeline & Interview Preparation Features */}
+      <JobTrackerInterviewSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('career-map'))}
+      />
+
+      {/* 11 & 12. Personal Portfolio Website & Video Pitch Showcase */}
+      <PortfolioShowcaseSection
+        isDark={isDark}
+        onCtaClick={() => requireAuth(() => onOpenDashboard('career-map'))}
+      />
+
+      {/* 13. Genuine Verified Candidate Feedback Section */}
+      <FeedbackSection isDark={isDark} />
+
+      {/* 14. Interactive FAQ Accordion */}
+      <FaqSection isDark={isDark} />
+
+      {/* 15. Comprehensive Footer with Identity & Legal Links */}
+      <FooterSection
+        isDark={isDark}
+        onNavigateTab={(tab) => requireAuth(() => onOpenDashboard(tab as any))}
+        onOpenAuth={onOpenAuth}
+      />
 
       {/* Full-Size Template Preview Modal */}
       {fullPreviewTemplateId && (

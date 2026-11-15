@@ -4,10 +4,167 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* 4-point design system spacing scale */
+  --spacing-0_5: 2px;
+  --spacing-1: 4px;
+  --spacing-1_5: 6px;
+  --spacing-2: 8px;
+  --spacing-2_5: 10px;
+  --spacing-3: 12px;
+  --spacing-3_5: 14px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* Core Design System Colors */
+  --color-coral-brand: #FF5A4E;
+  --color-coral-hover: #E0483C;
+  --color-coral-subtle: rgba(255, 90, 78, 0.08);
+  --color-coral-glow: rgba(255, 90, 78, 0.18);
+  --color-canvas-warm: #FAF9F6;
+}
+
+:root {
+  --bg-primary: #FAF9F6;
+  --bg-surface: #FFFFFF;
+  --bg-surface-subtle: #F8FAFC;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --border-subtle: rgba(226, 232, 240, 0.85);
+  --border-strong: #CBD5E1;
+  --coral-accent: #FF5A4E;
+}
+
+.dark {
+  --bg-primary: #0B0F19;
+  --bg-surface: #111827;
+  --bg-surface-subtle: #1F2937;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #64748B;
+  --border-subtle: #1F2937;
+  --border-strong: #374151;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  touch-action: manipulation;
+  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Crisp rendering enforcement - prevents fuzzy subpixel blur */
+*, *::before, *::after {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Self-Healing Fluid Typography & Contrast Tokens */
+:root {
+  --adaptive-font-scale: 1;
+  --adaptive-text-primary: #0F172A;
+  --adaptive-text-secondary: #334155;
+  --adaptive-text-muted: #64748B;
+  --adaptive-border-crisp: rgba(226, 232, 240, 0.95);
+  --adaptive-touch-min: 40px;
+}
+
+.dark {
+  --adaptive-text-primary: #F8FAFC;
+  --adaptive-text-secondary: #CBD5E1;
+  --adaptive-text-muted: #64748B;
+  --adaptive-border-crisp: #1F2937;
+}
+
+/* Device-specific auto-scaled typography */
+[data-device-type="mobile"] {
+  font-size: 14.5px;
+}
+[data-device-type="tablet"] {
+  font-size: 15px;
+}
+[data-device-type="laptop"] {
+  font-size: 15.5px;
+}
+[data-device-type="desktop"] {
+  font-size: 16px;
+}
+[data-device-type="ultrawide"] {
+  font-size: 16.5px;
+}
+
+/* High contrast mode auto-heal */
+[data-contrast-mode="high"] {
+  --text-primary: #000000;
+  --text-secondary: #0F172A;
+  --border-subtle: #64748B;
+}
+.dark[data-contrast-mode="high"] {
+  --text-primary: #FFFFFF;
+  --text-secondary: #F1F5F9;
+  --border-subtle: #475569;
+}
+
+/* Anti-blur subpixel rendering for high DPI displays */
+[data-dpr="high"] {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Custom Scrollbar Utilities */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* Interactive card transitions */
+.card-hover-lift {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.07), 0 4px 10px -3px rgba(0, 0, 0, 0.04);
 }
 
 @media print {

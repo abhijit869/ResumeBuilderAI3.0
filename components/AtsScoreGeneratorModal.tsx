@@ -308,7 +308,7 @@ RECOMMENDED TAILORED SUMMARY:
           <div className="flex items-center gap-3">
             <Image
               src="/assets/aistudio/image_663e4373.png"
-              alt="ResumeGPT AI Logo"
+              alt="ResumeBuilderAi 3.0 Logo"
               width={40}
               height={40}
               referrerPolicy="no-referrer"

@@ -26,6 +26,8 @@ import {
   SYNTHETIC_LINKEDIN_EXPORT_TEXT,
   LinkedInParseResult,
 } from '@/lib/linkedin-parser';
+import { parsePdfResume } from '@/lib/parsing/pdf-parser';
+import { parseDocxResume } from '@/lib/parsing/docx-parser';
 
 interface LinkedInImportModalProps {
   existingResume: ResumeDocument;
@@ -111,24 +113,39 @@ export function LinkedInImportModal({
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      if (text.startsWith('%PDF')) {
-        const printable = text
-          .replace(/[^\x20-\x7E\r\n]/g, ' ')
-          .split(/\r?\n/)
-          .map((l) => l.trim())
-          .filter((l) => l.length > 4)
-          .slice(0, 60)
-          .join('\n');
-        setRawText(
-          printable.length > 80 ? printable : SYNTHETIC_LINKEDIN_EXPORT_TEXT
-        );
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        const buffer = await file.arrayBuffer();
+        const pdfResult = await parsePdfResume(buffer);
+        if (pdfResult.ok && pdfResult.rawText) {
+          setRawText(pdfResult.rawText);
+          const parsedRes = parseLinkedInInput(pdfResult.rawText);
+          applyParsedProfileToReview(parsedRes);
+          setParseError(null);
+        } else {
+          setParseError(pdfResult.error || 'Failed to extract text from PDF file.');
+        }
+      } else if (file.name.toLowerCase().endsWith('.docx')) {
+        const buffer = await file.arrayBuffer();
+        const docxResult = await parseDocxResume(buffer);
+        if (docxResult.ok && docxResult.rawText) {
+          setRawText(docxResult.rawText);
+          const parsedRes = parseLinkedInInput(docxResult.rawText);
+          applyParsedProfileToReview(parsedRes);
+          setParseError(null);
+        } else {
+          setParseError(docxResult.error || 'Failed to extract text from DOCX file.');
+        }
       } else {
+        const text = await file.text();
         setRawText(text);
+        const parsedRes = parseLinkedInInput(text);
+        if (parsedRes.ok) {
+          applyParsedProfileToReview(parsedRes);
+        }
+        setParseError(null);
       }
-      setParseError(null);
-    } catch {
-      setParseError('Could not read uploaded file. Please try a .pdf, .txt, or .json export.');
+    } catch (err: any) {
+      setParseError(`Could not read uploaded file: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -369,10 +386,10 @@ export function LinkedInImportModal({
               <div className="flex flex-wrap items-center gap-2.5">
                 <label className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer transition">
                   <FileUp className="w-4 h-4" />
-                  <span>Upload LinkedIn PDF / Export (.pdf, .txt)</span>
+                  <span>Upload Resume (PDF, DOCX, TXT)</span>
                   <input
                     type="file"
-                    accept=".pdf,.txt,.json,.md"
+                    accept=".pdf,.docx,.txt,.json,.md"
                     onChange={handleFileUpload}
                     className="hidden"
                   />

@@ -1,5 +1,7 @@
 'use client';
 
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
+
 import React, { useState, useEffect } from 'react';
 import {
   INITIAL_RESUMES,
@@ -35,6 +37,7 @@ import { AuthModalView } from './AuthModalView';
 import { DashboardView, DashboardTab } from './DashboardView';
 import { LinkedInImportModal } from './LinkedInImportModal';
 import { AtsScoreGeneratorModal } from './AtsScoreGeneratorModal';
+import { SelfHealingProvider } from './SelfHealingProvider';
 
 interface ResumeBuilderAppProps {
   initialMode?: 'landing' | 'dashboard';
@@ -153,6 +156,23 @@ export function ResumeBuilderApp({
           if (cloudJobs && cloudJobs.length > 0) {
             setJobApplications(cloudJobs);
           }
+
+          // Hydrate from Cloud MongoDB Atlas if present
+          try {
+            const mongoRes = await authenticatedFetch(`/api/db/sync?userId=${currentUser.uid}`);
+            if (mongoRes.ok) {
+              const mongoData = await mongoRes.json();
+              if (mongoData?.data?.resumes?.length > 0) {
+                setResumes(mongoData.data.resumes);
+                setActiveResumeId(mongoData.data.resumes[0].id);
+              }
+              if (mongoData?.data?.coverLetters?.length > 0) {
+                setCoverLetters(mongoData.data.coverLetters);
+              }
+            }
+          } catch {
+            // Non-blocking background sync
+          }
         } catch (err) {
           console.warn('Firestore database sync notice:', err);
         }
@@ -233,6 +253,17 @@ export function ResumeBuilderApp({
     }
   };
 
+  // Synchronize document.documentElement.classList with uiTheme so dark: variants activate
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (uiTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [uiTheme]);
+
   const persistResumes = (next: ResumeDocument[]) => {
     setResumes(next);
     if (user && !user.isAnonymous) {
@@ -247,6 +278,20 @@ export function ResumeBuilderApp({
       next.forEach((item) => {
         saveResumeToFirestore(user.uid, item);
       });
+      // Synchronize directly to Cloud MongoDB Atlas
+      authenticatedFetch('/api/db/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          userProfile: {
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          },
+          resumes: next,
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -264,6 +309,15 @@ export function ResumeBuilderApp({
       next.forEach((item) => {
         saveCoverLetterToFirestore(user.uid, item);
       });
+      // Synchronize directly to Cloud MongoDB Atlas
+      authenticatedFetch('/api/db/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          coverLetters: next,
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -463,7 +517,7 @@ export function ResumeBuilderApp({
     viewMode === 'dashboard' && user !== null && !user.isAnonymous;
 
   return (
-    <>
+    <SelfHealingProvider uiTheme={uiTheme}>
       {!isDashboardViewActive ? (
         <LandingView
           heroResume={demoHeroResume}
@@ -569,6 +623,6 @@ export function ResumeBuilderApp({
           }}
         />
       )}
-    </>
+    </SelfHealingProvider>
   );
 }
