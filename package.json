@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean"
+    "clean": "next clean",
+    "db:seed": "npx tsx scripts/seed-database.ts",
+    "db:health": "curl -s http://localhost:3000/api/db/health"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

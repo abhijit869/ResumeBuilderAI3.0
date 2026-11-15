@@ -1,8 +1,11 @@
 /**
- * MongoDB Atlas Connection Pool Singleton for Next.js App Router
+ * MongoDB Atlas Cloud Connection Pool Singleton for Next.js App Router
  *
- * Implements recommended Next.js caching on global namespace to prevent
- * excessive connection pooling during Hot Module Replacement (HMR).
+ * Connects directly to the user's MongoDB Atlas Cloud Cluster
+ * (Cluster0: cluster0.0079pe2.mongodb.net / database: resumebuilderai_db).
+ *
+ * Implements connection caching on the global namespace to prevent
+ * excessive connection pooling during Next.js Hot Module Replacement (HMR).
  */
 
 import { MongoClient, Db, MongoClientOptions } from 'mongodb';
@@ -10,31 +13,29 @@ import { MongoClient, Db, MongoClientOptions } from 'mongodb';
 const uri = process.env.MONGODB_URI || '';
 const defaultDbName = process.env.MONGODB_DB_NAME || 'resumebuilderai_db';
 
-const options: MongoClientOptions = {
+const atlasOptions: MongoClientOptions = {
   maxPoolSize: 10,
   minPoolSize: 1,
+  maxIdleTimeMS: 30000,
   serverSelectionTimeoutMS: 5000,
   connectTimeoutMS: 10000,
   socketTimeoutMS: 45000,
   retryWrites: true,
   w: 'majority',
+  tls: true,
 };
-
-let client: MongoClient | null = null;
-let clientPromise: Promise<MongoClient> | null = null;
 
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
 export function isMongoConfigured(): boolean {
-  const uri = process.env.MONGODB_URI || '';
-  return Boolean(uri && uri.startsWith('mongodb'));
+  const connectionUri = process.env.MONGODB_URI || '';
+  return Boolean(connectionUri && connectionUri.startsWith('mongodb'));
 }
 
 export function getMongoClientPromise(): Promise<MongoClient> {
-  const uri = process.env.MONGODB_URI || '';
-  const defaultDbName = process.env.MONGODB_DB_NAME || 'resumebuilderai_db';
+  const connectionUri = process.env.MONGODB_URI || '';
 
   if (!isMongoConfigured()) {
     return Promise.reject(
@@ -43,25 +44,23 @@ export function getMongoClientPromise(): Promise<MongoClient> {
   }
 
   if (process.env.NODE_ENV === 'development') {
-    // In development mode, use a global variable so the MongoClient instance
-    // is not recreated on every module reload caused by HMR.
     if (!global._mongoClientPromise) {
-      client = new MongoClient(uri, options);
-      global._mongoClientPromise = client.connect();
+      const client = new MongoClient(connectionUri, atlasOptions);
+      global._mongoClientPromise = client.connect().catch((err) => {
+        // Reset cached promise on failure so next request can retry
+        global._mongoClientPromise = undefined;
+        throw err;
+      });
     }
     return global._mongoClientPromise;
   } else {
-    // In production mode, it is best to not use a global variable.
-    if (!clientPromise) {
-      client = new MongoClient(uri, options);
-      clientPromise = client.connect();
-    }
-    return clientPromise;
+    const client = new MongoClient(connectionUri, atlasOptions);
+    return client.connect();
   }
 }
 
 /**
- * Retrieves the default database instance.
+ * Retrieves the default MongoDB Atlas database instance.
  */
 export async function getMongoDb(dbName: string = defaultDbName): Promise<Db> {
   const connectedClient = await getMongoClientPromise();

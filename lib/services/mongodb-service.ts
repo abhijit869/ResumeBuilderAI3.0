@@ -30,52 +30,76 @@ export async function initializeMongoIndexes(): Promise<boolean> {
   try {
     const db = await getMongoDb();
 
+    const safeCreateIndex = async (
+      collectionName: string,
+      spec: any,
+      options?: any
+    ) => {
+      try {
+        await db.collection(collectionName).createIndex(spec, options);
+      } catch (err: any) {
+        // Ignore IndexOptionsConflict or already existing index
+        if (err?.code !== 85 && err?.code !== 86) {
+          console.warn(`[Index Notice] ${collectionName}:`, err?.message || err);
+        }
+      }
+    };
+
     // 1. Users Indexes
-    await db.collection(MONGO_COLLECTIONS.USERS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.USERS,
       { email: 1 },
       { unique: true, name: 'idx_users_email_unique' }
     );
 
     // 2. Auth Records TTL & User Index
-    await db.collection(MONGO_COLLECTIONS.AUTH_RECORDS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.AUTH_RECORDS,
       { expiresAt: 1 },
       { expireAfterSeconds: 0, name: 'idx_auth_ttl' }
     );
-    await db.collection(MONGO_COLLECTIONS.AUTH_RECORDS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.AUTH_RECORDS,
       { userId: 1, createdAt: -1 },
       { name: 'idx_auth_user_created' }
     );
 
     // 3. Resumes Compound Index
-    await db.collection(MONGO_COLLECTIONS.RESUMES).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.RESUMES,
       { userId: 1, updatedAt: -1 },
       { name: 'idx_resumes_user_updated' }
     );
 
     // 4. Cover Letters Compound Index
-    await db.collection(MONGO_COLLECTIONS.COVER_LETTERS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.COVER_LETTERS,
       { userId: 1, updatedAt: -1 },
       { name: 'idx_cover_letters_user_updated' }
     );
 
     // 5. Portfolios Unique Slug Index
-    await db.collection(MONGO_COLLECTIONS.PORTFOLIOS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.PORTFOLIOS,
       { slug: 1 },
       { unique: true, name: 'idx_portfolios_slug_unique' }
     );
-    await db.collection(MONGO_COLLECTIONS.PORTFOLIOS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.PORTFOLIOS,
       { userId: 1 },
       { name: 'idx_portfolios_user' }
     );
 
     // 6. Audit Logs Compound Index
-    await db.collection(MONGO_COLLECTIONS.AUDIT_LOGS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.AUDIT_LOGS,
       { userId: 1, timestamp: -1 },
       { name: 'idx_audit_user_time' }
     );
 
     // 7. System Telemetry TTL (30 days = 2,592,000 seconds)
-    await db.collection(MONGO_COLLECTIONS.SYSTEM_LOGS).createIndex(
+    await safeCreateIndex(
+      MONGO_COLLECTIONS.SYSTEM_LOGS,
       { timestamp: 1 },
       { expireAfterSeconds: 2592000, name: 'idx_system_logs_ttl_30d' }
     );
@@ -93,6 +117,7 @@ export async function initializeMongoIndexes(): Promise<boolean> {
  */
 export async function checkMongoHealth(): Promise<{
   connected: boolean;
+  engine: string;
   dbName: string;
   latencyMs: number;
   collections?: string[];
@@ -101,6 +126,7 @@ export async function checkMongoHealth(): Promise<{
   if (!isMongoConfigured()) {
     return {
       connected: false,
+      engine: 'none',
       dbName: 'none',
       latencyMs: 0,
       error: 'MONGODB_URI is not set in environment.',
@@ -119,6 +145,7 @@ export async function checkMongoHealth(): Promise<{
 
     return {
       connected: Boolean(ping.ok),
+      engine: 'mongodb_atlas_cloud',
       dbName: db.databaseName,
       latencyMs,
       collections: collections.map((c) => c.name),
@@ -128,6 +155,7 @@ export async function checkMongoHealth(): Promise<{
     const msg = err instanceof Error ? err.message : String(err);
     return {
       connected: false,
+      engine: 'mongodb_atlas_cloud',
       dbName: process.env.MONGODB_DB_NAME || 'resumebuilderai_db',
       latencyMs,
       error: msg,

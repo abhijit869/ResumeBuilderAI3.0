@@ -28,6 +28,7 @@ export async function GET() {
       {
         status: 'healthy',
         connected: true,
+        engine: health.engine,
         database: health.dbName,
         latencyMs: health.latencyMs,
         collections: health.collections || [],

@@ -154,6 +154,23 @@ export function ResumeBuilderApp({
           if (cloudJobs && cloudJobs.length > 0) {
             setJobApplications(cloudJobs);
           }
+
+          // Hydrate from Cloud MongoDB Atlas if present
+          try {
+            const mongoRes = await fetch(`/api/db/sync?userId=${currentUser.uid}`);
+            if (mongoRes.ok) {
+              const mongoData = await mongoRes.json();
+              if (mongoData?.data?.resumes?.length > 0) {
+                setResumes(mongoData.data.resumes);
+                setActiveResumeId(mongoData.data.resumes[0].id);
+              }
+              if (mongoData?.data?.coverLetters?.length > 0) {
+                setCoverLetters(mongoData.data.coverLetters);
+              }
+            }
+          } catch {
+            // Non-blocking background sync
+          }
         } catch (err) {
           console.warn('Firestore database sync notice:', err);
         }
@@ -259,6 +276,20 @@ export function ResumeBuilderApp({
       next.forEach((item) => {
         saveResumeToFirestore(user.uid, item);
       });
+      // Synchronize directly to Cloud MongoDB Atlas
+      fetch('/api/db/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          userProfile: {
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+          },
+          resumes: next,
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -276,6 +307,15 @@ export function ResumeBuilderApp({
       next.forEach((item) => {
         saveCoverLetterToFirestore(user.uid, item);
       });
+      // Synchronize directly to Cloud MongoDB Atlas
+      fetch('/api/db/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.uid,
+          coverLetters: next,
+        }),
+      }).catch(() => {});
     }
   };
 

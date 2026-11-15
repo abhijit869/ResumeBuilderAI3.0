@@ -4,6 +4,9 @@ import {
   saveMongoCoverLetter,
   upsertMongoUser,
   logMongoAuditEvent,
+  getMongoResumesByUserId,
+  getMongoCoverLettersByUserId,
+  findMongoUserById,
 } from '@/lib/services/mongodb-service';
 import { isMongoConfigured } from '@/lib/mongodb';
 import { sanitizeUntrustedPromptInput } from '@/lib/security-utils';
@@ -12,6 +15,50 @@ import { ResumeDocument, CoverLetterDocument } from '@/lib/resume-engine';
 export const dynamic = 'force-dynamic';
 
 const MAX_BATCH_ITEMS = 50;
+
+export async function GET(req: NextRequest) {
+  if (!isMongoConfigured()) {
+    return NextResponse.json(
+      { success: false, error: 'MongoDB is not configured on this server.' },
+      { status: 503 }
+    );
+  }
+
+  const { searchParams } = new URL(req.url);
+  const rawUserId = searchParams.get('userId');
+  const userId = sanitizeUntrustedPromptInput(rawUserId, 128);
+
+  if (!userId) {
+    return NextResponse.json(
+      { success: false, error: 'userId is required for query.' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const [resumes, coverLetters, userProfile] = await Promise.all([
+      getMongoResumesByUserId(userId),
+      getMongoCoverLettersByUserId(userId),
+      findMongoUserById(userId),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        userId,
+        userProfile,
+        resumes,
+        coverLetters,
+      },
+    });
+  } catch (err) {
+    console.error('MongoDB sync fetch error:', err);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch synced data from MongoDB.' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(req: NextRequest) {
   if (!isMongoConfigured()) {
