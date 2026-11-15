@@ -169,10 +169,10 @@ export function LandingView({
     >
       {/* Top Navigation Bar (Balanced 3-Zone Header + Zero-Scrollbar Responsive Row) */}
       <header
-        className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
+        className={`sticky top-0 z-40 border-b transition-colors shadow-2xs ${
           isDark
-            ? 'bg-slate-950/95 border-slate-800'
-            : 'bg-white/95 border-slate-200/80'
+            ? 'bg-slate-950 border-slate-800'
+            : 'bg-white border-slate-200'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-18 flex items-center justify-between gap-4">

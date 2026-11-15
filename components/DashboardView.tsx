@@ -1225,7 +1225,7 @@ export function DashboardView({
         />
 
         {/* Main View Area */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 w-full text-slate-900">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 w-full text-slate-900 dark:text-slate-100">
           {/* VIEW 1: DASHBOARD OVERVIEW */}
           {activeTab === 'overview' && (
             <DashboardOverviewTab

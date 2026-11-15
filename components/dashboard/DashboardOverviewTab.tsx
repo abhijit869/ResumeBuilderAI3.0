@@ -111,7 +111,7 @@ export function DashboardOverviewTab({
             <h3 className={`font-serif text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
               Recently Edited Documents
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
               Active documents synchronized to your workspace.
             </p>
           </div>
@@ -142,7 +142,7 @@ export function DashboardOverviewTab({
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-semibold">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
                       {r.templateId} · {r.pageSize || 'A4'}
                     </span>
                     <span className="font-mono text-xs font-bold text-emerald-600">
@@ -152,12 +152,12 @@ export function DashboardOverviewTab({
                   <h4 className="font-serif font-bold text-sm text-slate-900 dark:text-white truncate">
                     {r.title}
                   </h4>
-                  <p className="text-xs text-slate-500 mt-1 truncate">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 truncate">
                     {r.personalInfo.fullName} · {r.personalInfo.jobTitle}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                   <span>{r.updatedAt}</span>
                   <span className="font-semibold text-[#FF5A4E]">Select</span>
                 </div>

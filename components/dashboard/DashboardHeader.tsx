@@ -73,10 +73,10 @@ export function DashboardHeader({
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b backdrop-blur-md transition-colors ${
+      className={`sticky top-0 z-40 border-b transition-colors shadow-2xs ${
         isDark
-          ? 'bg-slate-900/90 border-slate-800'
-          : 'bg-white/90 border-slate-200/80'
+          ? 'bg-slate-900 border-slate-800'
+          : 'bg-white border-slate-200'
       }`}
     >
       <div className="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
