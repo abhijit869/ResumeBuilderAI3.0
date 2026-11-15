@@ -1,3 +1,4 @@
+import { authenticateRequest } from '@/lib/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   saveMongoResume,
@@ -17,6 +18,9 @@ export const dynamic = 'force-dynamic';
 const MAX_BATCH_ITEMS = 50;
 
 export async function GET(req: NextRequest) {
+  const identity = await authenticateRequest(req);
+  if (identity instanceof Response) return identity;
+
   if (!isMongoConfigured()) {
     return NextResponse.json(
       { success: false, error: 'MongoDB is not configured on this server.' },
@@ -26,7 +30,10 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const rawUserId = searchParams.get('userId');
-  const userId = sanitizeUntrustedPromptInput(rawUserId, 128);
+  if (rawUserId !== identity.uid) {
+    return NextResponse.json({ error: 'User identity mismatch.' }, { status: 403 });
+  }
+  const userId = identity.uid;
 
   if (!userId) {
     return NextResponse.json(
@@ -73,6 +80,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const identity = await authenticateRequest(req);
+  if (identity instanceof Response) return identity;
+
   if (!isMongoConfigured()) {
     return NextResponse.json(
       { success: false, error: 'MongoDB is not configured on this server.' },
@@ -96,7 +106,10 @@ export async function POST(req: NextRequest) {
       coverLetters?: CoverLetterDocument[];
     };
 
-    const userId = sanitizeUntrustedPromptInput(rawUserId, 128);
+    if (rawUserId !== identity.uid) {
+      return NextResponse.json({ error: 'User identity mismatch.' }, { status: 403 });
+    }
+    const userId = identity.uid;
 
     if (!userId) {
       return NextResponse.json(
@@ -118,7 +131,7 @@ export async function POST(req: NextRequest) {
         ? (userProfile.providerId as 'google.com' | 'password' | 'github.com' | 'demo')
         : 'password';
 
-      await upsertMongoUser({
+      const savedUser = await upsertMongoUser({
         _id: userId,
         email: sanitizedEmail,
         displayName: sanitizedName,
@@ -126,6 +139,7 @@ export async function POST(req: NextRequest) {
         providerId,
         lastLoginAt: new Date(),
       });
+      if (!savedUser) throw new Error('Profile write failed');
     }
 
     // 2. Sync Resumes (bounded batch)
@@ -133,7 +147,7 @@ export async function POST(req: NextRequest) {
       const boundedResumes = resumes.slice(0, MAX_BATCH_ITEMS);
       for (const res of boundedResumes) {
         if (res && res.id && typeof res.id === 'string') {
-          await saveMongoResume(res, userId);
+          if (!await saveMongoResume(res, userId)) throw new Error('Resume write failed');
           savedResumesCount++;
         }
       }
@@ -144,7 +158,7 @@ export async function POST(req: NextRequest) {
       const boundedCoverLetters = coverLetters.slice(0, MAX_BATCH_ITEMS);
       for (const cl of boundedCoverLetters) {
         if (cl && cl.id && typeof cl.id === 'string') {
-          await saveMongoCoverLetter(cl, userId);
+          if (!await saveMongoCoverLetter(cl, userId)) throw new Error('Cover letter write failed');
           savedCoverLettersCount++;
         }
       }

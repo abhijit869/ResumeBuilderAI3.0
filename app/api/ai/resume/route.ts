@@ -20,6 +20,9 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+// Generation routinely exceeds 2.5 seconds; allow a bounded production budget.
+const AI_TIMEOUT_MS = 15000;
+
 
 function getAiClient(): GoogleGenAI | null {
   const key = process.env.GEMINI_API_KEY;
@@ -29,6 +32,7 @@ function getAiClient(): GoogleGenAI | null {
   return new GoogleGenAI({
     apiKey: key,
     httpOptions: {
+      timeout: AI_TIMEOUT_MS,
       headers: {
         'User-Agent': 'aistudio-build',
       },
@@ -36,7 +40,7 @@ function getAiClient(): GoogleGenAI | null {
   });
 }
 
-function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms = AI_TIMEOUT_MS): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('Gemini API timeout')), ms);
     promise
@@ -91,7 +95,7 @@ export async function POST(request: Request) {
                 systemInstruction: UNTRUSTED_DATA_SYSTEM_GUARD,
               },
             }),
-            2500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             return NextResponse.json({
@@ -192,7 +196,7 @@ export async function POST(request: Request) {
                 },
               },
             }),
-            2500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             const parsed = JSON.parse(response.text.trim());
@@ -287,7 +291,7 @@ export async function POST(request: Request) {
                 },
               },
             }),
-            2500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             const parsed = JSON.parse(response.text.trim());
@@ -358,7 +362,7 @@ export async function POST(request: Request) {
                 systemInstruction: UNTRUSTED_DATA_SYSTEM_GUARD,
               },
             }),
-            2500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             return NextResponse.json({
@@ -471,7 +475,7 @@ export async function POST(request: Request) {
                 },
               },
             }),
-            2500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             const generated = JSON.parse(response.text.trim());
@@ -656,7 +660,7 @@ export async function POST(request: Request) {
                 },
               },
             }),
-            2500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             return NextResponse.json({
@@ -719,7 +723,7 @@ export async function POST(request: Request) {
                 },
               },
             }),
-            3500
+            AI_TIMEOUT_MS
           );
           if (response.text) {
             const parsed = JSON.parse(response.text);

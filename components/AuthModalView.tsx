@@ -1,5 +1,7 @@
 'use client';
 
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
+
 import React, { useState } from 'react';
 import Image from 'next/image';
 import {
@@ -69,7 +71,7 @@ export function AuthModalView({
         user = await signInWithGithub();
       }
       // Record session to MongoDB Atlas in background
-      fetch('/api/auth/record', {
+      authenticatedFetch('/api/auth/record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -155,7 +157,7 @@ export function AuthModalView({
         user = await signInUser(email, password);
       }
       // Record session to MongoDB Atlas in background
-      fetch('/api/auth/record', {
+      authenticatedFetch('/api/auth/record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

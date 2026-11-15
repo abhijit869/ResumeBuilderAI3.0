@@ -1,3 +1,4 @@
+import { authenticateRequest } from '@/lib/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
 import { logMongoAuthRecord, logMongoAuditEvent } from '@/lib/services/mongodb-service';
 import { isMongoConfigured } from '@/lib/mongodb';
@@ -18,6 +19,9 @@ const ALLOWED_ACTIONS: Record<string, AuthAction> = {
 };
 
 export async function POST(req: NextRequest) {
+  const identity = await authenticateRequest(req);
+  if (identity instanceof Response) return identity;
+
   if (!isMongoConfigured()) {
     return NextResponse.json({ recorded: false, reason: 'MongoDB not configured' }, { status: 200 });
   }
@@ -43,7 +47,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Input sanitization and bounds checking
-    const userId = sanitizeUntrustedPromptInput(rawUserId, 128);
+    if (rawUserId !== identity.uid) return NextResponse.json({ error: 'User identity mismatch.' }, { status: 403 });
+    const userId = identity.uid;
     const action: AuthAction = ALLOWED_ACTIONS[rawAction] || 'login';
     const status: AuthStatus = body.status === 'failure' || body.status === 'failed' ? 'failure' : 'success';
     const sessionId = sanitizeUntrustedPromptInput(String(body.sessionId || `sess_${Date.now()}`), 128);

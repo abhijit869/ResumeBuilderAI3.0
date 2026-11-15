@@ -10,7 +10,6 @@
 
 import { MongoClient, Db, MongoClientOptions } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || '';
 const defaultDbName = process.env.MONGODB_DB_NAME || 'resumebuilderai_db';
 
 const atlasOptions: MongoClientOptions = {
@@ -43,20 +42,15 @@ export function getMongoClientPromise(): Promise<MongoClient> {
     );
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    if (!global._mongoClientPromise) {
-      const client = new MongoClient(connectionUri, atlasOptions);
-      global._mongoClientPromise = client.connect().catch((err) => {
-        // Reset cached promise on failure so next request can retry
-        global._mongoClientPromise = undefined;
-        throw err;
-      });
-    }
-    return global._mongoClientPromise;
-  } else {
+  if (!global._mongoClientPromise) {
     const client = new MongoClient(connectionUri, atlasOptions);
-    return client.connect();
+    global._mongoClientPromise = client.connect().catch(async (err) => {
+      global._mongoClientPromise = undefined;
+      await client.close().catch(() => {});
+      throw err;
+    });
   }
+  return global._mongoClientPromise;
 }
 
 /**

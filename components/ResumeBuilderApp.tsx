@@ -1,5 +1,7 @@
 'use client';
 
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
+
 import React, { useState, useEffect } from 'react';
 import {
   INITIAL_RESUMES,
@@ -157,7 +159,7 @@ export function ResumeBuilderApp({
 
           // Hydrate from Cloud MongoDB Atlas if present
           try {
-            const mongoRes = await fetch(`/api/db/sync?userId=${currentUser.uid}`);
+            const mongoRes = await authenticatedFetch(`/api/db/sync?userId=${currentUser.uid}`);
             if (mongoRes.ok) {
               const mongoData = await mongoRes.json();
               if (mongoData?.data?.resumes?.length > 0) {
@@ -277,7 +279,7 @@ export function ResumeBuilderApp({
         saveResumeToFirestore(user.uid, item);
       });
       // Synchronize directly to Cloud MongoDB Atlas
-      fetch('/api/db/sync', {
+      authenticatedFetch('/api/db/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -308,7 +310,7 @@ export function ResumeBuilderApp({
         saveCoverLetterToFirestore(user.uid, item);
       });
       // Synchronize directly to Cloud MongoDB Atlas
-      fetch('/api/db/sync', {
+      authenticatedFetch('/api/db/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
