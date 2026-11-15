@@ -1,6 +1,7 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithPopup,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -113,13 +114,15 @@ function notifyAuthListeners(user: AppUserProfile | null) {
   authListeners.forEach((cb) => cb(user));
 }
 
+let memoryLocalAccounts: LocalStoredAccount[] = [];
+
 function getLocalStoredAccounts(): LocalStoredAccount[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === 'undefined') return memoryLocalAccounts;
   try {
     const raw = localStorage.getItem(LOCAL_AUTH_ACCOUNTS_KEY);
-    if (!raw) return [];
+    if (!raw) return memoryLocalAccounts;
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) return memoryLocalAccounts;
     return parsed
       .filter((item) => item && typeof item.email === 'string')
       .map((item) => ({
@@ -136,11 +139,16 @@ function getLocalStoredAccounts(): LocalStoredAccount[] {
         createdAt: String(item.createdAt || new Date().toISOString()),
       }));
   } catch {
-    return [];
+    return memoryLocalAccounts;
   }
 }
 
 function saveLocalStoredAccount(acc: LocalStoredAccount) {
+  memoryLocalAccounts = memoryLocalAccounts.filter(
+    (a) => a.email.toLowerCase() !== acc.email.toLowerCase()
+  );
+  memoryLocalAccounts.push({ ...acc });
+
   if (typeof window === 'undefined') return;
   try {
     const list = getLocalStoredAccounts().filter(
@@ -181,7 +189,10 @@ export async function signUpUser(
     'Professional Candidate'
   ).slice(0, 120);
 
-  if (process.env.NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED === 'true') {
+  const isFirebaseEmailEnabled =
+    process.env.NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED !== 'false';
+
+  if (isFirebaseEmailEnabled) {
     try {
       const credential = await createUserWithEmailAndPassword(
         auth,
@@ -203,12 +214,16 @@ export async function signUpUser(
       return profile;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+      const code = (err as { code?: string })?.code || '';
       if (
         !msg.includes('auth/operation-not-allowed') &&
-        !msg.includes('auth/configuration-not-found')
+        !code.includes('auth/operation-not-allowed') &&
+        !msg.includes('auth/configuration-not-found') &&
+        !code.includes('auth/configuration-not-found')
       ) {
         throw err;
       }
+      // If Firebase Console has not enabled Email/Password method, fall through to secure salted PBKDF2 local account
     }
   }
 
@@ -255,7 +270,10 @@ export async function signInUser(
     throw new Error(passCheck.message || 'auth/invalid-credential');
   }
 
-  if (process.env.NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED === 'true') {
+  const isFirebaseEmailEnabled =
+    process.env.NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED !== 'false';
+
+  if (isFirebaseEmailEnabled) {
     try {
       const credential = await signInWithEmailAndPassword(
         auth,
@@ -267,12 +285,20 @@ export async function signInUser(
       return profile;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+      const code = (err as { code?: string })?.code || '';
       if (
         !msg.includes('auth/operation-not-allowed') &&
-        !msg.includes('auth/configuration-not-found')
+        !code.includes('auth/operation-not-allowed') &&
+        !msg.includes('auth/configuration-not-found') &&
+        !code.includes('auth/configuration-not-found') &&
+        !msg.includes('auth/invalid-credential') &&
+        !code.includes('auth/invalid-credential') &&
+        !msg.includes('auth/user-not-found') &&
+        !code.includes('auth/user-not-found')
       ) {
         throw err;
       }
+      // Otherwise check fallback local account before failing
     }
   }
 
@@ -280,42 +306,80 @@ export async function signInUser(
   const existing = getLocalStoredAccounts().find(
     (a) => a.email.toLowerCase() === normalizedEmail
   );
-  if (existing && existing.passwordHash !== expectedHash) {
+  if (existing) {
+    if (existing.passwordHash !== expectedHash) {
+      throw new Error('auth/invalid-credential');
+    }
+    const profile: AppUserProfile = {
+      uid: existing.uid,
+      email: normalizedEmail,
+      displayName: existing.displayName,
+      providerId: 'password',
+      plan: existing.plan || 'ResumeBuilderAi 3.0 Pro',
+      isAnonymous: false,
+      createdAt: existing.createdAt || new Date().toISOString(),
+    };
+    notifyAuthListeners(profile);
+    return profile;
+  }
+
+  // If Firebase email auth was enabled and user neither matched Firebase nor local:
+  if (isFirebaseEmailEnabled) {
     throw new Error('auth/invalid-credential');
   }
-  const uid =
-    existing?.uid ||
-    `usr-${normalizedEmail.replace(/[^a-z0-9]/g, '').slice(0, 64)}`;
-  const displayName =
-    existing?.displayName ||
-    normalizedEmail
-      .split('@')[0]
-      .replace(/[._-]+/g, ' ')
-      .replace(/\b\w/g, (c) => c.toUpperCase())
-      .slice(0, 120);
 
-  if (!existing) {
-    saveLocalStoredAccount({
-      uid,
-      email: normalizedEmail,
-      displayName,
-      passwordHash: expectedHash,
-      plan: 'ResumeBuilderAi 3.0 Pro',
-      createdAt: new Date().toISOString(),
-    });
-  }
+  const uid = `usr-${normalizedEmail.replace(/[^a-z0-9]/g, '').slice(0, 64)}`;
+  const displayName = normalizedEmail
+    .split('@')[0]
+    .replace(/[._-]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .slice(0, 120);
+
+  saveLocalStoredAccount({
+    uid,
+    email: normalizedEmail,
+    displayName,
+    passwordHash: expectedHash,
+    plan: 'ResumeBuilderAi 3.0 Pro',
+    createdAt: new Date().toISOString(),
+  });
 
   const profile: AppUserProfile = {
     uid,
     email: normalizedEmail,
     displayName,
     providerId: 'password',
-    plan: existing?.plan || 'ResumeBuilderAi 3.0 Pro',
+    plan: 'ResumeBuilderAi 3.0 Pro',
     isAnonymous: false,
-    createdAt: existing?.createdAt || new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
   notifyAuthListeners(profile);
   return profile;
+}
+
+export async function sendPasswordReset(
+  email: string
+): Promise<{ success: boolean; simulated?: boolean }> {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!isValidEmailAddress(normalizedEmail)) {
+    throw new Error('Please enter a valid email address.');
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, normalizedEmail);
+    return { success: true, simulated: false };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (
+      msg.includes('auth/operation-not-allowed') ||
+      msg.includes('auth/configuration-not-found') ||
+      msg.includes('auth/user-not-found')
+    ) {
+      // Local/simulated fallback for unconfigured environments
+      return { success: true, simulated: true };
+    }
+    throw err;
+  }
 }
 
 /**

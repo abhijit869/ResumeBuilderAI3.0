@@ -16,6 +16,7 @@ import {
 import {
   signInUser,
   signUpUser,
+  sendPasswordReset,
   signInWithGoogle,
   signInWithGithub,
   signInWithLinkedIn,
@@ -85,7 +86,19 @@ export function AuthModalView({
         setErrorMsg('Please enter your account email address.');
         return;
       }
-      setResetSent(true);
+      setLoading(true);
+      try {
+        await sendPasswordReset(email);
+        setResetSent(true);
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Failed to send password reset email.';
+        setErrorMsg(msg);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 

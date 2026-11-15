@@ -1431,7 +1431,7 @@ export function DashboardView({
           <div className="hidden lg:block text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold px-2 mb-2">
             Workspace Navigation
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:flex-col gap-1.5">
+          <div className="flex overflow-x-auto lg:flex-col gap-1.5 scrollbar-none pb-1 lg:pb-0 snap-x overscroll-x-contain">
             {[
               {
                 id: 'overview' as DashboardTab,
@@ -1489,7 +1489,7 @@ export function DashboardView({
                   key={item.id}
                   type="button"
                   onClick={() => onChangeTab(item.id)}
-                  className={`px-3 py-2.5 rounded-xl text-left flex items-center justify-between gap-2 transition ${
+                  className={`px-3 py-2.5 rounded-xl text-left flex items-center justify-between gap-2 transition shrink-0 snap-start whitespace-nowrap min-h-[44px] ${
                     isActive
                       ? 'bg-[#FF5A4E] text-white font-semibold shadow-2xs'
                       : isDark
