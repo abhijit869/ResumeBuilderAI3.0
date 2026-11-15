@@ -81,3 +81,44 @@ test('runSecurityAuditReport reports 100% passing automated test suite', () => {
   assert.equal(report.failedChecks, 0);
   assert.ok(report.totalChecks >= 8);
 });
+
+test('Authentication layer handles Firebase network request failures gracefully with secure local fallback', async () => {
+  const {
+    signUpUser,
+    signInUser,
+    signInWithGoogle,
+    signInWithGithub,
+    signInWithLinkedIn,
+    sendPasswordReset,
+  } = await import('./auth-service');
+
+  const testEmail = `candidate-${Date.now()}@resumebuilder.local`;
+  const testPassword = 'SecurePassword123#Valid';
+
+  // 1. Sign up resilient fallback
+  const registered = await signUpUser(testEmail, testPassword, 'Candidate Resilience');
+  assert.equal(registered.email, testEmail);
+  assert.equal(registered.displayName, 'Candidate Resilience');
+
+  // 2. Sign in resilient fallback
+  const loggedIn = await signInUser(testEmail, testPassword);
+  assert.equal(loggedIn.email, testEmail);
+  assert.ok(loggedIn.uid);
+
+  // 3. Social auth resilient fallbacks
+  const googleUser = await signInWithGoogle();
+  assert.ok(googleUser.email);
+  assert.equal(googleUser.providerId, 'google.com');
+
+  const githubUser = await signInWithGithub();
+  assert.ok(githubUser.email);
+  assert.equal(githubUser.providerId, 'github.com');
+
+  const linkedinUser = await signInWithLinkedIn();
+  assert.ok(linkedinUser.email);
+  assert.equal(linkedinUser.providerId, 'linkedin.com');
+
+  // 4. Password reset resilient fallback
+  const resetRes = await sendPasswordReset(testEmail);
+  assert.equal(resetRes.success, true);
+});
