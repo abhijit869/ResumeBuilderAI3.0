@@ -21,7 +21,6 @@ import { ResumeDocument, CoverLetterDocument, JobApplicationItem } from '@/lib/r
 import { DashboardWelcome } from './DashboardWelcome';
 import { CareerIntelligencePanel } from './CareerIntelligencePanel';
 import { QuickCreateSection } from './QuickCreateSection';
-import { FaqSection } from '../marketing/FaqSection';
 
 interface DashboardOverviewTabProps {
   user: { name: string; email: string; plan: string };
@@ -221,8 +220,85 @@ export function DashboardOverviewTab({
         </div>
       </div>
 
-      {/* 6. Dashboard FAQ & Feature Guide */}
-      <FaqSection isDark={isDark} />
+      {/* 6. Career Acceleration Hub: Pro Tips & System Health */}
+      <div
+        className={`p-6 sm:p-8 rounded-3xl border shadow-xs space-y-4 ${
+          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200/90'
+        }`}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-mono font-bold text-[#FF5A4E] uppercase tracking-wider">
+              Career Acceleration Hub
+            </div>
+            <h3
+              className={`font-serif text-lg font-bold mt-0.5 ${
+                isDark ? 'text-white' : 'text-slate-900'
+              }`}
+            >
+              Executive Insights &amp; ATS Best Practices
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenAtsChecker}
+            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition self-start sm:self-auto shadow-2xs"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Launch ATS Audit</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <div
+            className={`p-4 rounded-2xl border ${
+              isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <Sparkles className="w-4 h-4 text-[#FF5A4E]" />
+              <span className="font-bold text-xs text-slate-900 dark:text-white">
+                Google X-Y-Z Formula
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Frame bullet points with measurable outcomes: Accomplished [X] as measured by [Y], by doing [Z].
+            </p>
+          </div>
+
+          <div
+            className={`p-4 rounded-2xl border ${
+              isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span className="font-bold text-xs text-slate-900 dark:text-white">
+                Vector ATS Selectability
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              All 18 original templates generate pure vector character streams parsed cleanly by Workday and Greenhouse.
+            </p>
+          </div>
+
+          <div
+            className={`p-4 rounded-2xl border ${
+              isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <ShieldCheck className="w-4 h-4 text-blue-500" />
+              <span className="font-bold text-xs text-slate-900 dark:text-white">
+                Zero-Trust Isolation
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Documents are isolated to your authenticated account in Firestore and MongoDB with 100% free community access.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

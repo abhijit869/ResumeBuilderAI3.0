@@ -1121,9 +1121,8 @@ export function LandingView({
 
       {/* 14. Interactive FAQ Accordion */}
       <FaqSection isDark={isDark} />
-      <FaqSection isDark={isDark} />
 
-      {/* 16. Comprehensive Footer with Identity & Legal Links */}
+      {/* 15. Comprehensive Footer with Identity & Legal Links */}
       <FooterSection
         isDark={isDark}
         onNavigateTab={(tab) => requireAuth(() => onOpenDashboard(tab as any))}
