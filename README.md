@@ -1,72 +1,96 @@
-# ResumeBuilderAI 3.0
+<div align="center">
+📄 ResumeBuilderAI 3.0
+Build resumes, cover letters, portfolios, and interview prep — all in one AI-assisted career workspace.
+<p> <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white"></a> <a href="https://react.dev/"><img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black"></a> <a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white"></a> <a href="https://tailwindcss.com/"><img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white"></a> </p> <p> <a href="https://nodejs.org/"><img alt="Node.js" src="https://img.shields.io/badge/Node.js-24.x-339933?style=flat-square&logo=nodedotjs&logoColor=white"></a> <a href="https://firebase.google.com/"><img alt="Firebase" src="https://img.shields.io/badge/Firebase-Auth_%26_Firestore-FFCA28?style=flat-square&logo=firebase&logoColor=black"></a> <a href="https://www.mongodb.com/atlas"><img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white"></a> <a href="https://ai.google.dev/"><img alt="Gemini" src="https://img.shields.io/badge/Google-Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white"></a> <a href="https://render.com/"><img alt="Render" src="https://img.shields.io/badge/Deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=black"></a> </p> <p> <a href="#-getting-started">🚀 Getting Started</a> • <a href="#-features">✨ Features</a> • <a href="#-architecture">🏗️ Architecture</a> • <a href="#-api-reference">🔌 API</a> • <a href="#-deployment">☁️ Deployment</a> • <a href="#-documentation">📚 Docs</a> </p> </div>
+📑 Table of Contents
+📖 Overview
+✨ Features
+🖼️ Screenshots
+🏗️ Architecture
+🧰 Technology Stack
+🗂️ Project Structure
+🚀 Getting Started
+🔐 Environment Configuration
+📜 Scripts
+🔌 API Reference
+💾 Persistence
+🛡️ Security
+☁️ Deployment
+🧪 Testing
+🗺️ Roadmap
+🤝 Contributing
+📚 Documentation
+👤 About the Author
+📖 Overview
 
-ResumeBuilderAI 3.0 is a Next.js application for creating and managing resumes, cover letters, portfolios, job applications, and interview preparation. It includes resume templates, ATS-oriented analysis, Gemini-based AI assistance, Firebase authentication and Firestore persistence, and optional MongoDB integration.
+ResumeBuilderAI 3.0 is a browser-based career workspace built with Next.js 15. It brings every step of the job search into one place: designing resumes, writing cover letters, checking ATS readiness, tracking applications, planning a career path, preparing for interviews, and publishing a public portfolio.
 
-## Contents
+💡 At a glance The app combines a template-driven resume editor, heuristic ATS analysis, server-side Gemini AI assistance, Firebase authentication and Firestore persistence, and optional MongoDB integration.
 
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Technology stack](#technology-stack)
-- [Project structure](#project-structure)
-- [Getting started](#getting-started)
-- [Environment configuration](#environment-configuration)
-- [Scripts](#scripts)
-- [API routes](#api-routes)
-- [Persistence](#persistence)
-- [Security](#security)
-- [Deployment](#deployment)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [About](#about)
+🎯 Goal	🔧 How the project delivers it
+Create polished resumes fast	Live-preview editor with 18 template entries and structured sections
+Improve screening readiness	Heuristic ATS scoring and job-description matching
+Reduce writing effort	Server-side Gemini AI with a local fallback engine
+Stay organized	Job tracker, career map, interview prep, and media management
+Share your work	Public portfolio at /p/[slug]
 
-## Overview
+⚠️ Note: The repository contains the implemented application code and supporting architecture, security, deployment, and QA documents. External Firebase, Gemini, and MongoDB services require your own configuration and credentials.
 
-The project provides a browser-based career workspace with separate views for resumes, cover letters, ATS analysis, job tracking, career planning, interview preparation, portfolios, media, and application settings.
+✨ Features
+📝 Resume Builder
 
-The repository contains the implemented application code and supporting architecture, security, deployment, and QA documents. External Firebase, Gemini, and MongoDB services require configuration and credentials.
+Design, edit, and export professional resumes with a real-time preview.
 
-## Features
+🖊️ Resume editor with live preview
+🧩 Structured resume sections and template selection
+🎨 Template registry with 18 template entries
+↩️ Undo / redo support
+🔀 Drag-style section reordering
+📃 Pagination preview
+🖨️ PDF printing, plain-text export, and JSON export
+📥 LinkedIn and document import handling
+🎯 ATS Analysis
 
-### Resume builder
+Understand how your resume may read to applicant tracking systems.
 
-- Resume editor with live preview.
-- Structured resume sections and template selection.
-- Resume template registry with 18 template entries.
-- Undo/redo, section reordering, pagination preview, PDF printing, plain-text export, and JSON export.
-- LinkedIn and document import handling.
+🔍 Heuristic resume analysis and job-description matching
+📊 Feedback on formatting, completeness, keywords, action verbs, metrics, and readability
+💬 Actionable recommendations
 
-### ATS analysis
+ℹ️ ATS scoring and recommendations are heuristic guidance, not a guarantee of screening outcomes.
 
-- Heuristic resume analysis and job-description matching.
-- ATS-oriented feedback for formatting, completeness, keywords, action verbs, metrics, and readability.
-- ATS scoring and recommendations are heuristic guidance, not a guarantee of screening outcomes.
+🤖 AI Assistance
 
-### AI assistance
+Get help with resume and cover-letter writing, without exposing your keys.
 
-- Server-side Gemini integration for resume and cover-letter operations.
-- Local fallback behavior when `GEMINI_API_KEY` is not configured.
-- AI input delimiters and prompt sanitization intended to reduce prompt injection risk.
+⚙️ Server-side Gemini integration for resume and cover-letter operations
+🔁 Local fallback behavior when GEMINI_API_KEY is not configured
+🛡️ AI input delimiters and prompt sanitization intended to reduce prompt-injection risk
+🧭 Career Tools
+Tool	Description
+✉️ Cover Letters	Create and export tailored cover letters
+📌 Job Tracker	Track job applications through each stage
+🗺️ Career Map	Visualize career direction and progression
+🧠 Career Intelligence	Insight-oriented career views
+🎤 Interview Prep	Dedicated interview preparation workspace
+🌐 Portfolio	Public portfolio route at /p/[slug]
+🖼️ Media & Assets	Manage uploaded media and assets
+🎛️ User Interface
+📱 Responsive Next.js App Router pages
+🧭 Dashboard navigation for all workspace modules
+🏷️ Marketing and template showcase sections
+🌗 Browser theme and layout state handling
+🖼️ Screenshots
 
-### Career tools
+📸 Add your own screenshots to public/assets/ or docs/images/ and update the paths below.
 
-- Cover letter creation and export.
-- Job application tracker.
-- Career map and career intelligence views.
-- Interview preparation workspace.
-- Public portfolio route at `/p/[slug]`.
-- Media and asset management views.
+Dashboard	Resume Editor	ATS Checker
+Dashboard	Resume Editor	ATS Checker
+Workspace overview	Live preview editing	Heuristic scoring
+🏗️ Architecture
 
-### User interface
+High-level view of how the browser, route handlers, and external services connect.
 
-- Responsive Next.js App Router pages.
-- Dashboard navigation for the available workspace modules.
-- Marketing and template showcase sections.
-- Browser theme and layout state handling.
-
-## Architecture
-
-```mermaid
 flowchart LR
     User[User Browser] --> UI[Next.js 15 App Router UI]
     UI --> Engines[Resume, ATS, Parsing, and Career Engines]
@@ -80,47 +104,45 @@ flowchart LR
     UI --> Firestore[Cloud Firestore]
 
     AIRoute -. local fallback .-> Engines
-```
 
-The application uses Next.js route handlers for server-side operations. Private AI credentials are not intended for browser bundles. Firebase and MongoDB are optional external integrations and require environment-specific setup.
+Key design points
 
-## Technology stack
-
-| Area | Technology |
-| --- | --- |
-| Framework | Next.js 15 App Router |
-| UI | React 19 |
-| Language | TypeScript 5.9 |
-| Styling | Tailwind CSS 4 |
-| Animation | Motion |
-| Icons | Lucide React |
-| AI | Google Gemini through `@google/genai` |
-| Authentication | Firebase Authentication |
-| Cloud documents | Cloud Firestore |
-| Database integration | MongoDB Atlas through `mongodb` |
-| Validation and linting | ESLint and TypeScript |
-| Testing | Node test runner through `tsx --test` |
-| Deployment | Render-compatible Next.js standalone output |
-
-## Project structure
-
-```text
+🔒 Server-side operations run in Next.js route handlers.
+🔑 Private AI credentials are not intended for browser bundles.
+🔌 Firebase and MongoDB are optional integrations that require environment-specific setup.
+🧰 Technology Stack
+Area	Technology
+🧱 Framework	Next.js 15 App Router
+⚛️ UI	React 19
+🔷 Language	TypeScript 5.9
+🎨 Styling	Tailwind CSS 4
+🎞️ Animation	Motion
+🔣 Icons	Lucide React
+🤖 AI	Google Gemini via @google/genai
+🔐 Authentication	Firebase Authentication
+☁️ Cloud documents	Cloud Firestore
+🍃 Database integration	MongoDB Atlas via mongodb
+✅ Validation & linting	ESLint and TypeScript
+🧪 Testing	Node test runner via tsx --test
+🚢 Deployment	Render-compatible Next.js standalone output
+🗂️ Project Structure
+text
 .
 ├── app/
 │   ├── api/
-│   │   ├── ai/resume/          # Gemini resume operations
-│   │   ├── auth/record/        # Authentication record handler
-│   │   ├── db/health/          # MongoDB health endpoint
-│   │   ├── db/sync/            # Database synchronization endpoint
-│   │   ├── health/             # Process liveness endpoint
-│   │   └── rea-insights/       # Engineering and security insight endpoint
-│   ├── ats-checker/
-│   ├── career-map/
-│   ├── cover-letter/
-│   ├── dashboard/
-│   ├── interview-prep/
-│   ├── p/[slug]/               # Public portfolio route
-│   └── templates/
+│   │   ├── ai/resume/          # 🤖 Gemini resume operations
+│   │   ├── auth/record/        # 🔐 Authentication record handler
+│   │   ├── db/health/          # 🍃 MongoDB health endpoint
+│   │   ├── db/sync/            # 🔄 Database synchronization endpoint
+│   │   ├── health/             # ❤️ Process liveness endpoint
+│   │   └── rea-insights/       # 🛡️ Engineering and security insight endpoint
+│   ├── ats-checker/            # 🎯 ATS analysis page
+│   ├── career-map/             # 🗺️ Career map page
+│   ├── cover-letter/           # ✉️ Cover letter page
+│   ├── dashboard/              # 🧭 Main workspace
+│   ├── interview-prep/         # 🎤 Interview preparation
+│   ├── p/[slug]/               # 🌐 Public portfolio route
+│   └── templates/              # 🎨 Template showcase
 ├── components/
 │   ├── dashboard/              # Dashboard modules
 │   └── marketing/              # Landing-page sections
@@ -135,154 +157,183 @@ The application uses Next.js route handlers for server-side operations. Private 
 │   ├── mongodb.ts
 │   ├── pdf-print-engine.ts
 │   └── security-utils.ts
-├── docs/                       # Architecture and operational documentation
-├── public/assets/              # Static assets
-├── scripts/                    # Verification and deployment scripts
-├── firestore.rules             # Firestore authorization rules
-├── render.yaml                 # Render Blueprint
+├── docs/                       # 📚 Architecture and operational documentation
+├── public/assets/              # 🖼️ Static assets
+├── scripts/                    # 🛠️ Verification and deployment scripts
+├── firestore.rules             # 🔥 Firestore authorization rules
+├── render.yaml                 # ☁️ Render Blueprint
 └── package.json
-```
+🚀 Getting Started
+✅ Prerequisites
+Requirement	Version
+🟢 Node.js	24.x
+📦 npm	10 or newer
 
-## Getting started
+📌 The required Node.js version is recorded in .node-version and package.json.
 
-### Prerequisites
-
-- Node.js 24.x
-- npm 10 or newer
-
-The required Node.js version is recorded in `.node-version` and `package.json`.
-
-### Install
-
-```bash
+⚡ Quick Start
+bash
+# 1. Clone the repository
 git clone https://github.com/abhijit869/ResumeBuilderAI3.0.git
 cd ResumeBuilderAI3.0
+
+# 2. Install dependencies
 npm ci
+
+# 3. Create your local environment file
 cp .env.example .env.local
+
+# 4. Start the development server
 npm run dev
-```
 
-Open `http://localhost:3000`.
+🌐 Open http://localhost:3000 in your browser.
 
-## Environment configuration
+💡 The app runs without any keys configured. AI features use the local fallback, and cloud features stay inactive until you add credentials.
 
-Copy `.env.example` to `.env.local` and configure only the integrations you need.
+🔐 Environment Configuration
 
-| Variable | Purpose |
-| --- | --- |
-| `GEMINI_API_KEY` | Enables server-side Gemini AI operations |
-| `APP_URL` | Canonical application URL |
-| `MONGODB_URI` | MongoDB Atlas connection string |
-| `MONGODB_DB_NAME` | MongoDB database name |
-| `NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED` | Enables the Firebase email/password authentication path |
-| `NEXT_PUBLIC_FIREBASE_*` | Optional Firebase project overrides |
-| `FIREBASE_AUTH_API_KEY` | Optional server-compatible Firebase Identity Toolkit key |
-| `DISABLE_HMR` | Disables HMR in constrained preview environments |
+Copy .env.example to .env.local and configure only the integrations you need.
 
-Keep API keys and database credentials outside source control. Do not add server-only secrets to variables prefixed with `NEXT_PUBLIC_`.
+Variable	Purpose
+GEMINI_API_KEY	🤖 Enables server-side Gemini AI operations
+APP_URL	🌍 Canonical application URL
+MONGODB_URI	🍃 MongoDB Atlas connection string
+MONGODB_DB_NAME	🗄️ MongoDB database name
+NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED	📧 Enables the Firebase email/password authentication path
+NEXT_PUBLIC_FIREBASE_*	🔥 Optional Firebase project overrides
+FIREBASE_AUTH_API_KEY	🔑 Optional server-compatible Firebase Identity Toolkit key
+DISABLE_HMR	⏸️ Disables HMR in constrained preview environments
 
-## Scripts
+🚨 Important
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the Next.js development server |
-| `npm run build` | Build the application |
-| `npm run start` | Start the production server |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript type checking |
-| `npm test` | Run the configured unit and parsing tests |
-| `npm run test:routes` | Check configured application routes |
-| `npm run test:api` | Run API verification checks |
-| `npm run db:seed` | Run the database seed script |
-| `npm run db:health` | Check the local database health endpoint |
-| `npm run build:render` | Build Next.js standalone output for Render |
-| `npm run clean` | Remove `.next` |
+Keep API keys and database credentials outside source control.
+Never put server-only secrets in variables prefixed with NEXT_PUBLIC_.
+📜 Scripts
+Command	Description
+npm run dev	▶️ Start the Next.js development server
+npm run build	🏗️ Build the application
+npm run start	🚀 Start the production server
+npm run lint	🧹 Run ESLint
+npm run typecheck	🔷 Run TypeScript type checking
+npm test	🧪 Run the configured unit and parsing tests
+npm run test:routes	🧭 Check configured application routes
+npm run test:api	🔌 Run API verification checks
+npm run db:seed	🌱 Run the database seed script
+npm run db:health	❤️ Check the local database health endpoint
+npm run build:render	☁️ Build Next.js standalone output for Render
+npm run clean	🗑️ Remove .next
+🔌 API Reference
+Method	Route	Purpose
+Show Image	/api/health	❤️ Process liveness check
+Show Image	/api/db/health	🍃 MongoDB health diagnostic
+Show Image	/api/db/sync	🔄 Database synchronization endpoint
+Show Image	/api/ai/resume	🤖 Server-side AI resume operations
+Show Image	/api/auth/record	🔐 Authentication record handling
+Show Image	/api/rea-insights	🛡️ Security and engineering insight payload
 
-## API routes
+⚠️ Verify route behavior in the deployed environment. A successful health check does not by itself confirm that Firebase, Gemini, or MongoDB credentials are valid.
 
-| Route | Purpose |
-| --- | --- |
-| `GET /api/health` | Process liveness check |
-| `GET /api/db/health` | MongoDB health diagnostic |
-| `POST /api/db/sync` | Database synchronization endpoint |
-| `POST /api/ai/resume` | Server-side AI resume operations |
-| `POST /api/auth/record` | Authentication record handling |
-| `GET /api/rea-insights` | Security and engineering insight payload |
-
-Route behavior should be verified in the deployed environment; health-route success does not by itself confirm that Firebase, Gemini, or MongoDB credentials are valid.
-
-## Persistence
+💾 Persistence
 
 The repository includes both Firebase and MongoDB integrations.
 
-- Firebase Authentication provides browser identity flows.
-- Cloud Firestore stores user-scoped application documents according to `firestore.rules`.
-- MongoDB support is implemented through `lib/mongodb.ts` and the database API routes.
-- Local fallback accounts do not create cloud sessions or cloud-persisted documents.
+Layer	Role
+🔐 Firebase Authentication	Browser identity flows
+🔥 Cloud Firestore	User-scoped application documents, governed by firestore.rules
+🍃 MongoDB	Implemented via lib/mongodb.ts and the database API routes
+💻 Local fallback accounts	Do not create cloud sessions or cloud-persisted documents
 
-Firebase and MongoDB configuration is deployment-specific and may require credentials that are not present in a fresh clone.
+ℹ️ Firebase and MongoDB configuration is deployment-specific and may require credentials that are not present in a fresh clone.
 
-## Security
+🛡️ Security
 
-The codebase includes several defensive measures, including:
+The codebase includes several defensive measures:
 
-- Default-deny Firestore rules with user ownership checks.
-- Document ID and field validation in Firestore rules.
-- HTML escaping in export-related code.
-- URL and protocol validation for external links.
-- Prompt delimiter neutralization and untrusted-data boundaries.
-- Server-side Gemini credential handling.
-- Local credential fallback using PBKDF2-SHA256 with a per-user salt.
+🔥 Default-deny Firestore rules with user ownership checks
+✅ Document ID and field validation in Firestore rules
+🧼 HTML escaping in export-related code
+🔗 URL and protocol validation for external links
+🧱 Prompt delimiter neutralization and untrusted-data boundaries
+🔑 Server-side Gemini credential handling
+🔒 Local credential fallback using PBKDF2-SHA256 with a per-user salt
 
-Security behavior depends on correct environment configuration and deployment settings. The implementation should be independently reviewed before handling sensitive production data.
+⚠️ Disclaimer: Security behavior depends on correct environment configuration and deployment settings. Have the implementation independently reviewed before handling sensitive production data.
 
-See [`docs/security-checklist.md`](docs/security-checklist.md) for the repository-maintained checklist.
+📋 See docs/security-checklist.md for the repository-maintained checklist.
 
-## Deployment
+☁️ Deployment
 
-The repository includes a Render Blueprint in [`render.yaml`](render.yaml). It defines a Node web service, standalone Next.js build command, production start command, and `/api/health` health-check route.
+The repository includes a Render Blueprint in render.yaml. It defines:
 
-Before deployment:
+🟢 A Node web service
+🏗️ A standalone Next.js build command
+🚀 A production start command
+❤️ A /api/health health-check route
+📋 Pre-deployment Checklist
+[ ] Configure GEMINI_API_KEY and MONGODB_URI in the hosting environment (if used)
+[ ] Configure Firebase Authentication providers and authorized domains (if using Firebase)
+[ ] Configure MongoDB Atlas network access for the hosting service
+[ ] Set APP_URL to the public HTTPS URL (for a custom domain or fixed canonical URL)
+[ ] Deploy the repository's Firestore rules to your Firebase project
 
-1. Configure `GEMINI_API_KEY` and `MONGODB_URI` in the hosting environment if those integrations are used.
-2. Configure Firebase Authentication providers and authorized domains when using Firebase.
-3. Configure MongoDB Atlas network access for the hosting service.
-4. Set `APP_URL` to the public HTTPS URL if a custom domain or fixed canonical URL is used.
-5. Deploy the repository's Firestore rules to the configured Firebase project.
+📘 See docs/render-deployment.md for full details.
 
-See [`docs/render-deployment.md`](docs/render-deployment.md) for deployment details.
-
-## Testing
+🧪 Testing
 
 Run the repository checks after local setup:
 
-```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
-```
+bash
+npm run typecheck   # 🔷 Types
+npm run lint        # 🧹 Lint
+npm test            # 🧪 Unit & parsing tests
+npm run build       # 🏗️ Production build
 
 Route and API verification scripts can be run against a running instance:
 
-```bash
+bash
 BASE_URL=http://localhost:3000 npm run test:routes
 BASE_URL=http://localhost:3000 npm run test:api
-```
+🗺️ Roadmap
 
-## Documentation
+Suggested directions. Edit this list to match your actual plans.
 
-- [`docs/architecture.md`](docs/architecture.md)
-- [`docs/feature-matrix.md`](docs/feature-matrix.md)
-- [`docs/api-integrations.md`](docs/api-integrations.md)
-- [`docs/database-schema.md`](docs/database-schema.md)
-- [`docs/security-checklist.md`](docs/security-checklist.md)
-- [`docs/qa-report.md`](docs/qa-report.md)
-- [`docs/render-deployment.md`](docs/render-deployment.md)
-- [`docs/render-verification.md`](docs/render-verification.md)
+[ ] 📸 Add product screenshots and a short demo GIF
+[ ] 🧪 Expand automated test coverage
+[ ] 🌍 Additional resume templates and localization
+[ ] 📤 More export formats
+[ ] 📈 Deeper analytics in the job tracker
+🤝 Contributing
 
-## About
+Contributions, issues, and feature requests are welcome.
 
-ResumeBuilderAI 3.0 is created and maintained by [Abhijit Biswas](https://github.com/abhijit869).
+🍴 Fork the repository
+🌿 Create a feature branch: git checkout -b feature/my-feature
+✅ Run npm run typecheck, npm run lint, and npm test
+💾 Commit your changes: git commit -m "Add my feature"
+📤 Push the branch: git push origin feature/my-feature
+🔁 Open a Pull Request
 
-Repository: [abhijit869/ResumeBuilderAI3.0](https://github.com/abhijit869/ResumeBuilderAI3.0)
+🔐 Please never commit secrets, API keys, or .env.local files.
+
+📚 Documentation
+Document	Description
+🏗️ docs/architecture.md	System architecture
+🧩 docs/feature-matrix.md	Feature overview
+🔌 docs/api-integrations.md	External API integrations
+🗄️ docs/database-schema.md	Database schema
+🛡️ docs/security-checklist.md	Security checklist
+✅ docs/qa-report.md	QA report
+☁️ docs/render-deployment.md	Render deployment guide
+🔎 docs/render-verification.md	Render verification steps
+👤 About the Author
+
+ResumeBuilderAI 3.0 is created and maintained by Abhijit Biswas.
+
+<p> <a href="https://github.com/abhijit869"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-abhijit869-181717?style=for-the-badge&logo=github&logoColor=white"></a> <a href="https://github.com/abhijit869/ResumeBuilderAI3.0"><img alt="Repository" src="https://img.shields.io/badge/Repo-ResumeBuilderAI3.0-0969DA?style=for-the-badge&logo=github&logoColor=white"></a> </p>
+<div align="center">
+
+⭐ If this project helps you, consider giving it a star on GitHub! ⭐
+
+Made with ❤️ by Abhijit Biswas
+
+</div>
