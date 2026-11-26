@@ -231,23 +231,23 @@ External credentials are not required to inspect the local UI or run its local f
 
 Create `.env.local` from `.env.example`.
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `GEMINI_API_KEY` | No | Enables Gemini AI requests |
-| `APP_URL` | No | Sets a canonical application URL |
-| `MONGODB_URI` | No | MongoDB Atlas connection string |
-| `MONGODB_DB_NAME` | No | MongoDB database name |
-| `NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED` | No | Enables the Firebase email/password authentication path |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | No | Firebase project override |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | No | Firebase app override |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | No | Firebase web API key override |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | No | Firebase Auth domain override |
-| `NEXT_PUBLIC_FIREBASE_DATABASE_ID` | No | Firestore database ID override |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | No | Firebase Storage bucket override |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | No | Firebase messaging sender override |
-| `NEXT_PUBLIC_FIREBASE_OAUTH_CLIENT_ID` | No | Firebase OAuth client override |
-| `FIREBASE_AUTH_API_KEY` | No | Optional server-side Identity Toolkit API key |
-| `DISABLE_HMR` | No | Disables Next.js HMR when set to `true` |
+| Variable | Purpose |
+| --- | --- |
+| `GEMINI_API_KEY` | Enables Gemini AI requests |
+| `APP_URL` | Sets a canonical application URL |
+| `MONGODB_URI` | MongoDB Atlas connection string |
+| `MONGODB_DB_NAME` | MongoDB database name |
+| `NEXT_PUBLIC_FIREBASE_EMAIL_AUTH_ENABLED` | Enables the Firebase email/password authentication path |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project override |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase app override |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase web API key override |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain override |
+| `NEXT_PUBLIC_FIREBASE_DATABASE_ID` | Firestore database ID override |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase Storage bucket override |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender override |
+| `NEXT_PUBLIC_FIREBASE_OAUTH_CLIENT_ID` | Firebase OAuth client override |
+| `FIREBASE_AUTH_API_KEY` | Optional server-side Identity Toolkit API key |
+| `DISABLE_HMR` | Disables Next.js HMR when set to `true` |
 
 Never commit `.env.local` or place secrets in variables prefixed with `NEXT_PUBLIC_`.
 
